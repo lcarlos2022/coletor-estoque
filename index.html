@@ -8,9 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Leitor QR Code -->
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- Gerador de Excel -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- SDK do EmailJS para envio em segundo plano -->
+    <!-- SDK do EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen pb-12 font-sans">
@@ -63,24 +61,18 @@
                 <p class="text-gray-400 text-center py-4 text-xs">Nenhum item adicionado ainda.</p>
             </div>
 
-            <!-- Seleção de Destinatários -->
+            <!-- Campo Editável de E-mails para o Celular -->
             <div class="pt-3 border-t space-y-3">
-                <p class="text-xs font-bold text-gray-500 uppercase text-center">Destinatários do Relatório</p>
+                <p class="text-xs font-bold text-gray-500 uppercase">Enviar Relatório Para:</p>
                 
-                <div class="bg-gray-50 p-3 rounded-lg space-y-2 text-xs">
-                    <label class="flex items-center gap-2 cursor-pointer text-gray-700 font-medium">
-                        <input type="checkbox" id="chk-corporativo" checked class="w-4 h-4 text-blue-600 rounded">
-                        <span>luiz.oliveira@brava.com.br</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer text-gray-700 font-medium">
-                        <input type="checkbox" id="chk-gmail" checked class="w-4 h-4 text-blue-600 rounded">
-                        <span>ocluiz2021@gmail.com</span>
-                    </label>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">Digite os e-mails (separados por vírgula):</label>
+                    <textarea id="input-emails" rows="2" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="exemplo@email.com, outro@email.com">luiz.oliveira@brava.com.br, ocluiz2021@gmail.com</textarea>
                 </div>
 
                 <!-- Botão de Envio Direto -->
                 <button id="btn-envio" onclick="enviarRelatorioServidor()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                    🚀 Enviar Relatório Diretamente por E-mail
+                    🚀 Enviar Relatório Por E-mail
                 </button>
                 <p id="status-envio" class="text-xs text-center font-semibold text-gray-600 hidden"></p>
             </div>
@@ -89,9 +81,7 @@
     </div>
 
     <script>
-        // =========================================================
-        // CONFIGURAÇÃO AUTOMÁTICA DO EMAILJS
-        // =========================================================
+        // CONFIGURAÇÕES DO EMAILJS
         const EMAILJS_PUBLIC_KEY = "dO0wI6pOJV9s518uu";
         const EMAILJS_SERVICE_ID = "service_f8n7him";
         const EMAILJS_TEMPLATE_ID = "7g8ecwv";
@@ -107,9 +97,7 @@
         const DADOS_EMPRESA = {
             cnpj: "20.948.559/0001-55",
             nome: "Grupo Brava Construcao e Incorporacao",
-            razaoSocial: "Mda Construcoes LTDA",
-            emailCorporativo: "luiz.oliveira@brava.com.br",
-            emailGmail: "ocluiz2021@gmail.com"
+            razaoSocial: "Mda Construcoes LTDA"
         };
 
         function processarQRCode(rawText) {
@@ -195,17 +183,12 @@
                 return;
             }
 
-            let chkCorp = document.getElementById('chk-corporativo').checked;
-            let chkGmail = document.getElementById('chk-gmail').checked;
+            let emailsDigitados = document.getElementById('input-emails').value.trim();
 
-            if (!chkCorp && !chkGmail) {
-                alert('Selecione ao menos um destinatário!');
+            if (!emailsDigitados) {
+                alert('Por favor, informe ao menos um e-mail para envio!');
                 return;
             }
-
-            let destinatarios = [];
-            if (chkCorp) destinatarios.push(DADOS_EMPRESA.emailCorporativo);
-            if (chkGmail) destinatarios.push(DADOS_EMPRESA.emailGmail);
 
             let btn = document.getElementById('btn-envio');
             let status = document.getElementById('status-envio');
@@ -228,7 +211,7 @@
             });
 
             let templateParams = {
-                to_email: destinatarios.join(', '),
+                to_email: emailsDigitados,
                 subject: `Inventário de Estoque - ${DADOS_EMPRESA.nome}`,
                 message: relatorioTexto
             };
@@ -240,7 +223,7 @@
                 status.classList.add('text-green-600');
             } catch (error) {
                 console.error("Erro no envio:", error);
-                status.innerText = "❌ Erro ao enviar e-mail. Verifique a conexão.";
+                status.innerText = "❌ Erro ao enviar e-mail. Verifique a conexão ou a trava de segurança do EmailJS.";
                 status.classList.remove('text-green-600');
                 status.classList.add('text-red-600');
             } finally {
