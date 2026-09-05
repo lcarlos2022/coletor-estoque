@@ -61,13 +61,36 @@
                 <p class="text-gray-400 text-center py-4 text-xs">Nenhum item adicionado ainda.</p>
             </div>
 
-            <!-- Campo Editável de E-mails para o Celular -->
+            <!-- Seleção Separada de E-mail Corporativo e Pessoal -->
             <div class="pt-3 border-t space-y-3">
                 <p class="text-xs font-bold text-gray-500 uppercase">Enviar Relatório Para:</p>
                 
+                <div class="bg-gray-50 p-3 rounded-lg space-y-3 border border-gray-200">
+                    <!-- E-mail Corporativo -->
+                    <div>
+                        <span class="block text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-0.5">E-mail Corporativo</span>
+                        <label class="flex items-center gap-2 cursor-pointer text-gray-800 text-xs font-medium">
+                            <input type="checkbox" id="chk-corp" checked class="w-4 h-4 text-blue-600 rounded">
+                            <span>luiz.oliveira@brava.com.br</span>
+                        </label>
+                    </div>
+
+                    <hr class="border-gray-200">
+
+                    <!-- E-mail Pessoal / Privado -->
+                    <div>
+                        <span class="block text-[10px] font-bold text-green-600 uppercase tracking-wider mb-0.5">E-mail Pessoal</span>
+                        <label class="flex items-center gap-2 cursor-pointer text-gray-800 text-xs font-medium">
+                            <input type="checkbox" id="chk-pessoal" checked class="w-4 h-4 text-blue-600 rounded">
+                            <span>ocluiz2021@gmail.com</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Campo para E-mail Adicional do Celular (Opcional) -->
                 <div>
-                    <label class="block text-xs text-gray-600 mb-1">Digite os e-mails (separados por vírgula):</label>
-                    <textarea id="input-emails" rows="2" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="exemplo@email.com, outro@email.com">luiz.oliveira@brava.com.br, ocluiz2021@gmail.com</textarea>
+                    <label class="block text-xs text-gray-500 mb-1">Outro e-mail para esta contagem (opcional):</label>
+                    <input type="email" id="input-outro-email" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="exemplo@email.com">
                 </div>
 
                 <!-- Botão de Envio Direto -->
@@ -84,7 +107,7 @@
         // CONFIGURAÇÕES DO EMAILJS
         const EMAILJS_PUBLIC_KEY = "dO0wI6pOJV9s518uu";
         const EMAILJS_SERVICE_ID = "service_f8n7him";
-        const EMAILJS_TEMPLATE_ID = "template_mppjgke"; // ID CORRIGIDO AQUI!
+        const EMAILJS_TEMPLATE_ID = "template_mppjgke";
 
         (function() {
             emailjs.init(EMAILJS_PUBLIC_KEY);
@@ -99,6 +122,27 @@
             nome: "Grupo Brava Construcao e Incorporacao",
             razaoSocial: "Mda Construcoes LTDA"
         };
+
+        // Função para tocar o BIP ao escanear
+        function tocarBip() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Frequência do Bip
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+                oscillator.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.15); // Duração de 150ms
+            } catch (e) {
+                console.log("Áudio indisponível:", e);
+            }
+        }
 
         function processarQRCode(rawText) {
             let codigo = rawText;
@@ -118,6 +162,7 @@
         }
 
         function onScanSuccess(decodedText) {
+            tocarBip(); // Toca o BIP imediatamente após a leitura
             if (html5QrCode) html5QrCode.pause();
             itemAtual = processarQRCode(decodedText);
             document.getElementById('modal-codigo').innerText = itemAtual.codigo;
@@ -183,10 +228,21 @@
                 return;
             }
 
-            let emailsDigitados = document.getElementById('input-emails').value.trim();
+            let destinatarios = [];
+            if (document.getElementById('chk-corp').checked) {
+                destinatarios.push('luiz.oliveira@brava.com.br');
+            }
+            if (document.getElementById('chk-pessoal').checked) {
+                destinatarios.push('ocluiz2021@gmail.com');
+            }
+            
+            let outroEmail = document.getElementById('input-outro-email').value.trim();
+            if (outroEmail !== '') {
+                destinatarios.push(outroEmail);
+            }
 
-            if (!emailsDigitados) {
-                alert('Por favor, informe ao menos um e-mail para envio!');
+            if (destinatarios.length === 0) {
+                alert('Por favor, selecione ao menos um e-mail para envio!');
                 return;
             }
 
@@ -198,7 +254,6 @@
             status.innerText = "⏳ Enviando relatório...";
             status.classList.remove('hidden');
 
-            // Formatação do relatório de inventário
             let relatorioTexto = `RELATÓRIO DE INVENTÁRIO - ${DADOS_EMPRESA.nome}\n`;
             relatorioTexto += `Razão Social: ${DADOS_EMPRESA.razaoSocial}\n`;
             relatorioTexto += `CNPJ: ${DADOS_EMPRESA.cnpj}\n`;
@@ -211,7 +266,7 @@
             });
 
             let templateParams = {
-                to_email: emailsDigitados,
+                to_email: destinatarios.join(', '),
                 subject: `Inventário de Estoque - ${DADOS_EMPRESA.nome}`,
                 message: relatorioTexto
             };
