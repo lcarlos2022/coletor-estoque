@@ -56,17 +56,30 @@
             </div>
         </div>
 
-        <!-- Lista de Itens Contados -->
-        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
-            <div class="flex justify-between items-center mb-3">
+        <!-- Lista de Itens Contados e Opções de Envio -->
+        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
                 <h2 class="font-semibold text-gray-700">Itens Contados (<span id="total-itens">0</span>)</h2>
                 <button onclick="gerarExcel()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow">
-                    📊 Exportar Excel
+                    📊 Baixar Excel
                 </button>
             </div>
             
-            <div class="max-h-60 overflow-y-auto divide-y text-sm" id="lista-produtos">
+            <div class="max-h-52 overflow-y-auto divide-y text-sm" id="lista-produtos">
                 <p class="text-gray-400 text-center py-4 text-xs">Nenhum item adicionado ainda.</p>
+            </div>
+
+            <!-- Botões de Compartilhamento Direto -->
+            <div class="pt-2 border-t space-y-2">
+                <p class="text-xs font-bold text-gray-500 uppercase text-center">Enviar Relatório Final</p>
+                
+                <button onclick="enviarWhatsApp()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
+                    💬 Enviar pelo WhatsApp
+                </button>
+                
+                <button onclick="enviarEmail()" class="w-full bg-slate-700 hover:bg-slate-800 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
+                    ✉️ Enviar por E-mail (Empresa + Pessoal)
+                </button>
             </div>
         </div>
 
@@ -76,25 +89,40 @@
         let itensContados = {};
         let html5QrCode = null;
         let itemAtual = null;
+        let audioCtx = null;
 
-        // Função para emitir som de Bipe do Leitor de Código de Barras
+        // Configurações de E-mail (Altere aqui se necessário)
+        const EMAIL_CORPORATIVO = "empresa@totalerp.com.br";
+        const EMAIL_PESSOAL = "seu-email-pessoal@gmail.com";
+
+        // Inicializa o contexto de áudio na primeira interação do usuário
+        function inicializarAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Emitir Bipe Sonoro
         function tocarBipe() {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                inicializarAudio();
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
 
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(1800, audioCtx.currentTime); // Frequência do bipe em Hz
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime); // Som agudo 2000Hz
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
 
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
 
                 oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.15); // Duração de 150ms
+                oscillator.stop(audioCtx.currentTime + 0.12); // Duração curta de 120ms
             } catch (e) {
-                console.warn("Áudio não suportado ou aguardando interação do usuário.");
+                console.warn("Aguardando interação para áudio.");
             }
         }
 
@@ -121,7 +149,6 @@
                 html5QrCode.pause();
             }
 
-            // Toca o bipe sonoro imediatamente na leitura
             tocarBipe();
 
             itemAtual = processarQRCode(decodedText);
@@ -194,7 +221,48 @@
             document.getElementById('total-itens').innerText = total;
         }
 
-        // Exportação simplificada sem colunas de datas/horas
+        function gerarTextoRelatorio() {
+            let chaves = Object.keys(itensContados);
+            if (chaves.length === 0) return null;
+
+            let texto = "*RELATÓRIO DE INVENTÁRIO DE ESTOQUE*\n";
+            texto += "-------------------------------------\n";
+            
+            chaves.forEach(codigo => {
+                let item = itensContados[codigo];
+                texto += `Cód: ${codigo} | Qtd: ${item.quantidade}\n`;
+                texto += `Desc: ${item.descricao}\n\n`;
+            });
+
+            texto += "-------------------------------------\n";
+            texto += `Total de Itens: ${document.getElementById('total-itens').innerText}`;
+            return texto;
+        }
+
+        function enviarWhatsApp() {
+            let texto = gerarTextoRelatorio();
+            if (!texto) {
+                alert('Nenhum produto para enviar!');
+                return;
+            }
+            let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+            window.open(url, '_blank');
+        }
+
+        function enviarEmail() {
+            let texto = gerarTextoRelatorio();
+            if (!texto) {
+                alert('Nenhum produto para enviar!');
+                return;
+            }
+
+            let destinatarios = `${EMAIL_CORPORATIVO},${EMAIL_PESSOAL}`;
+            let assunto = encodeURIComponent("Relatório de Inventário de Estoque");
+            let corpo = encodeURIComponent(texto);
+
+            window.location.href = `mailto:${destinatarios}?subject=${assunto}&body=${corpo}`;
+        }
+
         function gerarExcel() {
             let chaves = Object.keys(itensContados);
             if (chaves.length === 0) {
@@ -216,11 +284,11 @@
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Inventario");
 
-            // Gera o arquivo com nome padronizado
             XLSX.writeFile(wb, `Relatorio_Inventario.xlsx`);
         }
 
         async function iniciarCameraTraseira() {
+            inicializarAudio();
             try {
                 if (html5QrCode) {
                     try { await html5QrCode.stop(); } catch(e){}
@@ -252,14 +320,16 @@
                     await html5QrCode.start({ facingMode: { exact: "environment" } }, config, onScanSuccess);
                 }
             } catch (err) {
-                console.warn("Tentando modo fallback...", err);
+                console.warn("Fallback de câmera...", err);
                 try {
                     await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 220 } }, onScanSuccess);
                 } catch(e) {
-                    alert("Por favor, verifique as permissões da câmera no seu navegador.");
+                    alert("Por favor, verifique as permissões da câmera.");
                 }
             }
         }
+
+        document.body.addEventListener('click', () => inicializarAudio(), { once: true });
 
         window.addEventListener('load', () => {
             iniciarCameraTraseira();
