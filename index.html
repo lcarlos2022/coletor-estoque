@@ -90,16 +90,14 @@
 
     <script>
         // =========================================================
-        // CONFIGURAÇÃO DO EMAILJS (PREENCHA APENAS AS 2 LINHAS ABAIXO)
+        // CONFIGURAÇÃO AUTOMÁTICA DO EMAILJS
         // =========================================================
-        const EMAILJS_PUBLIC_KEY = "SUA_PUBLIC_KEY_AQUI"; // Cole aqui a API Key/Public Key
-        const EMAILJS_SERVICE_ID = "SEU_SERVICE_ID_AQUI"; // Cole aqui o Service ID do Hotmail/Outlook
-        const EMAILJS_TEMPLATE_ID = "7g8ecwv";            // Seu Template ID já configurado!
+        const EMAILJS_PUBLIC_KEY = "dO0wI6pOJV9s518uu";
+        const EMAILJS_SERVICE_ID = "service_f8n7him";
+        const EMAILJS_TEMPLATE_ID = "7g8ecwv";
 
         (function() {
-            if (EMAILJS_PUBLIC_KEY !== "SUA_PUBLIC_KEY_AQUI") {
-                emailjs.init(EMAILJS_PUBLIC_KEY);
-            }
+            emailjs.init(EMAILJS_PUBLIC_KEY);
         })();
 
         let itensContados = {};
@@ -217,7 +215,7 @@
             status.innerText = "⏳ Enviando relatório...";
             status.classList.remove('hidden');
 
-            // Formatação do conteúdo do e-mail
+            // Formatação do relatório de inventário
             let relatorioTexto = `RELATÓRIO DE INVENTÁRIO - ${DADOS_EMPRESA.nome}\n`;
             relatorioTexto += `Razão Social: ${DADOS_EMPRESA.razaoSocial}\n`;
             relatorioTexto += `CNPJ: ${DADOS_EMPRESA.cnpj}\n`;
@@ -242,7 +240,7 @@
                 status.classList.add('text-green-600');
             } catch (error) {
                 console.error("Erro no envio:", error);
-                status.innerText = "❌ Erro ao enviar e-mail. Verifique as chaves configuradas.";
+                status.innerText = "❌ Erro ao enviar e-mail. Verifique a conexão.";
                 status.classList.remove('text-green-600');
                 status.classList.add('text-red-600');
             } finally {
