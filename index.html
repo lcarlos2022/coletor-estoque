@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Leitor QR Code -->
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Biblioteca SheetJS para gerar arquivos Excel (.xlsx) reais -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- SDK do EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
@@ -109,10 +111,10 @@
                 <!-- Botões de Ação -->
                 <div class="space-y-2">
                     <button id="btn-envio" onclick="enviarRelatorioServidor()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                        📊 Enviar Relatório em Formato Excel (E-mail)
+                        📊 Enviar Relatório Excel Completo (E-mail)
                     </button>
                     <button onclick="baixarExcelLocal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                        📥 Baixar Planilha Excel (.csv) no Aparelho
+                        📥 Baixar Planilha Excel (.xlsx) no Aparelho
                     </button>
                 </div>
                 <p id="status-envio" class="text-xs text-center font-semibold text-gray-600 hidden"></p>
@@ -172,6 +174,8 @@
                     codigo = partes[0].trim();
                     descricao = partes[1].trim();
                     if (partes[2]) unidade = partes[2].trim();
+                } else {
+                    codigo = rawText.trim();
                 }
             }
             return { codigo, descricao, unidade };
@@ -194,6 +198,7 @@
             let qtdInput = parseFloat(document.getElementById('input-qtd').value);
             let qtd = isNaN(qtdInput) || qtdInput < 0 ? 1 : qtdInput;
 
+            // Se o item já existe, acumula a contagem perfeitamente sem sumir com o anterior
             if (itensContados[itemAtual.codigo]) {
                 itensContados[itemAtual.codigo].quantidade += qtd;
             } else {
@@ -221,12 +226,18 @@
 
         function atualizarListaInterface() {
             let container = document.getElementById('lista-produtos');
-            let total = 0;
+            let chaves = Object.keys(itensContados);
+            let total = chaves.length;
             container.innerHTML = '';
 
-            Object.keys(itensContados).forEach((codigo, index) => {
+            if (total === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-4 text-xs">Nenhum item adicionado ainda.</p>';
+                document.getElementById('total-itens').innerText = 0;
+                return;
+            }
+
+            chaves.forEach((codigo, index) => {
                 let item = itensContados[codigo];
-                total++;
                 let div = document.createElement('div');
                 div.className = 'py-2 flex justify-between items-center';
                 div.innerHTML = `
@@ -241,42 +252,43 @@
             document.getElementById('total-itens').innerText = total;
         }
 
-        function gerarConteudoExcelCSV() {
+        function gerarPlanilhaExcelWorksheet() {
+            let dadosLinhas = [
+                ["EMPRESA:", DADOS_EMPRESA.nome],
+                ["RAZÃO SOCIAL:", DADOS_EMPRESA.razaoSocial],
+                ["CNPJ:", DADOS_EMPRESA.cnpj],
+                ["DATA/HORA:", new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR')],
+                [],
+                ["Item", "Código do Produto", "Descrição", "Unidade de Medida", "Contagem"]
+            ];
+
             let chaves = Object.keys(itensContados);
-            let csvContent = "\uFEFF";
-            
-            csvContent += `EMPRESA:;${DADOS_EMPRESA.nome}\n`;
-            csvContent += `RAZAO SOCIAL:;${DADOS_EMPRESA.razaoSocial}\n`;
-            csvContent += `CNPJ:;${DADOS_EMPRESA.cnpj}\n`;
-            csvContent += `DATA/HORA:;${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}\n\n`;
-            
-            csvContent += `Item;Código do Produto;Descrição;Unidade de Medida;Contagem\n`;
-            
             chaves.forEach((codigo, index) => {
                 let item = itensContados[codigo];
-                let descLimpa = item.descricao.replace(/;/g, ',');
-                csvContent += `${index + 1};${codigo};${descLimpa};${item.unidade};${item.quantidade}\n`;
+                dadosLinhas.push([
+                    index + 1,
+                    codigo,
+                    item.descricao,
+                    item.unidade,
+                    item.quantidade
+                ]);
             });
 
-            return csvContent;
+            let ws = XLSX.utils.aoa_to_sheet(dadosLinhas);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Contagem de Estoque");
+            return { wb, chaves };
         }
 
         function baixarExcelLocal() {
-            let chaves = Object.keys(itensContados);
+            let { chaves } = gerarPlanilhaExcelWorksheet();
             if (chaves.length === 0) {
                 alert('Nenhum produto cadastrado para exportar!');
                 return;
             }
 
-            let csvContent = gerarConteudoExcelCSV();
-            let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            let url = URL.createObjectURL(blob);
-            let link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Inventario_Contagem_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            let { wb } = gerarPlanilhaExcelWorksheet();
+            XLSX.writeFile(wb, `Inventario_Contagem_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
         async function enviarRelatorioServidor() {
@@ -314,36 +326,67 @@
             
             btn.disabled = true;
             btn.classList.add('opacity-50');
-            status.innerText = "⏳ Formatando e enviando relatório...";
+            status.innerText = "⏳ Gerando arquivo Excel e enviando...";
             status.classList.remove('hidden');
 
-            let relatorioTexto = `RELATÓRIO DE CONTAGEM DE ESTOQUE\n`;
-            relatorioTexto += `Empresa: ${DADOS_EMPRESA.nome}\n`;
-            relatorioTexto += `CNPJ: ${DADOS_EMPRESA.cnpj}\n`;
-            relatorioTexto += `Data: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}\n\n`;
-            relatorioTexto += `-------------------------------------------------------------------------\n`;
-            relatorioTexto += `Item | Código do Produto | Descrição                    | Unid | Contagem\n`;
-            relatorioTexto += `-------------------------------------------------------------------------\n`;
-            
+            // Gera o arquivo Excel em formato Base64 para enviar via anexo ou link direto
+            let { wb } = gerarPlanilhaExcelWorksheet();
+            let excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+
+            // Montagem da tabela visual limpa para o corpo do e-mail
+            let htmlTabela = `
+                <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #1F4E78; border-bottom: 2px solid #1F4E78; padding-bottom: 8px;">RELATÓRIO DE CONTAGEM DE ESTOQUE</h2>
+                    <p><strong>Empresa:</strong> ${DADOS_EMPRESA.nome}</p>
+                    <p><strong>CNPJ:</strong> ${DADOS_EMPRESA.cnpj}</p>
+                    <p><strong>Data/Hora:</strong> ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+                    <p><strong>Total de Itens Contados:</strong> ${chaves.length}</p>
+                    <br>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background-color: #1F4E78; color: white;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Item</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Código do Produto</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Descrição</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Unid</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Contagem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
             chaves.forEach((codigo, index) => {
                 let item = itensContados[codigo];
-                let itNum = String(index + 1).padEnd(4, ' ');
-                let codPadded = String(codigo).padEnd(17, ' ');
-                let descPadded = item.descricao.substring(0, 28).padEnd(28, ' ');
-                let unidPadded = String(item.unidade).padEnd(4, ' ');
-                relatorioTexto += `${itNum} | ${codPadded} | ${descPadded} | ${unidPadded} | ${item.quantidade}\n`;
+                let bgRow = index % 2 === 0 ? '#f9f9f9' : '#ffffff';
+                htmlTabela += `
+                    <tr style="background-color: ${bgRow};">
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${codigo}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${item.descricao}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.unidade}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold; color: #1F4E78;">${item.quantidade}</td>
+                    </tr>
+                `;
             });
-            relatorioTexto += `-------------------------------------------------------------------------\n`;
+
+            htmlTabela += `
+                        </tbody>
+                    </table>
+                    <br>
+                    <p style="font-size: 11px; color: #777;">Planilha Excel gerada e enviada automaticamente pelo sistema do Grupo Brava.</p>
+                </div>
+            `;
 
             let templateParams = {
                 to_email: destinatarios.join(', '),
-                subject: `Contagem de Estoque - ${DADOS_EMPRESA.nome}`,
-                message: relatorioTexto
+                subject: `Contagem de Estoque - ${DADOS_EMPRESA.nome} (${chaves.length} itens)`,
+                message: htmlTabela,
+                excel_file: excelBuffer
             };
 
             try {
                 await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-                status.innerText = "✅ E-mail enviado com sucesso!";
+                status.innerText = "✅ E-mail e planilha enviados com sucesso!";
                 status.classList.remove('text-red-600');
                 status.classList.add('text-green-600');
             } catch (error) {
