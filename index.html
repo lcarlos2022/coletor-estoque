@@ -106,10 +106,15 @@
                     <input type="email" id="input-outro-email" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="exemplo@email.com">
                 </div>
 
-                <!-- Botão de Envio Direto -->
-                <button id="btn-envio" onclick="enviarRelatorioServidor()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                    🚀 Enviar Relatório Por E-mail
-                </button>
+                <!-- Botões de Ação -->
+                <div class="space-y-2">
+                    <button id="btn-envio" onclick="enviarRelatorioServidor()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
+                        📊 Enviar Relatório em Formato Excel (E-mail)
+                    </button>
+                    <button onclick="baixarExcelLocal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
+                        📥 Baixar Planilha Excel (.csv) no Aparelho
+                    </button>
+                </div>
                 <p id="status-envio" class="text-xs text-center font-semibold text-gray-600 hidden"></p>
             </div>
         </div>
@@ -136,7 +141,6 @@
             razaoSocial: "Mda Construcoes LTDA"
         };
 
-        // Função para tocar o BIP ao escanear
         function tocarBip() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -234,6 +238,49 @@
             document.getElementById('total-itens').innerText = total;
         }
 
+        // Função para gerar o conteúdo em formato de Tabela CSV (compatível com Excel)
+        function gerarConteudoExcelCSV() {
+            let chaves = Object.keys(itensContados);
+            let csvContent = "\uFEFF"; // Garante acentuação correta no Excel (UTF-8 BOM)
+            
+            csvContent += `EMPRESA:;${DADOS_EMPRESA.nome}\n`;
+            csvContent += `RAZAO SOCIAL:;${DADOS_EMPRESA.razaoSocial}\n`;
+            csvContent += `CNPJ:;${DADOS_EMPRESA.cnpj}\n`;
+            csvContent += `DATA/HORA:;${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}\n\n`;
+            
+            // Cabeçalho da Tabela
+            csvContent += `CODIGO;DESCRICAO;QUANTIDADE\n`;
+            
+            chaves.forEach(codigo => {
+                let item = itensContados[codigo];
+                // Substitui ponto-e-vírgula na descrição para não quebrar a tabela
+                let descLimpa = item.descricao.replace(/;/g, ',');
+                csvContent += `${codigo};${descLimpa};${item.quantidade}\n`;
+            });
+
+            return csvContent;
+        }
+
+        // Botão para baixar direto no celular/PC como arquivo .csv (abre direto no Excel)
+        function baixarExcelLocal() {
+            let chaves = Object.keys(itensContados);
+            if (chaves.length === 0) {
+                alert('Nenhum produto cadastrado para exportar!');
+                return;
+            }
+
+            let csvContent = gerarConteudoExcelCSV();
+            let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            let url = URL.createObjectURL(blob);
+            let link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Inventario_Estoque_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Envio por e-mail formatado como tabela limpa do Excel
         async function enviarRelatorioServidor() {
             let chaves = Object.keys(itensContados);
             if (chaves.length === 0) {
@@ -243,25 +290,19 @@
 
             let destinatarios = [];
 
-            // Valida e inclui E-mail Corporativo
             if (document.getElementById('chk-corp').checked) {
                 let email = document.getElementById('email-corp').value.trim();
                 if (email) destinatarios.push(email);
             }
-
-            // Valida e inclui E-mail Celular
             if (document.getElementById('chk-celular').checked) {
                 let email = document.getElementById('email-celular').value.trim();
                 if (email) destinatarios.push(email);
             }
-
-            // Valida e inclui E-mail PC / Notebook
             if (document.getElementById('chk-pc').checked) {
                 let email = document.getElementById('email-pc').value.trim();
                 if (email) destinatarios.push(email);
             }
             
-            // Valida e inclui E-mail Adicional (opcional)
             let outroEmail = document.getElementById('input-outro-email').value.trim();
             if (outroEmail !== '') {
                 destinatarios.push(outroEmail);
@@ -277,29 +318,35 @@
             
             btn.disabled = true;
             btn.classList.add('opacity-50');
-            status.innerText = "⏳ Enviando relatório...";
+            status.innerText = "⏳ Formatando planilha e enviando...";
             status.classList.remove('hidden');
 
-            let relatorioTexto = `RELATÓRIO DE INVENTÁRIO - ${DADOS_EMPRESA.nome}\n`;
-            relatorioTexto += `Razão Social: ${DADOS_EMPRESA.razaoSocial}\n`;
+            // Monta o texto corporativo em colunas estruturadas para leitura direta
+            let relatorioTexto = `RELATÓRIO DE INVENTÁRIO (FORMATO PLANILHA)\n`;
+            relatorioTexto += `Empresa: ${DADOS_EMPRESA.nome}\n`;
             relatorioTexto += `CNPJ: ${DADOS_EMPRESA.cnpj}\n`;
             relatorioTexto += `Data: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}\n\n`;
-            relatorioTexto += `--- ITENS CONTADOS ---\n`;
+            relatorioTexto += `----------------------------------------------------\n`;
+            relatorioTexto += `CÓDIGO          | DESCRIÇÃO                      | QTD\n`;
+            relatorioTexto += `----------------------------------------------------\n`;
             
-            chaves.forEach((codigo, idx) => {
+            chaves.forEach(codigo => {
                 let item = itensContados[codigo];
-                relatorioTexto += `${idx + 1}. CÓDIGO: ${codigo} | DESCRIÇÃO: ${item.descricao} | QUANTIDADE: ${item.quantidade} UN\n`;
+                let codPadded = codigo.padEnd(15, ' ');
+                let descPadded = item.descricao.substring(0, 30).padEnd(30, ' ');
+                relatorioTexto += `${codPadded} | ${descPadded} | ${item.quantidade}\n`;
             });
+            relatorioTexto += `----------------------------------------------------\n`;
 
             let templateParams = {
                 to_email: destinatarios.join(', '),
-                subject: `Inventário de Estoque - ${DADOS_EMPRESA.nome}`,
+                subject: `Planilha de Inventário - ${DADOS_EMPRESA.nome}`,
                 message: relatorioTexto
             };
 
             try {
                 await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-                status.innerText = "✅ E-mail enviado com sucesso!";
+                status.innerText = "✅ E-mail com os dados da planilha enviado com sucesso!";
                 status.classList.remove('text-red-600');
                 status.classList.add('text-green-600');
             } catch (error) {
