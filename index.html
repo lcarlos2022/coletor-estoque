@@ -84,7 +84,7 @@
         // CONFIGURAÇÕES DO EMAILJS
         const EMAILJS_PUBLIC_KEY = "dO0wI6pOJV9s518uu";
         const EMAILJS_SERVICE_ID = "service_f8n7him";
-        const EMAILJS_TEMPLATE_ID = "7g8ecwv";
+        const EMAILJS_TEMPLATE_ID = "template_mppjgke"; // ID CORRIGIDO AQUI!
 
         (function() {
             emailjs.init(EMAILJS_PUBLIC_KEY);
@@ -223,7 +223,7 @@
                 status.classList.add('text-green-600');
             } catch (error) {
                 console.error("Erro no envio:", error);
-                status.innerText = "❌ Erro ao enviar e-mail. Verifique a conexão ou a trava de segurança do EmailJS.";
+                status.innerText = "❌ Erro ao enviar e-mail. Verifique a conexão.";
                 status.classList.remove('text-green-600');
                 status.classList.add('text-red-600');
             } finally {
