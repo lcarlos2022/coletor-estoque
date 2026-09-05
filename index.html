@@ -61,35 +61,48 @@
                 <p class="text-gray-400 text-center py-4 text-xs">Nenhum item adicionado ainda.</p>
             </div>
 
-            <!-- Seleção Separada de E-mail Corporativo e Pessoal -->
+            <!-- Destinatários de E-mail Editáveis -->
             <div class="pt-3 border-t space-y-3">
                 <p class="text-xs font-bold text-gray-500 uppercase">Enviar Relatório Para:</p>
                 
                 <div class="bg-gray-50 p-3 rounded-lg space-y-3 border border-gray-200">
-                    <!-- E-mail Corporativo -->
+                    
+                    <!-- E-mail 1: Corporativo -->
                     <div>
-                        <span class="block text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-0.5">E-mail Corporativo</span>
-                        <label class="flex items-center gap-2 cursor-pointer text-gray-800 text-xs font-medium">
+                        <div class="flex items-center gap-2 mb-1">
                             <input type="checkbox" id="chk-corp" checked class="w-4 h-4 text-blue-600 rounded">
-                            <span>luiz.oliveira@brava.com.br</span>
-                        </label>
+                            <label for="chk-corp" class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">E-mail Corporativo</label>
+                        </div>
+                        <input type="email" id="email-corp" value="luiz.oliveira@brava.com.br" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-gray-800">
                     </div>
 
                     <hr class="border-gray-200">
 
-                    <!-- E-mail Pessoal / Privado -->
+                    <!-- E-mail 2: Celular -->
                     <div>
-                        <span class="block text-[10px] font-bold text-green-600 uppercase tracking-wider mb-0.5">E-mail Pessoal</span>
-                        <label class="flex items-center gap-2 cursor-pointer text-gray-800 text-xs font-medium">
-                            <input type="checkbox" id="chk-pessoal" checked class="w-4 h-4 text-blue-600 rounded">
-                            <span>ocluiz2021@gmail.com</span>
-                        </label>
+                        <div class="flex items-center gap-2 mb-1">
+                            <input type="checkbox" id="chk-celular" checked class="w-4 h-4 text-blue-600 rounded">
+                            <label for="chk-celular" class="text-[10px] font-bold text-green-600 uppercase tracking-wider">E-mail Celular (Gmail)</label>
+                        </div>
+                        <input type="email" id="email-celular" value="ocluiz2021@gmail.com" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-gray-800">
                     </div>
+
+                    <hr class="border-gray-200">
+
+                    <!-- E-mail 3: PC e Notebook -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <input type="checkbox" id="chk-pc" checked class="w-4 h-4 text-blue-600 rounded">
+                            <label for="chk-pc" class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">E-mail PC / Notebook (Hotmail)</label>
+                        </div>
+                        <input type="email" id="email-pc" value="ocluiz@hotmail.com" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-gray-800">
+                    </div>
+
                 </div>
 
-                <!-- Campo para E-mail Adicional do Celular (Opcional) -->
+                <!-- Campo para E-mail Adicional (Opcional) -->
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1">Outro e-mail para esta contagem (opcional):</label>
+                    <label class="block text-xs text-gray-500 mb-1">Outro e-mail adicional (opcional):</label>
                     <input type="email" id="input-outro-email" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="exemplo@email.com">
                 </div>
 
@@ -131,14 +144,14 @@
                 const gain = audioCtx.createGain();
 
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Frequência do Bip
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
 
                 oscillator.connect(gain);
                 gain.connect(audioCtx.destination);
 
                 oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.15); // Duração de 150ms
+                oscillator.stop(audioCtx.currentTime + 0.15);
             } catch (e) {
                 console.log("Áudio indisponível:", e);
             }
@@ -162,7 +175,7 @@
         }
 
         function onScanSuccess(decodedText) {
-            tocarBip(); // Toca o BIP imediatamente após a leitura
+            tocarBip();
             if (html5QrCode) html5QrCode.pause();
             itemAtual = processarQRCode(decodedText);
             document.getElementById('modal-codigo').innerText = itemAtual.codigo;
@@ -229,20 +242,33 @@
             }
 
             let destinatarios = [];
+
+            // Valida e inclui E-mail Corporativo
             if (document.getElementById('chk-corp').checked) {
-                destinatarios.push('luiz.oliveira@brava.com.br');
+                let email = document.getElementById('email-corp').value.trim();
+                if (email) destinatarios.push(email);
             }
-            if (document.getElementById('chk-pessoal').checked) {
-                destinatarios.push('ocluiz2021@gmail.com');
+
+            // Valida e inclui E-mail Celular
+            if (document.getElementById('chk-celular').checked) {
+                let email = document.getElementById('email-celular').value.trim();
+                if (email) destinatarios.push(email);
+            }
+
+            // Valida e inclui E-mail PC / Notebook
+            if (document.getElementById('chk-pc').checked) {
+                let email = document.getElementById('email-pc').value.trim();
+                if (email) destinatarios.push(email);
             }
             
+            // Valida e inclui E-mail Adicional (opcional)
             let outroEmail = document.getElementById('input-outro-email').value.trim();
             if (outroEmail !== '') {
                 destinatarios.push(outroEmail);
             }
 
             if (destinatarios.length === 0) {
-                alert('Por favor, selecione ao menos um e-mail para envio!');
+                alert('Por favor, selecione e preencha ao menos um e-mail válido para envio!');
                 return;
             }
 
