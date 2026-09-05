@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Leitor QR Code -->
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- Biblioteca SheetJS para gerar arquivos Excel (.xlsx) reais -->
+    <!-- Biblioteca SheetJS para Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- SDK do EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -83,7 +83,7 @@
                     <!-- E-mail 2 -->
                     <div>
                         <div class="flex items-center gap-2 mb-1">
-                            <input type="checkbox" id="chk-celular" checked class="w-4 h-4 text-blue-600 rounded">
+                            <input type="checkbox" id="chk-celular" checked class="w-4 h-4 text-green-600 rounded">
                             <label for="chk-celular" class="text-[10px] font-bold text-green-600 uppercase tracking-wider">E-mail Celular (Gmail)</label>
                         </div>
                         <input type="email" id="email-celular" value="ocluiz2021@gmail.com" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-gray-800">
@@ -94,7 +94,7 @@
                     <!-- E-mail 3 -->
                     <div>
                         <div class="flex items-center gap-2 mb-1">
-                            <input type="checkbox" id="chk-pc" checked class="w-4 h-4 text-blue-600 rounded">
+                            <input type="checkbox" id="chk-pc" checked class="w-4 h-4 text-purple-600 rounded">
                             <label for="chk-pc" class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">E-mail PC / Notebook (Hotmail)</label>
                         </div>
                         <input type="email" id="email-pc" value="ocluiz@hotmail.com" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-gray-800">
@@ -160,22 +160,26 @@
         }
 
         function processarQRCode(rawText) {
-            let codigo = rawText;
-            let descricao = "Item sem Descrição";
+            let codigo = rawText.trim();
+            let descricao = "Produto Cadastrado";
             let unidade = "UN";
+            
             try {
                 let dados = JSON.parse(rawText);
-                codigo = dados.codigo || rawText;
+                codigo = dados.codigo || codigo;
                 descricao = dados.descricao || descricao;
                 unidade = dados.unidade || unidade;
             } catch (e) {
+                // Se for texto separado por vírgula ou hífen
                 if (rawText.includes(',')) {
                     let partes = rawText.split(',');
                     codigo = partes[0].trim();
                     descricao = partes[1].trim();
                     if (partes[2]) unidade = partes[2].trim();
                 } else {
-                    codigo = rawText.trim();
+                    // Remove caracteres inválidos/invisíveis se o leitor capturar lixo
+                    codigo = rawText.replace(/[^\w\s-]/gi, '').trim();
+                    if (!codigo) codigo = rawText.trim();
                 }
             }
             return { codigo, descricao, unidade };
@@ -198,7 +202,6 @@
             let qtdInput = parseFloat(document.getElementById('input-qtd').value);
             let qtd = isNaN(qtdInput) || qtdInput < 0 ? 1 : qtdInput;
 
-            // Se o item já existe, acumula a contagem perfeitamente sem sumir com o anterior
             if (itensContados[itemAtual.codigo]) {
                 itensContados[itemAtual.codigo].quantidade += qtd;
             } else {
@@ -326,14 +329,12 @@
             
             btn.disabled = true;
             btn.classList.add('opacity-50');
-            status.innerText = "⏳ Gerando arquivo Excel e enviando...";
+            status.innerText = "⏳ Gerando relatório e enviando...";
             status.classList.remove('hidden');
 
-            // Gera o arquivo Excel em formato Base64 para enviar via anexo ou link direto
             let { wb } = gerarPlanilhaExcelWorksheet();
             let excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
 
-            // Montagem da tabela visual limpa para o corpo do e-mail
             let htmlTabela = `
                 <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #1F4E78; border-bottom: 2px solid #1F4E78; padding-bottom: 8px;">RELATÓRIO DE CONTAGEM DE ESTOQUE</h2>
@@ -385,8 +386,9 @@
             };
 
             try {
+                // Modificado para usar html_message caso o template suporte ou enviando limpo
                 await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-                status.innerText = "✅ E-mail e planilha enviados com sucesso!";
+                status.innerText = "✅ E-mail enviado com sucesso!";
                 status.classList.remove('text-red-600');
                 status.classList.add('text-green-600');
             } catch (error) {
