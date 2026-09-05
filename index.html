@@ -4,19 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coletor de Estoque - QR Code</title>
+    <!-- Tailwind CSS para design mobile -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Biblioteca de Leitura de QR Code via Câmera -->
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Biblioteca para Gerar o Excel (.xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen pb-12 font-sans">
 
+    <!-- Cabeçalho -->
     <div class="bg-blue-600 text-white p-4 shadow-lg text-center">
         <h1 class="text-xl font-bold">Contagem de Estoque</h1>
-        <p id="data-inicio" class="text-xs text-blue-100 mt-1"></p>
     </div>
 
     <div class="max-w-md mx-auto p-4 space-y-4">
 
+        <!-- Câmera e Scanner -->
         <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 text-center">
             <h2 class="font-semibold text-gray-700 mb-2">Escanear QR Code</h2>
             
@@ -69,16 +73,30 @@
     </div>
 
     <script>
-        let dataInicio = new Date();
         let itensContados = {};
         let html5QrCode = null;
         let itemAtual = null;
 
-        function formatarData(data) {
-            return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR');
-        }
+        // Função para emitir som de Bipe do Leitor de Código de Barras
+        function tocarBipe() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
 
-        document.getElementById('data-inicio').innerText = 'Início: ' + formatarData(dataInicio);
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(1800, audioCtx.currentTime); // Frequência do bipe em Hz
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.15); // Duração de 150ms
+            } catch (e) {
+                console.warn("Áudio não suportado ou aguardando interação do usuário.");
+            }
+        }
 
         function processarQRCode(rawText) {
             let codigo = rawText;
@@ -102,6 +120,10 @@
             if (html5QrCode) {
                 html5QrCode.pause();
             }
+
+            // Toca o bipe sonoro imediatamente na leitura
+            tocarBipe();
+
             itemAtual = processarQRCode(decodedText);
 
             document.getElementById('modal-codigo').innerText = itemAtual.codigo;
@@ -172,6 +194,7 @@
             document.getElementById('total-itens').innerText = total;
         }
 
+        // Exportação simplificada sem colunas de datas/horas
         function gerarExcel() {
             let chaves = Object.keys(itensContados);
             if (chaves.length === 0) {
@@ -179,16 +202,13 @@
                 return;
             }
 
-            let horaFinal = new Date();
             let dadosExcel = [];
 
             chaves.forEach(codigo => {
                 dadosExcel.push({
-                    "Data de Início": formatarData(dataInicio),
-                    "Código do Produto": codigo,
+                    "Código": codigo,
                     "Descrição": itensContados[codigo].descricao,
-                    "Quantidade": itensContados[codigo].quantidade,
-                    "Hora Final": formatarData(horaFinal)
+                    "Quantidade": itensContados[codigo].quantidade
                 });
             });
 
@@ -196,7 +216,8 @@
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Inventario");
 
-            XLSX.writeFile(wb, `Relatorio_Estoque_${horaFinal.toISOString().slice(0,10)}.xlsx`);
+            // Gera o arquivo com nome padronizado
+            XLSX.writeFile(wb, `Relatorio_Inventario.xlsx`);
         }
 
         async function iniciarCameraTraseira() {
@@ -209,12 +230,10 @@
                 html5QrCode = new Html5Qrcode("reader");
                 const config = { fps: 10, qrbox: { width: 220, height: 220 } };
 
-                // Busca a lista física de lentes/câmeras do dispositivo
                 const devices = await Html5Qrcode.getCameras();
                 
                 if (devices && devices.length > 0) {
-                    // Tenta encontrar a câmera que contenha nomes indicando a traseira
-                    let cameraId = devices[0].id; // Padrão
+                    let cameraId = devices[0].id;
                     
                     for (let i = 0; i < devices.length; i++) {
                         let label = devices[i].label.toLowerCase();
@@ -224,18 +243,16 @@
                         }
                     }
                     
-                    // Se não achou pelo nome, pega a última câmera registrada (geralmente é a traseira em celulares)
                     if (cameraId === devices[0].id && devices.length > 1) {
                         cameraId = devices[devices.length - 1].id;
                     }
 
                     await html5QrCode.start(cameraId, config, onScanSuccess);
                 } else {
-                    // Se não listou os aparelhos, tenta a restrição padrão do sistema
                     await html5QrCode.start({ facingMode: { exact: "environment" } }, config, onScanSuccess);
                 }
             } catch (err) {
-                console.warn("Tentando modo fallback de câmera traseira...", err);
+                console.warn("Tentando modo fallback...", err);
                 try {
                     await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 220 } }, onScanSuccess);
                 } catch(e) {
