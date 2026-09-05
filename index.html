@@ -91,11 +91,19 @@
         let itemAtual = null;
         let audioCtx = null;
 
-        // Configurações de E-mail (Altere aqui se necessário)
-        const EMAIL_CORPORATIVO = "empresa@totalerp.com.br";
-        const EMAIL_PESSOAL = "seu-email-pessoal@gmail.com";
+        // Dados da Empresa (Altere se necessário)
+        const DADOS_EMPRESA = {
+            cnpj: "04.475.039/0001-16",
+            nome: "EMPRESA BOLETO ALVEJAX 2",
+            razaoSocial: "EMPRESA BOLETO ALVEJAX 2",
+            endereco: "RUA TESTE, 123",
+            municipio: "CURITIBA-PR",
+            telefone: "(41)3000-0000",
+            cep: "83.000-000",
+            email: "contato@totalerp.com.br",
+            emailPessoal: "seu-email-pessoal@gmail.com"
+        };
 
-        // Inicializa o contexto de áudio na primeira interação do usuário
         function inicializarAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -105,7 +113,6 @@
             }
         }
 
-        // Emitir Bipe Sonoro
         function tocarBipe() {
             try {
                 inicializarAudio();
@@ -113,14 +120,14 @@
                 const gainNode = audioCtx.createGain();
 
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime); // Som agudo 2000Hz
+                oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime);
                 gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
 
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
 
                 oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.12); // Duração curta de 120ms
+                oscillator.stop(audioCtx.currentTime + 0.12);
             } catch (e) {
                 console.warn("Aguardando interação para áudio.");
             }
@@ -226,6 +233,7 @@
             if (chaves.length === 0) return null;
 
             let texto = "*RELATÓRIO DE INVENTÁRIO DE ESTOQUE*\n";
+            texto += `Empresa: ${DADOS_EMPRESA.nome}\n`;
             texto += "-------------------------------------\n";
             
             chaves.forEach(codigo => {
@@ -256,13 +264,14 @@
                 return;
             }
 
-            let destinatarios = `${EMAIL_CORPORATIVO},${EMAIL_PESSOAL}`;
+            let destinatarios = `${DADOS_EMPRESA.email},${DADOS_EMPRESA.emailPessoal}`;
             let assunto = encodeURIComponent("Relatório de Inventário de Estoque");
             let corpo = encodeURIComponent(texto);
 
             window.location.href = `mailto:${destinatarios}?subject=${assunto}&body=${corpo}`;
         }
 
+        // Exportação do Excel Idêntica ao Layout do ERP da Imagem
         function gerarExcel() {
             let chaves = Object.keys(itensContados);
             if (chaves.length === 0) {
@@ -270,21 +279,53 @@
                 return;
             }
 
-            let dadosExcel = [];
+            let dataHoje = new Date().toLocaleDateString('pt-BR');
 
+            // Montagem das Linhas no Formato do Layout de Inventário
+            let estruturaExcel = [
+                ["CNPJ", DADOS_EMPRESA.cnpj, "", "", "", "", "", "", "", "", ""],
+                ["Nome", DADOS_EMPRESA.nome, "", "", "", "", "", "", "", "", ""],
+                ["Razão Social", DADOS_EMPRESA.razaoSocial, "", "", "", "Telefone", DADOS_EMPRESA.telefone, "", "", "", ""],
+                ["Endereço", DADOS_EMPRESA.endereco, "", "", "", "CEP", DADOS_EMPRESA.cep, "", "", "", ""],
+                ["Município", DADOS_EMPRESA.municipio, "", "", "", "E-mail", DADOS_EMPRESA.email, "", "", "", ""],
+                ["", "", "", "", "", "", "", "", "", "", ""],
+                ["Relatório Inventário", "", "", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", "", "", ""],
+                ["Data do Inventário", dataHoje, "", "", "", "Valor do Inventário", "0,00", "", "", "", ""],
+                ["Propriedade/Posse", "Items de propriedade do informante e em seu poder.", "", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", "", "", ""],
+                // Cabeçalho da Tabela
+                ["#", "Código", "Descrição", "Quantidade", "Unid.", "Valor Unit.", "Valor Total", "Contagem 1", "Contagem 2", "Contagem 3", ""]
+            ];
+
+            let index = 1;
             chaves.forEach(codigo => {
-                dadosExcel.push({
-                    "Código": codigo,
-                    "Descrição": itensContados[codigo].descricao,
-                    "Quantidade": itensContados[codigo].quantidade
-                });
+                let item = itensContados[codigo];
+                
+                estruturaExcel.push([
+                    index,
+                    codigo,
+                    item.descricao,
+                    item.quantidade,
+                    "UN",
+                    "0,00",
+                    "0,00",
+                    "_______",
+                    "_______",
+                    "_______",
+                    ""
+                ]);
+                index++;
             });
 
-            let ws = XLSX.utils.json_to_sheet(dadosExcel);
-            let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Inventario");
+            // Linha de Rodapé / Total
+            estruturaExcel.push(["", "", "Total de Items de propriedade do informante e em seu poder.", document.getElementById('total-itens').innerText, "", "", "0,00", "", "", "", ""]);
 
-            XLSX.writeFile(wb, `Relatorio_Inventario.xlsx`);
+            let ws = XLSX.utils.aoa_to_sheet(estruturaExcel);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Relatório Inventário");
+
+            XLSX.writeFile(wb, `Relatorio_Inventario_${dataHoje.replace(/\//g, '-')}.xlsx`);
         }
 
         async function iniciarCameraTraseira() {
