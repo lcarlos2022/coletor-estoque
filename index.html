@@ -110,10 +110,10 @@
                 <!-- Botões de Ação -->
                 <div class="space-y-2">
                     <button id="btn-envio" onclick="enviarRelatorioServidor()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                        📊 Enviar Relatório Excel com 2 Contagens
+                        📊 Enviar Relatório & Baixar Planilha Excel
                     </button>
                     <button onclick="baixarExcelLocal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                        📥 Baixar Planilha Excel (.xlsx) no Aparelho
+                        📥 Baixar Planilha Excel (.xlsx) Avulsa
                     </button>
                 </div>
                 <p id="status-envio" class="text-xs text-center font-semibold text-gray-600 hidden"></p>
@@ -241,6 +241,9 @@
 
             chaves.forEach((codigo, index) => {
                 let item = itensContados[codigo];
+                let diferenca = item.contagem2 - item.contagem1;
+                let corDif = diferenca === 0 ? 'text-gray-600' : (diferenca > 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold');
+                
                 let div = document.createElement('div');
                 div.className = 'py-2 flex justify-between items-center border-b border-gray-100';
                 div.innerHTML = `
@@ -249,8 +252,9 @@
                         <p class="text-xs text-gray-500">Cód: ${codigo} | Un: ${item.unidade}</p>
                     </div>
                     <div class="text-right space-x-1">
-                        <span class="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-[11px]">1ª: ${item.contagem1}</span>
-                        <span class="bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded text-[11px]">2ª: ${item.contagem2}</span>
+                        <span class="bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded text-[10px]">1ª: ${item.contagem1}</span>
+                        <span class="bg-green-100 text-green-800 font-bold px-1.5 py-0.5 rounded text-[10px]">2ª: ${item.contagem2}</span>
+                        <span class="bg-gray-100 px-1.5 py-0.5 rounded text-[10px] ${corDif}">Dif: ${diferenca}</span>
                     </div>
                 `;
                 container.appendChild(div);
@@ -258,26 +262,28 @@
             document.getElementById('total-itens').innerText = total;
         }
 
-        function gerarPlanilhaExcelWorksheet() {
+        function gerarWorkbookExcel() {
             let dadosLinhas = [
                 ["EMPRESA:", DADOS_EMPRESA.nome],
                 ["RAZÃO SOCIAL:", DADOS_EMPRESA.razaoSocial],
                 ["CNPJ:", DADOS_EMPRESA.cnpj],
                 ["DATA/HORA:", new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR')],
                 [],
-                ["Item", "Código do Produto", "Descrição", "Unidade de Medida", "1ª Contagem", "2ª Contagem"]
+                ["Item", "Código do Produto", "Descrição", "Unidade de Medida", "1ª Contagem", "2ª Contagem", "Diferença"]
             ];
 
             let chaves = Object.keys(itensContados);
             chaves.forEach((codigo, index) => {
                 let item = itensContados[codigo];
+                let rowNum = index + 7; // Linha correspondente no Excel
                 dadosLinhas.push([
                     index + 1,
                     codigo,
                     item.descricao,
                     item.unidade,
                     item.contagem1,
-                    item.contagem2
+                    item.contagem2,
+                    `=F${rowNum}-E${rowNum}` // Fórmula automática de diferença
                 ]);
             });
 
@@ -288,13 +294,12 @@
         }
 
         function baixarExcelLocal() {
-            let { chaves } = gerarPlanilhaExcelWorksheet();
+            let { chaves } = gerarWorkbookExcel();
             if (chaves.length === 0) {
                 alert('Nenhum produto cadastrado para exportar!');
                 return;
             }
-
-            let { wb } = gerarPlanilhaExcelWorksheet();
+            let { wb } = gerarWorkbookExcel();
             XLSX.writeFile(wb, `Inventario_DuplaContagem_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
@@ -333,11 +338,11 @@
             
             btn.disabled = true;
             btn.classList.add('opacity-50');
-            status.innerText = "⏳ Gerando relatório formatado e enviando...";
+            status.innerText = "⏳ Enviando e-mail e baixando planilha de análise...";
             status.classList.remove('hidden');
 
             let htmlTabela = `
-                <div style="font-family: Arial, sans-serif; color: #333; max-width: 650px; margin: 0 auto; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <div style="font-family: Arial, sans-serif; color: #333; max-width: 700px; margin: 0 auto; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px;">
                     <h2 style="color: #1F4E78; border-bottom: 2px solid #1F4E78; padding-bottom: 8px; margin-top: 0;">RELATÓRIO DE DUPLA CONTAGEM DE ESTOQUE</h2>
                     <p style="margin: 5px 0;"><strong>Empresa:</strong> ${DADOS_EMPRESA.nome}</p>
                     <p style="margin: 5px 0;"><strong>CNPJ:</strong> ${DADOS_EMPRESA.cnpj}</p>
@@ -347,12 +352,13 @@
                     <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px;">
                         <thead>
                             <tr style="background-color: #1F4E78; color: white;">
-                                <th style="border: 1px solid #cbd5e1; padding: 10px; text-align: center;">Item</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 10px; text-align: center;">Código</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 10px; text-align: left;">Descrição</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 10px; text-align: center;">Unid</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 10px; text-align: center;">1ª Contagem</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 10px; text-align: center;">2ª Contagem</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Item</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Código</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Descrição</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Unid</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">1ª Contagem</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">2ª Contagem</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Diferença</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -360,15 +366,17 @@
 
             chaves.forEach((codigo, index) => {
                 let item = itensContados[codigo];
+                let dif = item.contagem2 - item.contagem1;
                 let bgRow = index % 2 === 0 ? '#f8fafc' : '#ffffff';
                 htmlTabela += `
                     <tr style="background-color: ${bgRow};">
-                        <td style="border: 1px solid #cbd5e1; padding: 9px; text-align: center;">${index + 1}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 9px; text-align: center;">${codigo}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 9px; text-align: left;">${item.descricao}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 9px; text-align: center;">${item.unidade}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 9px; text-align: center; font-weight: bold; color: #2563eb;">${item.contagem1}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 9px; text-align: center; font-weight: bold; color: #16a34a;">${item.contagem2}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${index + 1}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${codigo}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">${item.descricao}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${item.unidade}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold; color: #2563eb;">${item.contagem1}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold; color: #16a34a;">${item.contagem2}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold;">${dif}</td>
                     </tr>
                 `;
             });
@@ -377,19 +385,24 @@
                         </tbody>
                     </table>
                     <br>
-                    <p style="font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; pt-3;">Relatório gerado automaticamente pelo sistema do Grupo Brava.</p>
+                    <p style="font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px;">Relatório de conferência interna gerado pelo sistema do Grupo Brava.</p>
                 </div>
             `;
 
             let templateParams = {
                 to_email: destinatarios.join(', '),
-                subject: `Contagem Dupla de Estoque - ${DADOS_EMPRESA.nome} (${chaves.length} itens)`,
+                subject: `Conferência Estoque - ${DADOS_EMPRESA.nome} (${chaves.length} itens)`,
                 message: htmlTabela
             };
 
             try {
+                // Envia o e-mail para a sua caixa de entrada
                 await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-                status.innerText = "✅ E-mail enviado com sucesso!";
+                
+                // Dispara o download imediato do Excel no seu aparelho para análise
+                baixarExcelLocal();
+
+                status.innerText = "✅ E-mail enviado e planilha baixada para análise com sucesso!";
                 status.classList.remove('text-red-600');
                 status.classList.add('text-green-600');
             } catch (error) {
