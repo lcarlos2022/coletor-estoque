@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coletor de Estoque - Grupo Brava</title>
-    <!-- Tailwind CSS para design mobile -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Biblioteca de Leitura de QR Code via Câmera -->
+    <!-- Leitor QR Code -->
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- Biblioteca para Gerar o Excel (.xlsx) -->
+    <!-- Gerador de Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Gerador de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen pb-12 font-sans">
 
@@ -61,39 +64,59 @@
         <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 space-y-3">
             <div class="flex justify-between items-center border-b pb-2">
                 <h2 class="font-semibold text-gray-700">Itens Contados (<span id="total-itens">0</span>)</h2>
-                <button onclick="gerarExcel()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow">
-                    📊 Baixar Excel
-                </button>
             </div>
             
             <div class="max-h-52 overflow-y-auto divide-y text-sm" id="lista-produtos">
                 <p class="text-gray-400 text-center py-4 text-xs">Nenhum item adicionado ainda.</p>
             </div>
 
-            <!-- Opções de Seleção de E-mail antes do Envio -->
-            <div class="pt-2 border-t space-y-3">
-                <p class="text-xs font-bold text-gray-500 uppercase text-center">Opções de Envio por E-mail</p>
+            <!-- Seleção de E-mails -->
+            <div class="pt-3 border-t space-y-3">
+                <p class="text-xs font-bold text-gray-500 uppercase text-center">Destinatários do Relatório</p>
                 
                 <div class="bg-gray-50 p-3 rounded-lg space-y-2 text-xs">
                     <label class="flex items-center gap-2 cursor-pointer text-gray-700 font-medium">
-                        <input type="checkbox" id="chk-corporativo" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                        <input type="checkbox" id="chk-corporativo" checked class="w-4 h-4 text-blue-600 rounded">
                         <span>E-mail Corporativo: <strong>luiz.oliveira@brava.com.br</strong></span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer text-gray-700 font-medium">
-                        <input type="checkbox" id="chk-privado" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
-                        <span>E-mail Privado: <strong>ocluiz@hotmail.com</strong></span>
+                        <input type="checkbox" id="chk-gmail" checked class="w-4 h-4 text-blue-600 rounded">
+                        <span>E-mail Privado (Gmail): <strong>ocluiz2021@gmail.com</strong></span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-gray-700 font-medium">
+                        <input type="checkbox" id="chk-privado" class="w-4 h-4 text-blue-600 rounded">
+                        <span>E-mail Hotmail: <strong>ocluiz@hotmail.com</strong></span>
                     </label>
                 </div>
 
+                <!-- Botões Principais de Envio -->
                 <div class="space-y-2">
-                    <button onclick="enviarEmail()" class="w-full bg-slate-700 hover:bg-slate-800 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                        ✉️ Enviar E-mail Selecionado
+                    <button onclick="enviarEmail()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
+                        ✉️ Enviar Relatório Direto por E-mail
+                    </button>
+
+                    <button onclick="copiarRelatorio()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
+                        📋 Copiar Texto do Relatório
                     </button>
                     
                     <button onclick="enviarWhatsApp()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
                         💬 Enviar pelo WhatsApp
                     </button>
                 </div>
+
+                <!-- Botões Secundários (Apenas se quiser salvar cópia local) -->
+                <div class="pt-2 border-t text-center">
+                    <p class="text-[10px] text-gray-400 uppercase font-semibold mb-2">Baixar Cópias Locais (Opcional)</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="gerarExcel()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-[11px] font-semibold border">
+                            📊 Baixar Excel
+                        </button>
+                        <button onclick="gerarPDF()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-[11px] font-semibold border">
+                            📄 Baixar PDF
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -105,16 +128,15 @@
         let itemAtual = null;
         let audioCtx = null;
 
-        // Dados Cadastrais Oficiais da Empresa
         const DADOS_EMPRESA = {
             cnpj: "20.948.559/0001-55",
             nome: "Grupo Brava Construcao e Incorporacao",
             razaoSocial: "Mda Construcoes LTDA",
             endereco: "Rua Ary Barroso, nº 70, Sala 1017 - Torre 01 - Papicu",
             municipio: "Fortaleza-CE",
-            telefone: "",
             cep: "60175-705",
             emailCorporativo: "luiz.oliveira@brava.com.br",
+            emailGmail: "ocluiz2021@gmail.com",
             emailPrivado: "ocluiz@hotmail.com"
         };
 
@@ -246,26 +268,44 @@
             let chaves = Object.keys(itensContados);
             if (chaves.length === 0) return null;
 
-            let texto = `*RELATÓRIO DE INVENTÁRIO - ${DADOS_EMPRESA.nome.toUpperCase()}*\n`;
+            let texto = `RELATÓRIO DE INVENTÁRIO DE ESTOQUE\n`;
+            texto += `Empresa: ${DADOS_EMPRESA.nome}\n`;
             texto += `Razão Social: ${DADOS_EMPRESA.razaoSocial}\n`;
             texto += `CNPJ: ${DADOS_EMPRESA.cnpj}\n`;
-            texto += "-------------------------------------\n";
+            texto += `Data: ${new Date().toLocaleDateString('pt-BR')}\n`;
+            texto += "-------------------------------------\n\n";
             
+            let index = 1;
             chaves.forEach(codigo => {
                 let item = itensContados[codigo];
-                texto += `Cód: ${codigo} | Qtd: ${item.quantidade}\n`;
-                texto += `Desc: ${item.descricao}\n\n`;
+                texto += `${index}. CÓD: ${codigo}\n`;
+                texto += `   DESCRIÇÃO: ${item.descricao}\n`;
+                texto += `   QUANTIDADE: ${item.quantidade} UN\n\n`;
+                index++;
             });
 
             texto += "-------------------------------------\n";
-            texto += `Total de Itens: ${document.getElementById('total-itens').innerText}`;
+            texto += `TOTAL DE ITENS CONTADOS: ${document.getElementById('total-itens').innerText}`;
             return texto;
+        }
+
+        function copiarRelatorio() {
+            let texto = gerarTextoRelatorio();
+            if (!texto) {
+                alert('Nenhum produto cadastrado para copiar!');
+                return;
+            }
+            navigator.clipboard.writeText(texto).then(() => {
+                alert('✅ Relatório copiado para a área de transferência!');
+            }).catch(() => {
+                alert('Não foi possível copiar automaticamente.');
+            });
         }
 
         function enviarWhatsApp() {
             let texto = gerarTextoRelatorio();
             if (!texto) {
-                alert('Nenhum produto para enviar!');
+                alert('Nenhum produto cadastrado para enviar!');
                 return;
             }
             let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
@@ -275,20 +315,22 @@
         function enviarEmail() {
             let texto = gerarTextoRelatorio();
             if (!texto) {
-                alert('Nenhum produto para enviar!');
+                alert('Nenhum produto cadastrado para enviar!');
                 return;
             }
 
             let chkCorporativo = document.getElementById('chk-corporativo').checked;
+            let chkGmail = document.getElementById('chk-gmail').checked;
             let chkPrivado = document.getElementById('chk-privado').checked;
 
-            if (!chkCorporativo && !chkPrivado) {
-                alert('Marque pelo menos uma opção de e-mail (Corporativo ou Privado) para enviar!');
+            if (!chkCorporativo && !chkGmail && !chkPrivado) {
+                alert('Marque pelo menos uma opção de e-mail!');
                 return;
             }
 
             let listaEmails = [];
             if (chkCorporativo) listaEmails.push(DADOS_EMPRESA.emailCorporativo);
+            if (chkGmail) listaEmails.push(DADOS_EMPRESA.emailGmail);
             if (chkPrivado) listaEmails.push(DADOS_EMPRESA.emailPrivado);
 
             let destinatarios = listaEmails.join(',');
@@ -301,54 +343,60 @@
         function gerarExcel() {
             let chaves = Object.keys(itensContados);
             if (chaves.length === 0) {
-                alert('Nenhum produto para exportar!');
+                alert('Nenhum produto cadastrado!');
                 return;
             }
-
             let dataHoje = new Date().toLocaleDateString('pt-BR');
-
             let estruturaExcel = [
-                ["CNPJ", DADOS_EMPRESA.cnpj, "", "", "", "", "", "", "", "", ""],
-                ["Nome Fantasia", DADOS_EMPRESA.nome, "", "", "", "", "", "", "", "", ""],
-                ["Razão Social", DADOS_EMPRESA.razaoSocial, "", "", "", "Telefone", DADOS_EMPRESA.telefone, "", "", "", ""],
-                ["Endereço", DADOS_EMPRESA.endereco, "", "", "", "CEP", DADOS_EMPRESA.cep, "", "", "", ""],
-                ["Município", DADOS_EMPRESA.municipio, "", "", "", "E-mail", DADOS_EMPRESA.emailCorporativo, "", "", "", ""],
-                ["", "", "", "", "", "", "", "", "", "", ""],
-                ["Relatório Inventário", "", "", "", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", "", "", "", ""],
-                ["Data do Inventário", dataHoje, "", "", "", "Valor do Inventário", "0,00", "", "", "", ""],
-                ["Propriedade/Posse", "Items de propriedade do informante e em seu poder.", "", "", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", "", "", "", ""],
-                ["#", "Código", "Descrição", "Quantidade", "Unid.", "Valor Unit.", "Valor Total", "Contagem 1", "Contagem 2", "Contagem 3", ""]
+                ["CNPJ", DADOS_EMPRESA.cnpj],
+                ["Razão Social", DADOS_EMPRESA.razaoSocial],
+                ["E-mail", DADOS_EMPRESA.emailGmail],
+                ["", ""],
+                ["#", "Código", "Descrição", "Quantidade", "Unidade"]
             ];
-
             let index = 1;
             chaves.forEach(codigo => {
                 let item = itensContados[codigo];
-                
-                estruturaExcel.push([
-                    index,
-                    codigo,
-                    item.descricao,
-                    item.quantidade,
-                    "UN",
-                    "0,00",
-                    "0,00",
-                    "_______",
-                    "_______",
-                    "_______",
-                    ""
-                ]);
+                estruturaExcel.push([index, codigo, item.descricao, item.quantidade, "UN"]);
+                index++;
+            });
+            let ws = XLSX.utils.aoa_to_sheet(estruturaExcel);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Inventário");
+            XLSX.writeFile(wb, `Inventario_${dataHoje.replace(/\//g, '-')}.xlsx`);
+        }
+
+        function gerarPDF() {
+            let chaves = Object.keys(itensContados);
+            if (chaves.length === 0) {
+                alert('Nenhum produto cadastrado!');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let dataHoje = new Date().toLocaleDateString('pt-BR');
+
+            doc.setFontSize(14);
+            doc.text("RELATÓRIO DE INVENTÁRIO DE ESTOQUE", 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Empresa: ${DADOS_EMPRESA.nome}`, 14, 23);
+            doc.text(`CNPJ: ${DADOS_EMPRESA.cnpj} | Data: ${dataHoje}`, 14, 29);
+
+            let linhas = [];
+            let index = 1;
+            chaves.forEach(codigo => {
+                let item = itensContados[codigo];
+                linhas.push([index, codigo, item.descricao, item.quantidade, "UN"]);
                 index++;
             });
 
-            estruturaExcel.push(["", "", "Total de Items de propriedade do informante e em seu poder.", document.getElementById('total-itens').innerText, "", "", "0,00", "", "", "", ""]);
+            doc.autoTable({
+                startY: 35,
+                head: [['#', 'Código', 'Descrição', 'Qtd', 'Unid']],
+                body: linhas
+            });
 
-            let ws = XLSX.utils.aoa_to_sheet(estruturaExcel);
-            let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Relatório Inventário");
-
-            XLSX.writeFile(wb, `Inventario_${DADOS_EMPRESA.nome.replace(/\s+/g, '_')}_${dataHoje.replace(/\//g, '-')}.xlsx`);
+            doc.save(`Inventario_${dataHoje.replace(/\//g, '-')}.pdf`);
         }
 
         async function iniciarCameraTraseira() {
@@ -361,43 +409,32 @@
 
                 html5QrCode = new Html5Qrcode("reader");
                 const config = { fps: 10, qrbox: { width: 220, height: 220 } };
-
                 const devices = await Html5Qrcode.getCameras();
                 
                 if (devices && devices.length > 0) {
                     let cameraId = devices[0].id;
-                    
                     for (let i = 0; i < devices.length; i++) {
                         let label = devices[i].label.toLowerCase();
-                        if (label.includes('back') || label.includes('traseira') || label.includes('environment') || label.includes('rear') || label.includes('0, facing back')) {
+                        if (label.includes('back') || label.includes('traseira') || label.includes('environment') || label.includes('rear')) {
                             cameraId = devices[i].id;
                             break;
                         }
                     }
-                    
-                    if (cameraId === devices[0].id && devices.length > 1) {
-                        cameraId = devices[devices.length - 1].id;
-                    }
-
                     await html5QrCode.start(cameraId, config, onScanSuccess);
                 } else {
                     await html5QrCode.start({ facingMode: { exact: "environment" } }, config, onScanSuccess);
                 }
             } catch (err) {
-                console.warn("Fallback de câmera...", err);
                 try {
                     await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 220 } }, onScanSuccess);
                 } catch(e) {
-                    alert("Por favor, verifique as permissões da câmera.");
+                    alert("Verifique as permissões da câmera.");
                 }
             }
         }
 
         document.body.addEventListener('click', () => inicializarAudio(), { once: true });
-
-        window.addEventListener('load', () => {
-            iniciarCameraTraseira();
-        });
+        window.addEventListener('load', () => { iniciarCameraTraseira(); });
     </script>
 </body>
 </html>
