@@ -4,16 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coletor de Estoque - QR Code</title>
-    <!-- Tailwind CSS para design mobile -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Biblioteca de Leitura de QR Code via Câmera -->
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- Biblioteca para Gerar o Excel (.xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen pb-12 font-sans">
 
-    <!-- Cabeçalho -->
     <div class="bg-blue-600 text-white p-4 shadow-lg text-center">
         <h1 class="text-xl font-bold">Contagem de Estoque</h1>
         <p id="data-inicio" class="text-xs text-blue-100 mt-1"></p>
@@ -21,14 +17,20 @@
 
     <div class="max-w-md mx-auto p-4 space-y-4">
 
-        <!-- Câmera e Scanner -->
         <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 text-center">
             <h2 class="font-semibold text-gray-700 mb-2">Escanear QR Code</h2>
-            <div id="reader" class="w-full rounded-lg overflow-hidden border"></div>
-            <p class="text-xs text-gray-500 mt-2">Aponta a câmera para a etiqueta do produto</p>
+            
+            <div id="reader" class="w-full rounded-lg overflow-hidden border bg-black min-h-[260px]"></div>
+            
+            <div class="flex gap-2 mt-3">
+                <button id="btn-iniciar" onclick="iniciarCameraTraseira()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow">
+                    🔄 Iniciar Câmera Traseira
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Aponte a câmera traseira para o QR Code</p>
         </div>
 
-        <!-- Pop-up/Modal para Pergunta "Quantos?" -->
+        <!-- Pop-up/Modal "Quantos?" -->
         <div id="modal-qtd" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
             <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl text-center space-y-4">
                 <h3 class="text-lg font-bold text-gray-800">Confirmar Contagem</h3>
@@ -69,41 +71,37 @@
     <script>
         let dataInicio = new Date();
         let itensContados = {};
-        let html5QrcodeScanner = null;
+        let html5QrCode = null;
         let itemAtual = null;
 
-        // Formatação de Data
         function formatarData(data) {
             return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR');
         }
 
         document.getElementById('data-inicio').innerText = 'Início: ' + formatarData(dataInicio);
 
-        // Processar os dados contidos no QR Code
         function processarQRCode(rawText) {
             let codigo = rawText;
             let descricao = "Item sem Descrição";
 
             try {
-                // Se o QR Code for um JSON Ex: {"codigo": "PROD01", "descricao": "Parafuso"}
                 let dados = JSON.parse(rawText);
                 codigo = dados.codigo || rawText;
                 descricao = dados.descricao || descricao;
             } catch (e) {
-                // Se o QR Code for em texto simples separado por vírgula Ex: PROD01, Parafuso
                 if (rawText.includes(',')) {
                     let partes = rawText.split(',');
                     codigo = partes[0].trim();
                     descricao = partes[1].trim();
                 }
             }
-
             return { codigo, descricao };
         }
 
-        // Evento acionado ao ler um QR Code com sucesso
-        function onScanSuccess(decodedText, decodedResult) {
-            html5QrcodeScanner.pause(); // Pausa a câmera para o usuário digitar a quantidade
+        function onScanSuccess(decodedText) {
+            if (html5QrCode) {
+                html5QrCode.pause();
+            }
             itemAtual = processarQRCode(decodedText);
 
             document.getElementById('modal-codigo').innerText = itemAtual.codigo;
@@ -143,7 +141,9 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             itemAtual = null;
-            html5QrcodeScanner.resume(); // Retoma o escaneamento na câmera
+            if (html5QrCode) {
+                html5QrCode.resume();
+            }
         }
 
         function atualizarListaInterface() {
@@ -172,7 +172,6 @@
             document.getElementById('total-itens').innerText = total;
         }
 
-        // Exportação do Relatório para Excel (.xlsx)
         function gerarExcel() {
             let chaves = Object.keys(itensContados);
             if (chaves.length === 0) {
@@ -193,23 +192,60 @@
                 });
             });
 
-            // Criação da planilha Excel
             let ws = XLSX.utils.json_to_sheet(dadosExcel);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Inventario");
 
-            // Baixa o arquivo diretamente no dispositivo
             XLSX.writeFile(wb, `Relatorio_Estoque_${horaFinal.toISOString().slice(0,10)}.xlsx`);
         }
 
-        // Inicializa a câmera usando a lente traseira do celular (facingMode: environment)
+        async function iniciarCameraTraseira() {
+            try {
+                if (html5QrCode) {
+                    try { await html5QrCode.stop(); } catch(e){}
+                    await html5QrCode.clear();
+                }
+
+                html5QrCode = new Html5Qrcode("reader");
+                const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+
+                // Busca a lista física de lentes/câmeras do dispositivo
+                const devices = await Html5Qrcode.getCameras();
+                
+                if (devices && devices.length > 0) {
+                    // Tenta encontrar a câmera que contenha nomes indicando a traseira
+                    let cameraId = devices[0].id; // Padrão
+                    
+                    for (let i = 0; i < devices.length; i++) {
+                        let label = devices[i].label.toLowerCase();
+                        if (label.includes('back') || label.includes('traseira') || label.includes('environment') || label.includes('rear') || label.includes('0, facing back')) {
+                            cameraId = devices[i].id;
+                            break;
+                        }
+                    }
+                    
+                    // Se não achou pelo nome, pega a última câmera registrada (geralmente é a traseira em celulares)
+                    if (cameraId === devices[0].id && devices.length > 1) {
+                        cameraId = devices[devices.length - 1].id;
+                    }
+
+                    await html5QrCode.start(cameraId, config, onScanSuccess);
+                } else {
+                    // Se não listou os aparelhos, tenta a restrição padrão do sistema
+                    await html5QrCode.start({ facingMode: { exact: "environment" } }, config, onScanSuccess);
+                }
+            } catch (err) {
+                console.warn("Tentando modo fallback de câmera traseira...", err);
+                try {
+                    await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 220 } }, onScanSuccess);
+                } catch(e) {
+                    alert("Por favor, verifique as permissões da câmera no seu navegador.");
+                }
+            }
+        }
+
         window.addEventListener('load', () => {
-            html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
-                fps: 10, 
-                qrbox: { width: 220, height: 220 },
-                facingMode: "environment"
-            });
-            html5QrcodeScanner.render(onScanSuccess);
+            iniciarCameraTraseira();
         });
     </script>
 </body>
