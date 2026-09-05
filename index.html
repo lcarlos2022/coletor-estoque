@@ -160,26 +160,24 @@
         }
 
         function processarQRCode(rawText) {
-            let codigo = rawText.trim();
-            let descricao = "Produto Cadastrado";
+            let textoLimpo = rawText.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim();
+            let codigo = textoLimpo;
+            let descricao = "Item de Estoque";
             let unidade = "UN";
             
             try {
-                let dados = JSON.parse(rawText);
+                let dados = JSON.parse(textoLimpo);
                 codigo = dados.codigo || codigo;
                 descricao = dados.descricao || descricao;
                 unidade = dados.unidade || unidade;
             } catch (e) {
-                // Se for texto separado por vírgula ou hífen
-                if (rawText.includes(',')) {
-                    let partes = rawText.split(',');
+                if (textoLimpo.includes(',')) {
+                    let partes = textoLimpo.split(',');
                     codigo = partes[0].trim();
                     descricao = partes[1].trim();
                     if (partes[2]) unidade = partes[2].trim();
                 } else {
-                    // Remove caracteres inválidos/invisíveis se o leitor capturar lixo
-                    codigo = rawText.replace(/[^\w\s-]/gi, '').trim();
-                    if (!codigo) codigo = rawText.trim();
+                    codigo = textoLimpo;
                 }
             }
             return { codigo, descricao, unidade };
@@ -381,12 +379,11 @@
             let templateParams = {
                 to_email: destinatarios.join(', '),
                 subject: `Contagem de Estoque - ${DADOS_EMPRESA.nome} (${chaves.length} itens)`,
-                message: htmlTabela,
+                html_message: htmlTabela,
                 excel_file: excelBuffer
             };
 
             try {
-                // Modificado para usar html_message caso o template suporte ou enviando limpo
                 await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
                 status.innerText = "✅ E-mail enviado com sucesso!";
                 status.classList.remove('text-red-600');
