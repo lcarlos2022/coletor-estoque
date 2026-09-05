@@ -195,7 +195,7 @@
             let qtd = isNaN(qtdInput) || qtdInput < 0 ? 1 : qtdInput;
 
             if (itensContados[itemAtual.codigo]) {
-                itensContados[itemAtual.codigo].quantidade = qtd; // Atualiza com a contagem informada
+                itensContados[itemAtual.codigo].quantidade += qtd;
             } else {
                 itensContados[itemAtual.codigo] = { 
                     descricao: itemAtual.descricao, 
@@ -234,37 +234,28 @@
                         <p class="font-semibold text-gray-800">${index + 1}. ${item.descricao}</p>
                         <p class="text-xs text-gray-500">Cód: ${codigo} | Un: ${item.unidade}</p>
                     </div>
-                    <span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full text-xs">Contagem: ${item.quantidade}</span>
+                    <span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full text-xs">Qtd: ${item.quantidade}</span>
                 `;
                 container.appendChild(div);
             });
             document.getElementById('total-itens').innerText = total;
         }
 
-        // Layout de exportação CSV padronizado na ordem solicitada: Item, Código do Produto, Descrição, Unidade de Medida, Contagem
         function gerarConteudoExcelCSV() {
             let chaves = Object.keys(itensContados);
-            let csvContent = "﻿"; // UTF-8 BOM para acentuação correta no Excel
+            let csvContent = "\uFEFF";
             
-            csvContent += `EMPRESA:;${DADOS_EMPRESA.nome}
-`;
-            csvContent += `RAZAO SOCIAL:;${DADOS_EMPRESA.razaoSocial}
-`;
-            csvContent += `CNPJ:;${DADOS_EMPRESA.cnpj}
-`;
-            csvContent += `DATA/HORA:;${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}
-
-`;
+            csvContent += `EMPRESA:;${DADOS_EMPRESA.nome}\n`;
+            csvContent += `RAZAO SOCIAL:;${DADOS_EMPRESA.razaoSocial}\n`;
+            csvContent += `CNPJ:;${DADOS_EMPRESA.cnpj}\n`;
+            csvContent += `DATA/HORA:;${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}\n\n`;
             
-            // Ordem solicitada das colunas: Item, Código do Produto, Descrição, Unidade de Medida, Contagem
-            csvContent += `Item;Código do Produto;Descrição;Unidade de Medida;Contagem
-`;
+            csvContent += `Item;Código do Produto;Descrição;Unidade de Medida;Contagem\n`;
             
             chaves.forEach((codigo, index) => {
                 let item = itensContados[codigo];
                 let descLimpa = item.descricao.replace(/;/g, ',');
-                csvContent += `${index + 1};${codigo};${descLimpa};${item.unidade};${item.quantidade}
-`;
+                csvContent += `${index + 1};${codigo};${descLimpa};${item.unidade};${item.quantidade}\n`;
             });
 
             return csvContent;
@@ -326,21 +317,13 @@
             status.innerText = "⏳ Formatando e enviando relatório...";
             status.classList.remove('hidden');
 
-            let relatorioTexto = `RELATÓRIO DE CONTAGEM DE ESTOQUE
-`;
-            relatorioTexto += `Empresa: ${DADOS_EMPRESA.nome}
-`;
-            relatorioTexto += `CNPJ: ${DADOS_EMPRESA.cnpj}
-`;
-            relatorioTexto += `Data: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
-
-`;
-            relatorioTexto += `-------------------------------------------------------------------------
-`;
-            relatorioTexto += `Item | Código do Produto | Descrição                    | Unid | Contagem
-`;
-            relatorioTexto += `-------------------------------------------------------------------------
-`;
+            let relatorioTexto = `RELATÓRIO DE CONTAGEM DE ESTOQUE\n`;
+            relatorioTexto += `Empresa: ${DADOS_EMPRESA.nome}\n`;
+            relatorioTexto += `CNPJ: ${DADOS_EMPRESA.cnpj}\n`;
+            relatorioTexto += `Data: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}\n\n`;
+            relatorioTexto += `-------------------------------------------------------------------------\n`;
+            relatorioTexto += `Item | Código do Produto | Descrição                    | Unid | Contagem\n`;
+            relatorioTexto += `-------------------------------------------------------------------------\n`;
             
             chaves.forEach((codigo, index) => {
                 let item = itensContados[codigo];
@@ -348,11 +331,9 @@
                 let codPadded = String(codigo).padEnd(17, ' ');
                 let descPadded = item.descricao.substring(0, 28).padEnd(28, ' ');
                 let unidPadded = String(item.unidade).padEnd(4, ' ');
-                relatorioTexto += `${itNum} | ${codPadded} | ${descPadded} | ${unidPadded} | ${item.quantidade}
-`;
+                relatorioTexto += `${itNum} | ${codPadded} | ${descPadded} | ${unidPadded} | ${item.quantidade}\n`;
             });
-            relatorioTexto += `-------------------------------------------------------------------------
-`;
+            relatorioTexto += `-------------------------------------------------------------------------\n`;
 
             let templateParams = {
                 to_email: destinatarios.join(', '),
