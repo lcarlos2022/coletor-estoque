@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coletor de Estoque - QR Code</title>
+    <title>Coletor de Estoque - Grupo Brava</title>
     <!-- Tailwind CSS para design mobile -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Biblioteca de Leitura de QR Code via Câmera -->
@@ -15,7 +15,8 @@
 
     <!-- Cabeçalho -->
     <div class="bg-blue-600 text-white p-4 shadow-lg text-center">
-        <h1 class="text-xl font-bold">Contagem de Estoque</h1>
+        <h1 class="text-xl font-bold">Grupo Brava - Contagem de Estoque</h1>
+        <p class="text-xs text-blue-100 mt-1">Mda Construções LTDA</p>
     </div>
 
     <div class="max-w-md mx-auto p-4 space-y-4">
@@ -69,17 +70,30 @@
                 <p class="text-gray-400 text-center py-4 text-xs">Nenhum item adicionado ainda.</p>
             </div>
 
-            <!-- Botões de Compartilhamento Direto -->
-            <div class="pt-2 border-t space-y-2">
-                <p class="text-xs font-bold text-gray-500 uppercase text-center">Enviar Relatório Final</p>
+            <!-- Opções de Seleção de E-mail antes do Envio -->
+            <div class="pt-2 border-t space-y-3">
+                <p class="text-xs font-bold text-gray-500 uppercase text-center">Opções de Envio por E-mail</p>
                 
-                <button onclick="enviarWhatsApp()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                    💬 Enviar pelo WhatsApp
-                </button>
-                
-                <button onclick="enviarEmail()" class="w-full bg-slate-700 hover:bg-slate-800 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                    ✉️ Enviar por E-mail (Empresa + Pessoal)
-                </button>
+                <div class="bg-gray-50 p-3 rounded-lg space-y-2 text-xs">
+                    <label class="flex items-center gap-2 cursor-pointer text-gray-700 font-medium">
+                        <input type="checkbox" id="chk-corporativo" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                        <span>E-mail Corporativo: <strong>luiz.oliveira@brava.com.br</strong></span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-gray-700 font-medium">
+                        <input type="checkbox" id="chk-privado" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                        <span>E-mail Privado: <strong>ocluiz@hotmail.com</strong></span>
+                    </label>
+                </div>
+
+                <div class="space-y-2">
+                    <button onclick="enviarEmail()" class="w-full bg-slate-700 hover:bg-slate-800 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
+                        ✉️ Enviar E-mail Selecionado
+                    </button>
+                    
+                    <button onclick="enviarWhatsApp()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
+                        💬 Enviar pelo WhatsApp
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -91,17 +105,17 @@
         let itemAtual = null;
         let audioCtx = null;
 
-        // Dados da Empresa (Altere se necessário)
+        // Dados Cadastrais Oficiais da Empresa
         const DADOS_EMPRESA = {
-            cnpj: "04.475.039/0001-16",
-            nome: "EMPRESA BOLETO ALVEJAX 2",
-            razaoSocial: "EMPRESA BOLETO ALVEJAX 2",
-            endereco: "RUA TESTE, 123",
-            municipio: "CURITIBA-PR",
-            telefone: "(41)3000-0000",
-            cep: "83.000-000",
-            email: "contato@totalerp.com.br",
-            emailPessoal: "seu-email-pessoal@gmail.com"
+            cnpj: "20.948.559/0001-55",
+            nome: "Grupo Brava Construcao e Incorporacao",
+            razaoSocial: "Mda Construcoes LTDA",
+            endereco: "Rua Ary Barroso, nº 70, Sala 1017 - Torre 01 - Papicu",
+            municipio: "Fortaleza-CE",
+            telefone: "",
+            cep: "60175-705",
+            emailCorporativo: "luiz.oliveira@brava.com.br",
+            emailPrivado: "ocluiz@hotmail.com"
         };
 
         function inicializarAudio() {
@@ -232,8 +246,9 @@
             let chaves = Object.keys(itensContados);
             if (chaves.length === 0) return null;
 
-            let texto = "*RELATÓRIO DE INVENTÁRIO DE ESTOQUE*\n";
-            texto += `Empresa: ${DADOS_EMPRESA.nome}\n`;
+            let texto = `*RELATÓRIO DE INVENTÁRIO - ${DADOS_EMPRESA.nome.toUpperCase()}*\n`;
+            texto += `Razão Social: ${DADOS_EMPRESA.razaoSocial}\n`;
+            texto += `CNPJ: ${DADOS_EMPRESA.cnpj}\n`;
             texto += "-------------------------------------\n";
             
             chaves.forEach(codigo => {
@@ -264,14 +279,25 @@
                 return;
             }
 
-            let destinatarios = `${DADOS_EMPRESA.email},${DADOS_EMPRESA.emailPessoal}`;
-            let assunto = encodeURIComponent("Relatório de Inventário de Estoque");
+            let chkCorporativo = document.getElementById('chk-corporativo').checked;
+            let chkPrivado = document.getElementById('chk-privado').checked;
+
+            if (!chkCorporativo && !chkPrivado) {
+                alert('Marque pelo menos uma opção de e-mail (Corporativo ou Privado) para enviar!');
+                return;
+            }
+
+            let listaEmails = [];
+            if (chkCorporativo) listaEmails.push(DADOS_EMPRESA.emailCorporativo);
+            if (chkPrivado) listaEmails.push(DADOS_EMPRESA.emailPrivado);
+
+            let destinatarios = listaEmails.join(',');
+            let assunto = encodeURIComponent(`Inventário de Estoque - ${DADOS_EMPRESA.nome}`);
             let corpo = encodeURIComponent(texto);
 
             window.location.href = `mailto:${destinatarios}?subject=${assunto}&body=${corpo}`;
         }
 
-        // Exportação do Excel Idêntica ao Layout do ERP da Imagem
         function gerarExcel() {
             let chaves = Object.keys(itensContados);
             if (chaves.length === 0) {
@@ -281,20 +307,18 @@
 
             let dataHoje = new Date().toLocaleDateString('pt-BR');
 
-            // Montagem das Linhas no Formato do Layout de Inventário
             let estruturaExcel = [
                 ["CNPJ", DADOS_EMPRESA.cnpj, "", "", "", "", "", "", "", "", ""],
-                ["Nome", DADOS_EMPRESA.nome, "", "", "", "", "", "", "", "", ""],
+                ["Nome Fantasia", DADOS_EMPRESA.nome, "", "", "", "", "", "", "", "", ""],
                 ["Razão Social", DADOS_EMPRESA.razaoSocial, "", "", "", "Telefone", DADOS_EMPRESA.telefone, "", "", "", ""],
                 ["Endereço", DADOS_EMPRESA.endereco, "", "", "", "CEP", DADOS_EMPRESA.cep, "", "", "", ""],
-                ["Município", DADOS_EMPRESA.municipio, "", "", "", "E-mail", DADOS_EMPRESA.email, "", "", "", ""],
+                ["Município", DADOS_EMPRESA.municipio, "", "", "", "E-mail", DADOS_EMPRESA.emailCorporativo, "", "", "", ""],
                 ["", "", "", "", "", "", "", "", "", "", ""],
                 ["Relatório Inventário", "", "", "", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", "", "", "", ""],
                 ["Data do Inventário", dataHoje, "", "", "", "Valor do Inventário", "0,00", "", "", "", ""],
                 ["Propriedade/Posse", "Items de propriedade do informante e em seu poder.", "", "", "", "", "", "", "", "", ""],
                 ["", "", "", "", "", "", "", "", "", "", ""],
-                // Cabeçalho da Tabela
                 ["#", "Código", "Descrição", "Quantidade", "Unid.", "Valor Unit.", "Valor Total", "Contagem 1", "Contagem 2", "Contagem 3", ""]
             ];
 
@@ -318,14 +342,13 @@
                 index++;
             });
 
-            // Linha de Rodapé / Total
             estruturaExcel.push(["", "", "Total de Items de propriedade do informante e em seu poder.", document.getElementById('total-itens').innerText, "", "", "0,00", "", "", "", ""]);
 
             let ws = XLSX.utils.aoa_to_sheet(estruturaExcel);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Relatório Inventário");
 
-            XLSX.writeFile(wb, `Relatorio_Inventario_${dataHoje.replace(/\//g, '-')}.xlsx`);
+            XLSX.writeFile(wb, `Inventario_${DADOS_EMPRESA.nome.replace(/\s+/g, '_')}_${dataHoje.replace(/\//g, '-')}.xlsx`);
         }
 
         async function iniciarCameraTraseira() {
