@@ -34,10 +34,10 @@
             </div>
         </div>
 
-        <!-- Modal Quantidade Dupla -->
+        <!-- Modal Quantidades -->
         <div id="modal-qtd" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
             <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl text-center space-y-4">
-                <h3 class="text-lg font-bold text-gray-800">Dupla Contagem</h3>
+                <h3 class="text-lg font-bold text-gray-800">Contagem de Estoque</h3>
                 <div class="text-left bg-gray-50 p-3 rounded-lg text-sm space-y-1">
                     <p><strong>Código:</strong> <span id="modal-codigo" class="text-blue-600"></span></p>
                     <p><strong>Descrição:</strong> <span id="modal-desc" class="text-gray-700"></span></p>
@@ -300,7 +300,7 @@
                 return;
             }
             let { wb } = gerarWorkbookExcel();
-            XLSX.writeFile(wb, `Inventario_DuplaContagem_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.writeFile(wb, `Relatorio_Contagem_Estoque_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
         async function enviarRelatorioServidor() {
@@ -338,12 +338,12 @@
             
             btn.disabled = true;
             btn.classList.add('opacity-50');
-            status.innerText = "⏳ Enviando e-mail e baixando planilha de análise...";
+            status.innerText = "⏳ Enviando e-mail e baixando planilha Excel para análise...";
             status.classList.remove('hidden');
 
             let htmlTabela = `
                 <div style="font-family: Arial, sans-serif; color: #333; max-width: 700px; margin: 0 auto; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px;">
-                    <h2 style="color: #1F4E78; border-bottom: 2px solid #1F4E78; padding-bottom: 8px; margin-top: 0;">RELATÓRIO DE DUPLA CONTAGEM DE ESTOQUE</h2>
+                    <h2 style="color: #1F4E78; border-bottom: 2px solid #1F4E78; padding-bottom: 8px; margin-top: 0;">RELATÓRIO CONTAGEM DE ESTOQUE</h2>
                     <p style="margin: 5px 0;"><strong>Empresa:</strong> ${DADOS_EMPRESA.nome}</p>
                     <p style="margin: 5px 0;"><strong>CNPJ:</strong> ${DADOS_EMPRESA.cnpj}</p>
                     <p style="margin: 5px 0;"><strong>Data/Hora:</strong> ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
@@ -385,24 +385,24 @@
                         </tbody>
                     </table>
                     <br>
-                    <p style="font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px;">Relatório de conferência interna gerado pelo sistema do Grupo Brava.</p>
+                    <p style="font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px;">Relatório gerado automaticamente pelo sistema do Grupo Brava.</p>
                 </div>
             `;
 
             let templateParams = {
                 to_email: destinatarios.join(', '),
-                subject: `Conferência Estoque - ${DADOS_EMPRESA.nome} (${chaves.length} itens)`,
+                subject: `Relatório Contagem de Estoque - ${DADOS_EMPRESA.nome} (${chaves.length} itens)`,
                 message: htmlTabela
             };
 
             try {
-                // Envia o e-mail para a sua caixa de entrada
+                // Envia o e-mail corporativo / pessoal
                 await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
                 
-                // Dispara o download imediato do Excel no seu aparelho para análise
+                // Dispara o download da planilha oficial em Excel (.xlsx) no aparelho para análise
                 baixarExcelLocal();
 
-                status.innerText = "✅ E-mail enviado e planilha baixada para análise com sucesso!";
+                status.innerText = "✅ E-mail enviado e planilha Excel baixada para análise!";
                 status.classList.remove('text-red-600');
                 status.classList.add('text-green-600');
             } catch (error) {
