@@ -379,7 +379,7 @@
             let templateParams = {
                 to_email: destinatarios.join(', '),
                 subject: `Contagem de Estoque - ${DADOS_EMPRESA.nome} (${chaves.length} itens)`,
-                html_message: htmlTabela,
+                mensagem: htmlTabela,
                 excel_file: excelBuffer
             };
 
