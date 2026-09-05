@@ -1,380 +1,179 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coletor de Estoque - Grupo Brava</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leitor QR Code -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- SDK do EmailJS -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-</head>
-<body class="bg-gray-100 min-h-screen pb-12 font-sans">
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
-    <!-- Cabeçalho -->
-    <div class="bg-blue-600 text-white p-4 shadow-lg text-center">
-        <h1 class="text-xl font-bold">Grupo Brava - Contagem de Estoque</h1>
-        <p class="text-xs text-blue-100 mt-1">Mda Construções LTDA</p>
-    </div>
+# Create workbook
+wb = openpyxl.Workbook()
+ws = wb.active
+ws.title = "Contagem de Estoque"
 
-    <div class="max-w-md mx-auto p-4 space-y-4">
+# Ensure grid lines are visible
+ws.views.sheetView[0].showGridLines = True
 
-        <!-- Câmera e Scanner -->
-        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 text-center">
-            <h2 class="font-semibold text-gray-700 mb-2">Escanear QR Code</h2>
-            <div id="reader" class="w-full rounded-lg overflow-hidden border bg-black min-h-[260px]"></div>
-            <div class="flex gap-2 mt-3">
-                <button id="btn-iniciar" onclick="iniciarCameraTraseira()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow">
-                    🔄 Iniciar Câmera Traseira
-                </button>
-            </div>
-        </div>
+font_family = "Arial"
+bold_font = Font(name=font_family, size=10, bold=True)
+regular_font = Font(name=font_family, size=10)
+header_font = Font(name=font_family, size=10, bold=True, color="FFFFFF")
 
-        <!-- Modal Quantidade -->
-        <div id="modal-qtd" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl text-center space-y-4">
-                <h3 class="text-lg font-bold text-gray-800">Confirmar Contagem</h3>
-                <div class="text-left bg-gray-50 p-3 rounded-lg text-sm space-y-1">
-                    <p><strong>Código:</strong> <span id="modal-codigo" class="text-blue-600"></span></p>
-                    <p><strong>Descrição:</strong> <span id="modal-desc" class="text-gray-700"></span></p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Quantos?</label>
-                    <input type="number" id="input-qtd" value="1" min="1" class="w-full text-center text-2xl font-bold border-2 border-blue-500 rounded-lg p-2 focus:outline-none">
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="cancelarLeitura()" class="w-1/2 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold text-sm">Cancelar</button>
-                    <button onclick="salvarContagem()" class="w-1/2 bg-blue-600 text-white py-3 rounded-lg font-semibold text-sm">Registrar</button>
-                </div>
-            </div>
-        </div>
+thin_border = Border(
+    left=Side(style='thin', color='A0A0A0'),
+    right=Side(style='thin', color='A0A0A0'),
+    top=Side(style='thin', color='A0A0A0'),
+    bottom=Side(style='thin', color='A0A0A0')
+)
 
-        <!-- Lista e Ações de Envio -->
-        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h2 class="font-semibold text-gray-700">Itens Contados (<span id="total-itens">0</span>)</h2>
-            </div>
-            
-            <div class="max-h-52 overflow-y-auto divide-y text-sm" id="lista-produtos">
-                <p class="text-gray-400 text-center py-4 text-xs">Nenhum item adicionado ainda.</p>
-            </div>
+double_bottom_border = Border(
+    left=Side(style='thin', color='A0A0A0'),
+    right=Side(style='thin', color='A0A0A0'),
+    top=Side(style='thin', color='A0A0A0'),
+    bottom=Side(style='double', color='000000')
+)
 
-            <!-- Destinatários de E-mail Editáveis -->
-            <div class="pt-3 border-t space-y-3">
-                <p class="text-xs font-bold text-gray-500 uppercase">Enviar Relatório Para:</p>
-                
-                <div class="bg-gray-50 p-3 rounded-lg space-y-3 border border-gray-200">
-                    
-                    <!-- E-mail 1: Corporativo -->
-                    <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <input type="checkbox" id="chk-corp" checked class="w-4 h-4 text-blue-600 rounded">
-                            <label for="chk-corp" class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">E-mail Corporativo</label>
-                        </div>
-                        <input type="email" id="email-corp" value="luiz.oliveira@brava.com.br" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-gray-800">
-                    </div>
+header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid") # Professional dark blue
+zebra_fill = PatternFill(start_color="F9F9F9", end_color="F9F9F9", fill_type="solid")
+editable_fill = PatternFill(start_color="FFF2CC", end_color="FFF2CC", fill_type="solid") # Soft yellow to show editable fields
 
-                    <hr class="border-gray-200">
+# --- HEADER SECTION (Company Info) ---
+ws['A1'] = "CNPJ:"
+ws['B1'] = "20.948.559/0001-55"
+ws['E1'] = "Telefone:"
+ws['F1'] = "(85) 3000-0000"
 
-                    <!-- E-mail 2: Celular -->
-                    <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <input type="checkbox" id="chk-celular" checked class="w-4 h-4 text-blue-600 rounded">
-                            <label for="chk-celular" class="text-[10px] font-bold text-green-600 uppercase tracking-wider">E-mail Celular (Gmail)</label>
-                        </div>
-                        <input type="email" id="email-celular" value="ocluiz2021@gmail.com" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-gray-800">
-                    </div>
+ws['A2'] = "Nome:"
+ws['B2'] = "Grupo Brava Construcao e Incorporacao"
+ws['E2'] = "CEP:"
+ws['F2'] = "60.000-000"
 
-                    <hr class="border-gray-200">
+ws['A3'] = "Razão Social:"
+ws['B3'] = "Mda Construcoes LTDA"
+ws['E3'] = "E-mail:"
+ws['F3'] = "luiz.oliveira@brava.com.br"
 
-                    <!-- E-mail 3: PC e Notebook -->
-                    <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <input type="checkbox" id="chk-pc" checked class="w-4 h-4 text-blue-600 rounded">
-                            <label for="chk-pc" class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">E-mail PC / Notebook (Hotmail)</label>
-                        </div>
-                        <input type="email" id="email-pc" value="ocluiz@hotmail.com" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-gray-800">
-                    </div>
+ws['A4'] = "Endereço:"
+ws['B4'] = "Rua Principal, 1000"
+ws['A5'] = "Município:"
+ws['B5'] = "Fortaleza - CE"
 
-                </div>
+ws.merge_cells('B1:D1')
+ws.merge_cells('B2:D2')
+ws.merge_cells('B3:D3')
+ws.merge_cells('B4:D4')
+ws.merge_cells('B5:D5')
+ws.merge_cells('F1:H1')
+ws.merge_cells('F2:H2')
+ws.merge_cells('F3:H3')
 
-                <!-- Campo para E-mail Adicional (Opcional) -->
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Outro e-mail adicional (opcional):</label>
-                    <input type="email" id="input-outro-email" class="w-full p-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="exemplo@email.com">
-                </div>
+for r in range(1, 6):
+    for c in range(1, 9):
+        cell = ws.cell(row=r, column=c)
+        cell.font = regular_font
+        cell.border = thin_border
+        if c in [1, 5] and cell.value:
+            cell.font = bold_font
 
-                <!-- Botões de Ação -->
-                <div class="space-y-2">
-                    <button id="btn-envio" onclick="enviarRelatorioServidor()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                        📊 Enviar Relatório em Formato Excel (E-mail)
-                    </button>
-                    <button onclick="baixarExcelLocal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow flex items-center justify-center gap-2">
-                        📥 Baixar Planilha Excel (.csv) no Aparelho
-                    </button>
-                </div>
-                <p id="status-envio" class="text-xs text-center font-semibold text-gray-600 hidden"></p>
-            </div>
-        </div>
+# --- REPORT TITLE ---
+ws.merge_cells('A6:H6')
+ws['A6'] = "RELATÓRIO DE CONTAGEM DE ESTOQUE"
+ws['A6'].font = Font(name=font_family, size=12, bold=True, color="1F4E78")
+ws['A6'].alignment = Alignment(horizontal="center", vertical="center")
+ws['A6'].fill = PatternFill(start_color="EAEAEA", end_color="EAEAEA", fill_type="solid")
 
-    </div>
+for c in range(1, 9):
+    ws.cell(row=6, column=c).border = thin_border
 
-    <script>
-        // CONFIGURAÇÕES DO EMAILJS
-        const EMAILJS_PUBLIC_KEY = "dO0wI6pOJV9s518uu";
-        const EMAILJS_SERVICE_ID = "service_f8n7him";
-        const EMAILJS_TEMPLATE_ID = "template_mppjgke";
+# --- METADATA SECTION ---
+ws['A7'] = "Data do Inventário:"
+ws['B7'] = "05/09/2026"
+ws['E7'] = "Responsável:"
+ws['F7'] = "Luiz Carlos Oliveira"
 
-        (function() {
-            emailjs.init(EMAILJS_PUBLIC_KEY);
-        })();
+ws.merge_cells('B7:C7')
+ws.merge_cells('F7:H7')
 
-        let itensContados = {};
-        let html5QrCode = null;
-        let itemAtual = null;
+for c in range(1, 9):
+    cell = ws.cell(row=7, column=c)
+    cell.font = regular_font
+    cell.border = thin_border
+    if c in [1, 5]:
+        cell.font = bold_font
 
-        const DADOS_EMPRESA = {
-            cnpj: "20.948.559/0001-55",
-            nome: "Grupo Brava Construcao e Incorporacao",
-            razaoSocial: "Mda Construcoes LTDA"
-        };
+# --- TABLE HEADERS ---
+headers = ["Item", "Código do Produto", "Descrição", "Unidade de Medida", "1ª Contagem", "2ª Contagem", "3ª Contagem", "Observações"]
+for col_num, header_title in enumerate(headers, 1):
+    cell = ws.cell(row=9, column=col_num)
+    cell.value = header_title
+    cell.font = header_font
+    cell.fill = header_fill
+    cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    cell.border = thin_border
 
-        function tocarBip() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+ws.row_dimensions[9].height = 25
 
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+# --- SAMPLE DATA ROWS ---
+sample_data = [
+    (1, "000001", "PERFIL PVC ELMO DUBAI 040 100 50M", "M2", "", "", "", ""),
+    (2, "000002", "Tijolos de bloco", "1000UN", "", "", "", ""),
+    (3, "000003", "Tijolos de bloco barro", "1000UN", "", "", "", ""),
+    (4, "000004", "coca cola 2L", "M3", "", "", "", ""),
+    (5, "000005", "teste", "CX", "", "", "", ""),
+    (6, "", "", "", "", "", "", ""),
+    (7, "", "", "", "", "", "", ""),
+    (8, "", "", "", "", "", "", "")
+]
 
-                oscillator.connect(gain);
-                gain.connect(audioCtx.destination);
+start_row = 10
+for i, item in enumerate(sample_data):
+    row = start_row + i
+    
+    ws.cell(row=row, column=1, value=item[0]).alignment = Alignment(horizontal="center")
+    ws.cell(row=row, column=2, value=item[1]).alignment = Alignment(horizontal="center")
+    ws.cell(row=row, column=3, value=item[2]).alignment = Alignment(horizontal="left")
+    ws.cell(row=row, column=4, value=item[3]).alignment = Alignment(horizontal="center")
+    
+    # Contagens e Observações (Editáveis em amarelo claro)
+    for c in range(5, 9):
+        cell = ws.cell(row=row, column=c, value=item[c-1])
+        cell.fill = editable_fill
+        cell.alignment = Alignment(horizontal="center")
+        
+    for c in range(1, 9):
+        cell = ws.cell(row=row, column=c)
+        if c < 5 and i % 2 == 1:
+            cell.fill = zebra_fill
+        cell.font = regular_font
+        cell.border = thin_border
 
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.15);
-            } catch (e) {
-                console.log("Áudio indisponível:", e);
-            }
-        }
+end_data_row = start_row + len(sample_data) - 1
 
-        function processarQRCode(rawText) {
-            let codigo = rawText;
-            let descricao = "Item sem Descrição";
-            try {
-                let dados = JSON.parse(rawText);
-                codigo = dados.codigo || rawText;
-                descricao = dados.descricao || descricao;
-            } catch (e) {
-                if (rawText.includes(',')) {
-                    let partes = rawText.split(',');
-                    codigo = partes[0].trim();
-                    descricao = partes[1].trim();
-                }
-            }
-            return { codigo, descricao };
-        }
+# --- TOTAL ITEMS ROW ---
+total_row = end_data_row + 1
+ws.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=3)
+total_label = ws.cell(row=total_row, column=1, value="Total de Itens Cadastrados:")
+total_label.font = bold_font
+total_label.alignment = Alignment(horizontal="right", vertical="center")
 
-        function onScanSuccess(decodedText) {
-            tocarBip();
-            if (html5QrCode) html5QrCode.pause();
-            itemAtual = processarQRCode(decodedText);
-            document.getElementById('modal-codigo').innerText = itemAtual.codigo;
-            document.getElementById('modal-desc').innerText = itemAtual.descricao;
-            document.getElementById('input-qtd').value = 1;
-            
-            let modal = document.getElementById('modal-qtd');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
+total_val = ws.cell(row=total_row, column=4, value=f"=COUNTA(B{start_row}:B{end_data_row})")
+total_val.font = bold_font
+total_val.alignment = Alignment(horizontal="center")
 
-        function salvarContagem() {
-            let qtdInput = parseInt(document.getElementById('input-qtd').value);
-            let qtd = isNaN(qtdInput) || qtdInput < 1 ? 1 : qtdInput;
+for c in range(1, 9):
+    cell = ws.cell(row=total_row, column=c)
+    cell.border = double_bottom_border
 
-            if (itensContados[itemAtual.codigo]) {
-                itensContados[itemAtual.codigo].quantidade += qtd;
-            } else {
-                itensContados[itemAtual.codigo] = { descricao: itemAtual.descricao, quantidade: qtd };
-            }
-            atualizarListaInterface();
-            fecharModal();
-        }
+# Adjust Column Widths
+col_widths = {
+    'A': 8,   # Item
+    'B': 20,  # Código do Produto
+    'C': 42,  # Descrição
+    'D': 20,  # Unidade de Medida
+    'E': 15,  # 1 Contagem
+    'F': 15,  # 2 Contagem
+    'G': 15,  # 3 Contagem
+    'H': 25   # Observações
+}
 
-        function cancelarLeitura() {
-            fecharModal();
-        }
+for col_letter, width in col_widths.items():
+    ws.column_dimensions[col_letter].width = width
 
-        function fecharModal() {
-            let modal = document.getElementById('modal-qtd');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            itemAtual = null;
-            if (html5QrCode) html5QrCode.resume();
-        }
-
-        function atualizarListaInterface() {
-            let container = document.getElementById('lista-produtos');
-            let total = 0;
-            container.innerHTML = '';
-
-            Object.keys(itensContados).forEach(codigo => {
-                let item = itensContados[codigo];
-                total += item.quantidade;
-                let div = document.createElement('div');
-                div.className = 'py-2 flex justify-between items-center';
-                div.innerHTML = `
-                    <div>
-                        <p class="font-semibold text-gray-800">${item.descricao}</p>
-                        <p class="text-xs text-gray-500">Cód: ${codigo}</p>
-                    </div>
-                    <span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full text-xs">Qtd: ${item.quantidade}</span>
-                `;
-                container.appendChild(div);
-            });
-            document.getElementById('total-itens').innerText = total;
-        }
-
-        // Função para gerar o conteúdo em formato de Tabela CSV (compatível com Excel)
-        function gerarConteudoExcelCSV() {
-            let chaves = Object.keys(itensContados);
-            let csvContent = "\uFEFF"; // Garante acentuação correta no Excel (UTF-8 BOM)
-            
-            csvContent += `EMPRESA:;${DADOS_EMPRESA.nome}\n`;
-            csvContent += `RAZAO SOCIAL:;${DADOS_EMPRESA.razaoSocial}\n`;
-            csvContent += `CNPJ:;${DADOS_EMPRESA.cnpj}\n`;
-            csvContent += `DATA/HORA:;${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}\n\n`;
-            
-            // Cabeçalho da Tabela
-            csvContent += `CODIGO;DESCRICAO;QUANTIDADE\n`;
-            
-            chaves.forEach(codigo => {
-                let item = itensContados[codigo];
-                // Substitui ponto-e-vírgula na descrição para não quebrar a tabela
-                let descLimpa = item.descricao.replace(/;/g, ',');
-                csvContent += `${codigo};${descLimpa};${item.quantidade}\n`;
-            });
-
-            return csvContent;
-        }
-
-        // Botão para baixar direto no celular/PC como arquivo .csv (abre direto no Excel)
-        function baixarExcelLocal() {
-            let chaves = Object.keys(itensContados);
-            if (chaves.length === 0) {
-                alert('Nenhum produto cadastrado para exportar!');
-                return;
-            }
-
-            let csvContent = gerarConteudoExcelCSV();
-            let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            let url = URL.createObjectURL(blob);
-            let link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Inventario_Estoque_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Envio por e-mail formatado como tabela limpa do Excel
-        async function enviarRelatorioServidor() {
-            let chaves = Object.keys(itensContados);
-            if (chaves.length === 0) {
-                alert('Nenhum produto cadastrado para enviar!');
-                return;
-            }
-
-            let destinatarios = [];
-
-            if (document.getElementById('chk-corp').checked) {
-                let email = document.getElementById('email-corp').value.trim();
-                if (email) destinatarios.push(email);
-            }
-            if (document.getElementById('chk-celular').checked) {
-                let email = document.getElementById('email-celular').value.trim();
-                if (email) destinatarios.push(email);
-            }
-            if (document.getElementById('chk-pc').checked) {
-                let email = document.getElementById('email-pc').value.trim();
-                if (email) destinatarios.push(email);
-            }
-            
-            let outroEmail = document.getElementById('input-outro-email').value.trim();
-            if (outroEmail !== '') {
-                destinatarios.push(outroEmail);
-            }
-
-            if (destinatarios.length === 0) {
-                alert('Por favor, selecione e preencha ao menos um e-mail válido para envio!');
-                return;
-            }
-
-            let btn = document.getElementById('btn-envio');
-            let status = document.getElementById('status-envio');
-            
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-            status.innerText = "⏳ Formatando planilha e enviando...";
-            status.classList.remove('hidden');
-
-            // Monta o texto corporativo em colunas estruturadas para leitura direta
-            let relatorioTexto = `RELATÓRIO DE INVENTÁRIO (FORMATO PLANILHA)\n`;
-            relatorioTexto += `Empresa: ${DADOS_EMPRESA.nome}\n`;
-            relatorioTexto += `CNPJ: ${DADOS_EMPRESA.cnpj}\n`;
-            relatorioTexto += `Data: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}\n\n`;
-            relatorioTexto += `----------------------------------------------------\n`;
-            relatorioTexto += `CÓDIGO          | DESCRIÇÃO                      | QTD\n`;
-            relatorioTexto += `----------------------------------------------------\n`;
-            
-            chaves.forEach(codigo => {
-                let item = itensContados[codigo];
-                let codPadded = codigo.padEnd(15, ' ');
-                let descPadded = item.descricao.substring(0, 30).padEnd(30, ' ');
-                relatorioTexto += `${codPadded} | ${descPadded} | ${item.quantidade}\n`;
-            });
-            relatorioTexto += `----------------------------------------------------\n`;
-
-            let templateParams = {
-                to_email: destinatarios.join(', '),
-                subject: `Planilha de Inventário - ${DADOS_EMPRESA.nome}`,
-                message: relatorioTexto
-            };
-
-            try {
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-                status.innerText = "✅ E-mail com os dados da planilha enviado com sucesso!";
-                status.classList.remove('text-red-600');
-                status.classList.add('text-green-600');
-            } catch (error) {
-                console.error("Erro no envio:", error);
-                status.innerText = "❌ Erro ao enviar e-mail. Verifique a conexão.";
-                status.classList.remove('text-green-600');
-                status.classList.add('text-red-600');
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50');
-            }
-        }
-
-        async function iniciarCameraTraseira() {
-            try {
-                if (html5QrCode) {
-                    try { await html5QrCode.stop(); } catch(e){}
-                    await html5QrCode.clear();
-                }
-                html5QrCode = new Html5Qrcode("reader");
-                const config = { fps: 10, qrbox: { width: 220, height: 220 } };
-                await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
-            } catch (err) {
-                alert("Erro ao acessar a câmera.");
-            }
-        }
-
-        window.addEventListener('load', () => { iniciarCameraTraseira(); });
-    </script>
-</body>
-</html>
+file_path = "Planilha_Contagem_Estoque_Editavel.xlsx"
+wb.save(file_path)
