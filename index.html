@@ -2,12 +2,12 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-# Create workbook
+# Criação do arquivo Excel
 wb = openpyxl.Workbook()
 ws = wb.active
 ws.title = "Contagem de Estoque"
 
-# Ensure grid lines are visible
+# Garantir visibilidade das linhas de grade
 ws.views.sheetView[0].showGridLines = True
 
 font_family = "Arial"
@@ -29,11 +29,11 @@ double_bottom_border = Border(
     bottom=Side(style='double', color='000000')
 )
 
-header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid") # Professional dark blue
+header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
 zebra_fill = PatternFill(start_color="F9F9F9", end_color="F9F9F9", fill_type="solid")
-editable_fill = PatternFill(start_color="FFF2CC", end_color="FFF2CC", fill_type="solid") # Soft yellow to show editable fields
+editable_fill = PatternFill(start_color="FFF2CC", end_color="FFF2CC", fill_type="solid")
 
-# --- HEADER SECTION (Company Info) ---
+# --- CABEÇALHO DA EMPRESA ---
 ws['A1'] = "CNPJ:"
 ws['B1'] = "20.948.559/0001-55"
 ws['E1'] = "Telefone:"
@@ -71,7 +71,7 @@ for r in range(1, 6):
         if c in [1, 5] and cell.value:
             cell.font = bold_font
 
-# --- REPORT TITLE ---
+# --- TÍTULO DO RELATÓRIO ---
 ws.merge_cells('A6:H6')
 ws['A6'] = "RELATÓRIO DE CONTAGEM DE ESTOQUE"
 ws['A6'].font = Font(name=font_family, size=12, bold=True, color="1F4E78")
@@ -81,8 +81,8 @@ ws['A6'].fill = PatternFill(start_color="EAEAEA", end_color="EAEAEA", fill_type=
 for c in range(1, 9):
     ws.cell(row=6, column=c).border = thin_border
 
-# --- METADATA SECTION ---
-ws['A7'] = "Data do Inventário:"
+# --- METADADOS ---
+ws['A7'] = "Data:"
 ws['B7'] = "05/09/2026"
 ws['E7'] = "Responsável:"
 ws['F7'] = "Luiz Carlos Oliveira"
@@ -97,7 +97,7 @@ for c in range(1, 9):
     if c in [1, 5]:
         cell.font = bold_font
 
-# --- TABLE HEADERS ---
+# --- CABEÇALHO DA TABELA ---
 headers = ["Item", "Código do Produto", "Descrição", "Unidade de Medida", "1ª Contagem", "2ª Contagem", "3ª Contagem", "Observações"]
 for col_num, header_title in enumerate(headers, 1):
     cell = ws.cell(row=9, column=col_num)
@@ -109,7 +109,7 @@ for col_num, header_title in enumerate(headers, 1):
 
 ws.row_dimensions[9].height = 25
 
-# --- SAMPLE DATA ROWS ---
+# --- DADOS DE EXEMPLO ---
 sample_data = [
     (1, "000001", "PERFIL PVC ELMO DUBAI 040 100 50M", "M2", "", "", "", ""),
     (2, "000002", "Tijolos de bloco", "1000UN", "", "", "", ""),
@@ -130,7 +130,6 @@ for i, item in enumerate(sample_data):
     ws.cell(row=row, column=3, value=item[2]).alignment = Alignment(horizontal="left")
     ws.cell(row=row, column=4, value=item[3]).alignment = Alignment(horizontal="center")
     
-    # Contagens e Observações (Editáveis em amarelo claro)
     for c in range(5, 9):
         cell = ws.cell(row=row, column=c, value=item[c-1])
         cell.fill = editable_fill
@@ -145,10 +144,10 @@ for i, item in enumerate(sample_data):
 
 end_data_row = start_row + len(sample_data) - 1
 
-# --- TOTAL ITEMS ROW ---
+# --- RODAPÉ DE TOTAIS ---
 total_row = end_data_row + 1
 ws.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=3)
-total_label = ws.cell(row=total_row, column=1, value="Total de Itens Cadastrados:")
+total_label = ws.cell(row=total_row, column=1, value="Total de Itens:")
 total_label.font = bold_font
 total_label.alignment = Alignment(horizontal="right", vertical="center")
 
@@ -160,7 +159,7 @@ for c in range(1, 9):
     cell = ws.cell(row=total_row, column=c)
     cell.border = double_bottom_border
 
-# Adjust Column Widths
+# --- LARGURA DAS COLUNAS ---
 col_widths = {
     'A': 8,   # Item
     'B': 20,  # Código do Produto
