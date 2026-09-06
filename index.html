@@ -185,13 +185,13 @@
                         <p class="text-[11px] text-slate-400">Importe a listagem de materiais do Sienge para alimentar o leitor automático.</p>
                     </div>
                     <div class="flex gap-2">
+                        <button onclick="limparCatalogoInteiro()" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 px-3 py-2 rounded-lg text-xs font-bold shadow transition-all">
+                            🗑️ Limpar Catálogo Inteiro
+                        </button>
                         <label class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold cursor-pointer shadow transition-all flex items-center gap-1">
-                            📂 Importar Planilha do Sienge (.xlsx)
+                            📂 Importar Planilha Sienge (.xlsx)
                             <input type="file" id="file-excel-catalogo" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarCatalogoExcel(event)">
                         </label>
-                        <button onclick="exportarCatalogoExcel()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-lg text-xs font-bold shadow transition-all">
-                            📥 Baixar Modelo
-                        </button>
                     </div>
                 </div>
 
@@ -314,11 +314,8 @@
             try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
         })();
 
-        let catalogoProdutos = JSON.parse(localStorage.getItem('brava_catalogo')) || {
-            "074898": { descricao: "Abraçadeira de Aço 3\"", unidade: "UN" },
-            "101676": { descricao: "Abraçadeira de Nylon 150 x 4", unidade: "PC" }
-        };
-
+        // Catálogo inicia limpo se o usuário preferir, ou pega do armazenamento anterior
+        let catalogoProdutos = JSON.parse(localStorage.getItem('brava_catalogo')) || {};
         let inventarioColetado = JSON.parse(localStorage.getItem('brava_inventario')) || {};
         let html5QrCode = null;
         let itemEmProcessamento = null;
@@ -568,18 +565,27 @@
             }
         }
 
+        // NOVO BOTÃO: Limpar todo o catálogo de uma vez só
+        function limparCatalogoInteiro() {
+            if (confirm("Tem certeza que deseja apagar TODOS os itens do catálogo atual?")) {
+                catalogoProdutos = {};
+                salvarPersistencia();
+                atualizarTabelaCatalogo();
+                alert("Catálogo limpo com sucesso!");
+            }
+        }
+
         function atualizarTabelaCatalogo() {
             let tbody = document.getElementById('tabela-catalogo-body');
             let chaves = Object.keys(catalogoProdutos);
             tbody.innerHTML = '';
 
             if (chaves.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 italic">Nenhum produto cadastrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 italic">Nenhum produto cadastrado no catálogo.</td></tr>`;
                 atualizarContadoresBadge();
                 return;
             }
 
-            // Exibe os itens do catálogo (garantindo que os últimos adicionados apareçam de forma legível)
             chaves.forEach(codigo => {
                 let item = catalogoProdutos[codigo];
                 let tr = document.createElement('tr');
@@ -686,7 +692,6 @@
 
                     let totalAdicionados = 0;
                     rows.forEach(row => {
-                        // Varredura flexível para encontrar as colunas independentes do formato do Sienge
                         let keys = Object.keys(row);
                         let codKey = keys.find(k => /c[oó]d/i.test(k)) || keys[0];
                         let descKey = keys.find(k => /descr/i.test(k)) || keys[1];
