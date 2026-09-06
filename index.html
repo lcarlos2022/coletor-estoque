@@ -38,7 +38,7 @@
                     📱 Coletor
                 </button>
                 <button onclick="alternarAba('catalogo')" id="tab-catalogo-btn" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
-                    📚 Catálogo de Produtos (<span id="qtd-catalogo-badge">0</span>)
+                    📚 Catálogo (<span id="qtd-catalogo-badge">0</span>)
                 </button>
             </div>
         </div>
@@ -543,6 +543,7 @@
             alert("Produto cadastrado com sucesso no Catálogo Mestre!");
         }
 
+        // CORREÇÃO: Função corrigida para apagar e redesenhar a tabela imediatamente
         function removerProdutoCatalogo(codigo) {
             if (confirm(`Remover o produto ${codigo} do catálogo?`)) {
                 delete catalogoProdutos[codigo];
