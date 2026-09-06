@@ -216,6 +216,14 @@
                 } else if (partes.length === 1) {
                     codigo = partes[0];
                 }
+            } else {
+                // 3. Captura exata para códigos grudados (Ex: 074898-000Abraçadeira de Aço 3")
+                // Procura exatamente o padrão de números seguidos de hífen e 3 dígitos (ex: 074898-000)
+                let matchGrudado = textoLimpo.match(/^(\d+-\d{3})(.*)$/);
+                if (matchGrudado) {
+                    codigo = matchGrudado[1].trim();
+                    descricao = matchGrudado[2].trim();
+                }
             }
 
             if (!descricao) {
@@ -293,7 +301,6 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             itemAtual = null;
-            // Reseta a última leitura para permitir ler outros códigos limpamante
             setTimeout(() => {
                 if (html5QrCode) html5QrCode.resume();
             }, 500);
