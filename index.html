@@ -143,24 +143,36 @@
         let itensContados = {};
         let html5QrCode = null;
         let itemAtual = null;
+        let ultimoCodigoLido = "";
+        let tempoUltimaLeitura = 0;
 
         const DADOS_EMPRESA = {
             cnpj: "20.948.559/0001-55",
             nome: "Grupo Brava Construcao e Incorporacao"
         };
 
-        function tocarBip() {
+        function tocarBip(tipo = 'normal') {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                oscillator.connect(gain);
-                gain.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.15);
+                
+                if (tipo === 'erro') {
+                    oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    oscillator.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.3);
+                } else {
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    oscillator.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.15);
+                }
             } catch (e) {
                 console.log("Áudio indisponível:", e);
             }
@@ -214,17 +226,32 @@
         }
 
         function onScanSuccess(decodedText) {
-            tocarBip();
-            if (html5QrCode) html5QrCode.pause();
-            
-            itemAtual = processarQRCode(decodedText);
+            let agora = Date.now();
+            let itemProcessado = processarQRCode(decodedText);
 
-            // Validação de produto já contado
-            if (itensContados[itemAtual.codigo]) {
-                alert(`⚠️ ATENÇÃO: Este produto (Código: ${itemAtual.codigo}) já foi contado anteriormente!`);
-                if (html5QrCode) html5QrCode.resume();
+            // Trava de segurança: impede leituras repetidas do mesmo código em menos de 3 segundos
+            if (itemProcessado.codigo === ultimoCodigoLido && (agora - tempoUltimaLeitura) < 3000) {
+                return; 
+            }
+
+            ultimoCodigoLido = itemProcessado.codigo;
+            tempoUltimaLeitura = agora;
+
+            // Validação estrita: se o produto já foi contado e está na lista
+            if (itensContados[itemProcessado.codigo]) {
+                tocarBip('erro');
+                if (html5QrCode) html5QrCode.pause();
+                alert(`⚠️ ATENÇÃO: O produto código [${itemProcessado.codigo}] - "${itensContados[itemProcessado.codigo].descricao}" já foi contado anteriormente e não pode ser duplicado!`);
+                setTimeout(() => {
+                    if (html5QrCode) html5QrCode.resume();
+                }, 1500);
                 return;
             }
+
+            tocarBip('normal');
+            if (html5QrCode) html5QrCode.pause();
+            
+            itemAtual = itemProcessado;
 
             document.getElementById('modal-codigo').innerText = itemAtual.codigo;
             document.getElementById('modal-desc').innerText = itemAtual.descricao;
@@ -266,12 +293,16 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             itemAtual = null;
-            if (html5QrCode) html5QrCode.resume();
+            // Reseta a última leitura para permitir ler outros códigos limpamante
+            setTimeout(() => {
+                if (html5QrCode) html5QrCode.resume();
+            }, 500);
         }
 
         function limparLista() {
             if (confirm("Deseja limpar todos os itens contados?")) {
                 itensContados = {};
+                ultimoCodigoLido = "";
                 atualizarListaInterface();
             }
         }
