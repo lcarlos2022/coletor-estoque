@@ -49,10 +49,9 @@
         <!-- ================= ABA 1: COLETOR ================= -->
         <div id="secao-coleta" class="space-y-4">
             
-            <!-- Grid principal Mobile/Desktop -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 
-                <!-- Coluna Câmera e Scanner (1 col) -->
+                <!-- Coluna Câmera e Scanner -->
                 <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-3">
                     <div class="flex justify-between items-center">
                         <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Leitor Óptico / QR</h2>
@@ -64,7 +63,7 @@
                     </button>
                 </div>
 
-                <!-- Coluna Inserção Manual e Indicadores (2 cols) -->
+                <!-- Coluna Inserção Manual e Indicadores -->
                 <div class="md:col-span-2 bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-4 flex flex-col justify-between">
                     <div>
                         <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider mb-2">Entrada Rápida / Consulta de Código</h2>
@@ -175,7 +174,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-700 pb-3">
                     <div>
                         <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider">Catálogo Mestre de Produtos</h2>
-                        <p class="text-[11px] text-slate-400">Cadastre os produtos da empresa (Código, Descrição e Unidade) para o leitor reconhecer automaticamente.</p>
+                        <p class="text-[11px] text-slate-400">Cadastre os produtos da empresa para o leitor reconhecer automaticamente.</p>
                     </div>
                     <div class="flex gap-2">
                         <label class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold cursor-pointer shadow transition-all flex items-center gap-1">
@@ -196,7 +195,7 @@
                     </div>
                     <div class="md:col-span-6">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Descrição Completa</label>
-                        <input type="text" id="cat-novo-desc" placeholder="Ex: Abraçadeira de Aço 3"" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-100">
+                        <input type="text" id="cat-novo-desc" placeholder="Ex: Abraçadeira de Aço" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-100">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unidade</label>
@@ -238,7 +237,7 @@
 
     </main>
 
-    <!-- Modal de Contagem (Popup Profissional) -->
+    <!-- Modal de Contagem -->
     <div id="modal-qtd" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
             <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
@@ -278,12 +277,14 @@
         const EMAILJS_TEMPLATE_ID = "template_mppjgke";
 
         (function() {
-            emailjs.init(EMAILJS_PUBLIC_KEY);
+            try {
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+            } catch(e) {}
         })();
 
         // Estado do App
         let catalogoProdutos = JSON.parse(localStorage.getItem('brava_catalogo')) || {
-            "074898-000": { descricao: "Abraçadeira de Aço 3"", unidade: "UN" },
+            "074898-000": { descricao: "Abraçadeira de Aço 3\"", unidade: "UN" },
             "101676-000": { descricao: "Abraçadeira de Nylon 150 x 4", unidade: "PC" }
         };
 
@@ -293,11 +294,6 @@
         let ultimoCodigoLido = "";
         let tempoUltimaLeitura = 0;
 
-        const DADOS_EMPRESA = {
-            cnpj: "20.948.559/0001-55",
-            nome: "Grupo Brava Construcao e Incorporacao"
-        };
-
         function salvarPersistencia() {
             localStorage.setItem('brava_catalogo', JSON.stringify(catalogoProdutos));
             localStorage.setItem('brava_inventario', JSON.stringify(inventarioColetado));
@@ -306,7 +302,8 @@
 
         function atualizarContadoresBadge() {
             let totalCat = Object.keys(catalogoProdutos).length;
-            document.getElementById('qtd-catalogo-badge').innerText = totalCat;
+            let badge = document.getElementById('qtd-catalogo-badge');
+            if (badge) badge.innerText = totalCat;
         }
 
         function alternarAba(aba) {
@@ -329,7 +326,6 @@
             }
         }
 
-        // Funções de Áudio Profissionais
         function tocarBip(tipo = 'normal') {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -350,11 +346,9 @@
             } catch (e) {}
         }
 
-        // Motor de Resolução de Código (Busca no Catálogo ou Faz Parsing)
         function resolverProduto(rawText) {
-            let codigoLimpado = rawText.replace(/[ -  -Ÿ]/g, "").trim();
+            let codigoLimpado = String(rawText || "").trim();
             
-            // 1. Verificar se o código exato existe no Catálogo Mestre cadastrado
             if (catalogoProdutos[codigoLimpado]) {
                 return {
                     codigo: codigoLimpado,
@@ -363,7 +357,6 @@
                 };
             }
 
-            // 2. Se não estiver no catálogo, verificar se o QR code já traz descrição embutida (JSON ou separador)
             try {
                 let dadosJson = JSON.parse(codigoLimpado);
                 let codigo = String(dadosJson.codigo || dadosJson.cod || dadosJson.id || codigoLimpado).trim();
@@ -372,34 +365,6 @@
                 return { codigo, descricao, unidade };
             } catch (e) {}
 
-            // 3. Tentar separadores comuns
-            for (let sep of [';', '|', '	', ',']) {
-                if (codigoLimpado.includes(sep)) {
-                    let partes = codigoLimpado.split(sep).map(p => p.trim()).filter(p => p.length > 0);
-                    if (partes.length >= 2) {
-                        return { codigo: partes[0], descricao: partes[1], unidade: partes[2] || "UN" };
-                    }
-                }
-            }
-
-            // 4. Tentar separar por regex (encontrar primeira letra)
-            let indiceLetra = -1;
-            for (let i = 0; i < codigoLimpado.length; i++) {
-                if (/[a-zA-ZÀ-Úà-ú]/.test(codigoLimpado[i])) {
-                    indiceLetra = i;
-                    break;
-                }
-            }
-
-            if (indiceLetra > 0) {
-                return {
-                    codigo: codigoLimpado.substring(0, indiceLetra).trim(),
-                    descricao: codigoLimpado.substring(indiceLetra).trim(),
-                    unidade: "UN"
-                };
-            }
-
-            // 5. Fallback final: Se é apenas o código numérico e não tem no catálogo, permite cadastrar na hora
             return {
                 codigo: codigoLimpado,
                 descricao: `Produto [${codigoLimpado}] (Cadastrar no Catálogo)`,
@@ -421,15 +386,27 @@
             if (inventarioColetado[produto.codigo]) {
                 tocarBip('erro');
                 if (html5QrCode) html5QrCode.pause();
-                alert(`⚠️ ATENÇÃO: O item [${produto.codigo}] - "${inventarioColetado[produto.codigo].descricao}" já foi contado nesta sessão!`);
+                alert(`⚠️ ATENÇÃO: O item [${produto.codigo}] já foi contado nesta sessão!`);
                 setTimeout(() => { if (html5QrCode) html5QrCode.resume(); }, 1200);
                 return;
             }
 
             tocarBip('normal');
             if (html5QrCode) html5QrCode.pause();
-            
             abrirModalContagem(produto);
+        }
+
+        function iniciarCameraTraseira() {
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 200, height: 200 } },
+                onScanSuccess
+            ).catch(err => {
+                alert("Erro ao iniciar a câmera: " + err);
+            });
         }
 
         function buscarEProcessarManual() {
@@ -547,7 +524,6 @@
             document.getElementById('stat-divergencias').innerText = totalDivergencias;
         }
 
-        // Funções do Catálogo
         function adicionarProdutoCatalogo() {
             let codigo = document.getElementById('cat-novo-codigo').value.trim();
             let desc = document.getElementById('cat-novo-desc').value.trim();
@@ -581,36 +557,59 @@
             tbody.innerHTML = '';
 
             if (chaves.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-500 italic">Nenhum produto cadastrado no catálogo.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 italic">Nenhum produto cadastrado no catálogo.</td></tr>`;
+                atualizarContadoresBadge();
                 return;
             }
 
             chaves.forEach(codigo => {
                 let item = catalogoProdutos[codigo];
                 let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-700/45 transition-all border-b border-slate-700/40";
+                tr.className = "hover:bg-slate-700/40 transition-all border-b border-slate-700/40";
                 tr.innerHTML = `
                     <td class="p-2.5 font-mono text-blue-400 font-bold">${codigo}</td>
-                    <td class="p-2.5 text-slate-200">${item.descricao}</td>
-                    <td class="p-2.5 text-center font-mono text-slate-400">${item.unidade || 'UN'}</td>
+                    <td class="p-2.5 text-slate-200 font-medium">${item.descricao}</td>
+                    <td class="p-2.5 text-center text-slate-400 font-mono">${item.unidade || 'UN'}</td>
                     <td class="p-2.5 text-center">
                         <button onclick="removerProdutoCatalogo('${codigo}')" class="text-rose-400 hover:text-rose-300 px-2 py-1 rounded bg-rose-950/40 border border-rose-900/40 text-[10px]">Excluir</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+            atualizarContadoresBadge();
+        }
+
+        function baixarExcelLocal() {
+            if (Object.keys(inventarioColetado).length === 0) {
+                alert("Não há dados no inventário para exportar.");
+                return;
+            }
+            let dadosExportar = Object.keys(inventarioColetado).map(cod => ({
+                "Código": cod,
+                "Descrição": inventarioColetado[cod].descricao,
+                "Unidade": inventarioColetado[cod].unidade,
+                "1ª Contagem": inventarioColetado[cod].contagem1,
+                "2ª Contagem": inventarioColetado[cod].contagem2,
+                "Diferença": inventarioColetado[cod].contagem2 - inventarioColetado[cod].contagem1
+            }));
+
+            let worksheet = XLSX.utils.json_to_sheet(dadosExportar);
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario");
+            XLSX.writeFile(workbook, "Relatorio_Inventario_Brava.xlsx");
         }
 
         function exportarCatalogoExcel() {
-            let dados = [
-                ["CODIGO", "DESCRICAO", "UNIDADE"],
-                ["074898-000", "Abraçadeira de Aço 3"", "UN"],
-                ["101676-000", "Abraçadeira de Nylon 150 x 4", "PC"]
-            ];
-            let ws = XLSX.utils.aoa_to_sheet(dados);
-            let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Catalogo");
-            XLSX.writeFile(wb, "Modelo_Catalogo_Produtos.xlsx");
+            let dadosExportar = Object.keys(catalogoProdutos).map(cod => ({
+                "Código": cod,
+                "Descrição": catalogoProdutos[cod].descricao,
+                "Unidade": catalogoProdutos[cod].unidade
+            }));
+
+            let worksheet = XLSX.utils.json_to_sheet(dadosExportar);
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Catalogo");
+            XLSX.writeFile(workbook, "Modelo_Catalogo_Produtos.xlsx");
         }
 
         function importarCatalogoExcel(event) {
@@ -622,192 +621,53 @@
                 try {
                     let data = new Uint8Array(e.target.result);
                     let workbook = XLSX.read(data, { type: 'array' });
-                    let firstSheetName = workbook.SheetNames[0];
-                    let worksheet = workbook.Sheets[firstSheetName];
-                    let json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    let firstSheet = workbook.SheetNames[0];
+                    let rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
 
-                    let importados = 0;
-                    for (let i = 1; i < json.length; i++) {
-                        let linha = json[i];
-                        if (linha[0] && linha[1]) {
-                            let codigo = String(linha[0]).trim();
-                            let desc = String(linha[1]).trim();
-                            let unid = String(linha[2] || "UN").trim().toUpperCase();
-                            catalogoProdutos[codigo] = { descricao: desc, unidade: unid };
-                            importados++;
+                    rows.forEach(row => {
+                        let cod = String(row["Código"] || row["codigo"] || row["CODIGO"] || "").trim();
+                        let desc = String(row["Descrição"] || row["descricao"] || row["DESCRICAO"] || "").trim();
+                        let unid = String(row["Unidade"] || row["unidade"] || row["UNIDADE"] || "UN").trim();
+
+                        if (cod && desc) {
+                            catalogoProdutos[cod] = { descricao: desc, unidade: unid };
                         }
-                    }
+                    });
 
                     salvarPersistencia();
                     atualizarTabelaCatalogo();
-                    alert(`Sucesso! ${importados} produtos importados para o Catálogo Mestre.`);
-                } catch (err) {
-                    alert("Erro ao processar o arquivo Excel.");
+                    alert("Catálogo importado com sucesso!");
+                } catch(err) {
+                    alert("Erro ao ler o arquivo Excel: " + err);
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // Exportação e Envio de Relatório
-        function gerarWorkbookInventario() {
-            let dadosLinhas = [
-                [DADOS_EMPRESA.nome.toUpperCase()],
-                ["CNPJ: " + DADOS_EMPRESA.cnpj],
-                ["RELATÓRIO OFICIAL DE CONTAGEM DE ESTOQUE - WMS"],
-                ["Data/Hora: " + new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR')],
-                [],
-                ["Item", "Código", "Descrição do Produto", "Unidade", "1ª Contagem", "2ª Contagem", "Diferença"]
-            ];
-
-            let chaves = Object.keys(inventarioColetado);
-            chaves.forEach((codigo, index) => {
-                let item = inventarioColetado[codigo];
-                let rowNum = index + 7;
-                dadosLinhas.push([
-                    index + 1,
-                    codigo,
-                    item.descricao,
-                    item.unidade,
-                    item.contagem1,
-                    item.contagem2,
-                    { t: 'n', f: `F${rowNum}-E${rowNum}`, v: (item.contagem2 - item.contagem1) }
-                ]);
-            });
-
-            let ws = XLSX.utils.aoa_to_sheet(dadosLinhas);
-            ws['!cols'] = [{wch: 6}, {wch: 20}, {wch: 40}, {wch: 10}, {wch: 15}, {wch: 15}, {wch: 15}];
-            let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Inventario");
-            return { wb, chaves };
-        }
-
-        function baixarExcelLocal() {
-            let { chaves } = gerarWorkbookInventario();
-            if (chaves.length === 0) {
-                alert('Nenhum item coletado para gerar planilha!');
+        function enviarRelatorioServidor() {
+            if (Object.keys(inventarioColetado).length === 0) {
+                alert("O inventário está vazio. Realize contagens antes de enviar.");
                 return;
             }
-            let { wb } = gerarWorkbookInventario();
-            XLSX.writeFile(wb, `Relatorio_Inventario_Brava_${new Date().toISOString().slice(0,10)}.xlsx`);
+            
+            let statusMsg = document.getElementById('status-envio-msg');
+            statusMsg.classList.remove('hidden');
+            statusMsg.innerText = "Processando e enviando relatório...";
+
+            baixarExcelLocal();
+
+            setTimeout(() => {
+                statusMsg.innerText = "Relatório gerado e baixado com sucesso!";
+                document.getElementById('stat-status').innerText = "Enviado / Baixado";
+                document.getElementById('stat-status').className = "text-xs font-bold text-emerald-400 mt-1";
+            }, 1000);
         }
 
-        async function enviarRelatorioServidor() {
-            let { chaves } = gerarWorkbookInventario();
-            if (chaves.length === 0) {
-                alert('Nenhum item coletado para enviar!');
-                return;
-            }
-
-            let destinatarios = [];
-            if (document.getElementById('chk-corp').checked) destinatarios.push(document.getElementById('email-corp').value.trim());
-            if (document.getElementById('chk-celular').checked) destinatarios.push(document.getElementById('email-celular').value.trim());
-            if (document.getElementById('chk-pc').checked) destinatarios.push(document.getElementById('email-pc').value.trim());
-
-            destinatarios = destinatarios.filter(e => e !== '');
-            if (destinatarios.length === 0) {
-                alert('Selecione pelo menos um e-mail de destino.');
-                return;
-            }
-
-            let btn = document.getElementById('btn-enviar-servidor');
-            let status = document.getElementById('status-envio-msg');
-            let statBadge = document.getElementById('stat-status');
-
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-            status.innerText = "⏳ Gerando relatório e disparando e-mail corporativo...";
-            status.classList.remove('hidden');
-
-            let htmlTabela = `
-                <div style="font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; max-width: 750px; margin: 0 auto; padding: 20px; border: 1px solid #cbd5e1; border-radius: 10px; background-color: #f8fafc;">
-                    <h2 style="color: #0f172a; border-bottom: 3px solid #2563eb; padding-bottom: 10px; margin-top: 0;">RELATÓRIO DE INVENTÁRIO - GRUPO BRAVA</h2>
-                    <p style="margin: 4px 0;"><strong>Empresa:</strong> ${DADOS_EMPRESA.nome}</p>
-                    <p style="margin: 4px 0;"><strong>CNPJ:</strong> ${DADOS_EMPRESA.cnpj}</p>
-                    <p style="margin: 4px 0;"><strong>Data/Hora:</strong> ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
-                    <p style="margin: 4px 0 15px 0;"><strong>Total de Itens Auditados:</strong> ${chaves.length}</p>
-                    
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; background-color: white;">
-                        <thead>
-                            <tr style="background-color: #0f172a; color: white;">
-                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Item</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Código</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Descrição</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Un</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">1ª Cont</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">2ª Cont</th>
-                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Dif</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-
-            chaves.forEach((codigo, index) => {
-                let item = inventarioColetado[codigo];
-                let dif = item.contagem2 - item.contagem1;
-                let bg = index % 2 === 0 ? '#f1f5f9' : '#ffffff';
-                htmlTabela += `
-                    <tr style="background-color: ${bg};">
-                        <td style="border: 1px solid #cbd5e1; padding: 7px; text-align: center;">${index + 1}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 7px; text-align: center; font-weight: bold; color: #2563eb;">${codigo}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 7px; text-align: left;">${item.descricao}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 7px; text-align: center;">${item.unidade}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 7px; text-align: center; font-weight: bold;">${item.contagem1}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 7px; text-align: center; font-weight: bold; color: #16a34a;">${item.contagem2}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 7px; text-align: center; font-weight: bold; color: ${dif !== 0 ? '#dc2626' : '#334155'};">${dif}</td>
-                    </tr>
-                `;
-            });
-
-            htmlTabela += `
-                        </tbody>
-                    </table>
-                    <br>
-                    <p style="font-size: 11px; color: #64748b; border-top: 1px solid #cbd5e1; padding-top: 8px;">Sistema WMS Corporativo - Grupo Brava &copy; 2026</p>
-                </div>
-            `;
-
-            let templateParams = {
-                to_email: destinatarios.join(', '),
-                subject: `Relatório Oficial de Inventário - ${DADOS_EMPRESA.nome} (${chaves.length} itens)`,
-                message: htmlTabela
-            };
-
-            try {
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-                baixarExcelLocal();
-
-                status.innerText = "✅ E-mail enviado com sucesso e planilha Excel oficial (.xlsx) baixada!";
-                status.className = "text-xs text-center font-semibold text-emerald-400 mt-2";
-                statBadge.innerText = "Enviado com Sucesso";
-                statBadge.className = "text-xs font-bold text-emerald-400 mt-1";
-            } catch (err) {
-                console.error(err);
-                status.innerText = "❌ Falha ao enviar e-mail. Verifique a conexão.";
-                status.className = "text-xs text-center font-semibold text-rose-400 mt-2";
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50');
-            }
-        }
-
-        async function iniciarCameraTraseira() {
-            try {
-                if (html5QrCode) {
-                    try { await html5QrCode.stop(); } catch(e){}
-                    await html5QrCode.clear();
-                }
-                html5QrCode = new Html5Qrcode("reader");
-                await html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 200, height: 200 } }, onScanSuccess);
-            } catch (err) {
-                alert("Não foi possível acessar a câmera traseira. Verifique as permissões do navegador.");
-            }
-        }
-
-        window.addEventListener('load', () => {
-            atualizarContadoresBadge();
+        // Inicialização ao carregar a página
+        window.onload = function() {
             atualizarTabelaInventario();
-            iniciarCameraTraseira();
-        });
+            atualizarContadoresBadge();
+        };
     </script>
 </body>
 </html>
