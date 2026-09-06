@@ -178,8 +178,8 @@
                 codigo = String(dados.codigo || dados.cod || dados.id || codigo).trim();
                 descricao = String(dados.descricao || dados.desc || dados.produto || dados.nome || "").trim();
                 unidade = String(dados.unidade || dados.un || unidade).trim();
-                if (codigo && descricao) {
-                    return { codigo, descricao, unidade };
+                if (codigo) {
+                    return { codigo, descricao: descricao || "Produto Cadastrado", unidade };
                 }
             } catch (e) {}
 
@@ -206,7 +206,6 @@
                 }
             }
 
-            // Se não encontrou descrição clara, define padrão limpo separado
             if (!descricao) {
                 descricao = "Produto Cadastrado";
             }
@@ -217,7 +216,16 @@
         function onScanSuccess(decodedText) {
             tocarBip();
             if (html5QrCode) html5QrCode.pause();
+            
             itemAtual = processarQRCode(decodedText);
+
+            // Validação de produto já contado
+            if (itensContados[itemAtual.codigo]) {
+                alert(`⚠️ ATENÇÃO: Este produto (Código: ${itemAtual.codigo}) já foi contado anteriormente!`);
+                if (html5QrCode) html5QrCode.resume();
+                return;
+            }
+
             document.getElementById('modal-codigo').innerText = itemAtual.codigo;
             document.getElementById('modal-desc').innerText = itemAtual.descricao;
             document.getElementById('input-qtd1').value = 1;
@@ -233,22 +241,18 @@
             let qtd2 = parseFloat(document.getElementById('input-qtd2').value) || 0;
 
             if (itensContados[itemAtual.codigo]) {
-                itensContados[itemAtual.codigo].contagem1 += qtd1;
-                itensContados[itemAtual.codigo].contagem2 += qtd2;
-                if (itemAtual.descricao && itemAtual.descricao !== "Produto Cadastrado") {
-                    itensContados[itemAtual.codigo].descricao = itemAtual.descricao;
-                }
-                if (itemAtual.unidade) {
-                    itensContados[itemAtual.codigo].unidade = itemAtual.unidade;
-                }
-            } else {
-                itensContados[itemAtual.codigo] = { 
-                    descricao: itemAtual.descricao, 
-                    unidade: itemAtual.unidade,
-                    contagem1: qtd1,
-                    contagem2: qtd2
-                };
+                alert(`⚠️ Este produto já está registrado na lista.`);
+                fecharModal();
+                return;
             }
+
+            itensContados[itemAtual.codigo] = { 
+                descricao: itemAtual.descricao, 
+                unidade: itemAtual.unidade,
+                contagem1: qtd1,
+                contagem2: qtd2
+            };
+
             atualizarListaInterface();
             fecharModal();
         }
