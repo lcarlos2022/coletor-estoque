@@ -579,6 +579,7 @@
                 return;
             }
 
+            // Exibe os itens do catálogo (garantindo que os últimos adicionados apareçam de forma legível)
             chaves.forEach(codigo => {
                 let item = catalogoProdutos[codigo];
                 let tr = document.createElement('tr');
@@ -683,19 +684,27 @@
                     let firstSheet = workbook.SheetNames[0];
                     let rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
 
+                    let totalAdicionados = 0;
                     rows.forEach(row => {
-                        let cod = String(row["Código"] || row["codigo"] || row["CODIGO"] || row["Código Sienge"] || "").trim();
-                        let desc = String(row["Descrição"] || row["descricao"] || row["DESCRICAO"] || row["Descrição do Material"] || "").trim();
-                        let unid = String(row["Unidade"] || row["unidade"] || row["UNIDADE"] || "UN").trim();
+                        // Varredura flexível para encontrar as colunas independentes do formato do Sienge
+                        let keys = Object.keys(row);
+                        let codKey = keys.find(k => /c[oó]d/i.test(k)) || keys[0];
+                        let descKey = keys.find(k => /descr/i.test(k)) || keys[1];
+                        let unidKey = keys.find(k => /unid/i.test(k)) || keys[2];
 
-                        if (cod && desc) {
+                        let cod = String(row[codKey] || "").trim();
+                        let desc = String(row[descKey] || "").trim();
+                        let unid = String(unidKey && row[unidKey] ? row[unidKey] : "UN").trim();
+
+                        if (cod && desc && cod !== "undefined" && desc !== "undefined") {
                             catalogoProdutos[cod] = { descricao: desc, unidade: unid };
+                            totalAdicionados++;
                         }
                     });
 
                     salvarPersistencia();
                     atualizarTabelaCatalogo();
-                    alert("Catálogo do Sienge importado com sucesso!");
+                    alert(`Sucesso! ${totalAdicionados} itens do Sienge foram carregados e salvos no catálogo.`);
                 } catch(err) {
                     alert("Erro ao ler o arquivo Excel: " + err);
                 }
