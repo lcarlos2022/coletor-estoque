@@ -70,7 +70,7 @@
             </div>
         </div>
 
-        <!-- Relatório Visual na Tela (Estilo Cartões Organizados) -->
+        <!-- Relatório Visual na Tela -->
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
             <div class="flex justify-between items-center border-b pb-2">
                 <h2 class="font-bold text-gray-700 text-sm">Relatório na Tela (<span id="total-itens">0</span> itens)</h2>
@@ -172,18 +172,28 @@
             let descricao = "";
             let unidade = "UN";
             
+            // 1. Tentar ler como JSON
             try {
                 let dados = JSON.parse(textoLimpo);
-                codigo = dados.codigo || dados.cod || dados.id || codigo;
-                descricao = dados.descricao || dados.desc || dados.produto || dados.nome || "";
-                unidade = dados.unidade || dados.un || unidade;
+                codigo = String(dados.codigo || dados.cod || dados.id || codigo);
+                descricao = String(dados.descricao || dados.desc || dados.produto || dados.nome || "");
+                unidade = String(dados.unidade || dados.un || unidade);
             } catch (e) {
-                let separador = textoLimpo.includes(';') ? ';' : (textoLimpo.includes('\t') ? '\t' : ',');
-                if (textoLimpo.includes(separador)) {
-                    let partes = textoLimpo.split(separador);
+                // 2. Tentar separadores comuns (; , tab |)
+                let separadores = [';', '\t', ',', '|'];
+                let sepUsado = null;
+                for (let s of separadores) {
+                    if (textoLimpo.includes(s)) {
+                        sepUsado = s;
+                        break;
+                    }
+                }
+
+                if (sepUsado) {
+                    let partes = textoLimpo.split(sepUsado);
                     codigo = partes[0].trim();
-                    if (partes[1]) descricao = partes[1].trim();
-                    if (partes[2]) unidade = partes[2].trim();
+                    if (partes[1] && partes[1].trim()) descricao = partes[1].trim();
+                    if (partes[2] && partes[2].trim()) unidade = partes[2].trim();
                 }
             }
 
@@ -215,8 +225,11 @@
             if (itensContados[itemAtual.codigo]) {
                 itensContados[itemAtual.codigo].contagem1 += qtd1;
                 itensContados[itemAtual.codigo].contagem2 += qtd2;
-                if (itemAtual.descricao && itemAtual.descricao !== "Produto Ref. " + itemAtual.codigo) {
+                if (itemAtual.descricao && !itemAtual.descricao.startsWith("Produto Ref.")) {
                     itensContados[itemAtual.codigo].descricao = itemAtual.descricao;
+                }
+                if (itemAtual.unidade) {
+                    itensContados[itemAtual.codigo].unidade = itemAtual.unidade;
                 }
             } else {
                 itensContados[itemAtual.codigo] = { 
@@ -299,6 +312,7 @@
             chaves.forEach((codigo, index) => {
                 let item = itensContados[codigo];
                 let rowNum = index + 7;
+                // Usando cálculo direto para exibir o número pronto e a fórmula em fórmula excel nativa
                 dadosLinhas.push([
                     index + 1,
                     codigo,
@@ -306,7 +320,7 @@
                     item.unidade,
                     item.contagem1,
                     item.contagem2,
-                    `=F${rowNum}-E${rowNum}`
+                    { t: 'n', f: `F${rowNum}-E${rowNum}`, v: (item.contagem2 - item.contagem1) }
                 ]);
             });
 
