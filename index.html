@@ -70,10 +70,10 @@
                         <div class="flex gap-2">
                             <input type="text" id="input-busca-manual" placeholder="Digite o código ou código de barras..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500 font-mono">
                             <button onclick="buscarEProcessarManual()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow">
-                                Adicionar
+                                Adicionar / 2ª Contagem
                             </button>
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1">Dica: Se o código estiver cadastrado no Catálogo, a descrição e a unidade serão preenchidas automaticamente.</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Nota: Se bipar um código já cadastrado na 1ª contagem, o sistema abrirá automaticamente para a 2ª contagem.</p>
                     </div>
 
                     <!-- Métricas Rápidas -->
@@ -241,7 +241,7 @@
     <div id="modal-qtd" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
             <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
-                <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wider">Lançamento de Estoque</h3>
+                <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wider" id="modal-titulo-header">Lançamento de Estoque</h3>
                 <span class="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded font-mono" id="modal-badge-un">UN</span>
             </div>
             
@@ -255,11 +255,11 @@
             <div class="grid grid-cols-2 gap-3">
                 <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700">
                     <label class="block text-[10px] font-bold text-blue-400 uppercase mb-1">1ª Contagem</label>
-                    <input type="number" id="input-qtd1" value="1" min="0" step="any" class="w-full text-center text-lg font-bold bg-slate-900 border border-blue-500/60 rounded p-1.5 text-slate-100 focus:outline-none">
+                    <input type="number" id="input-qtd1" min="0" step="any" class="w-full text-center text-lg font-bold bg-slate-900 border border-blue-500/60 rounded p-1.5 text-slate-100 focus:outline-none">
                 </div>
                 <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700">
                     <label class="block text-[10px] font-bold text-emerald-400 uppercase mb-1">2ª Contagem</label>
-                    <input type="number" id="input-qtd2" value="0" min="0" step="any" class="w-full text-center text-lg font-bold bg-slate-900 border border-emerald-500/60 rounded p-1.5 text-slate-100 focus:outline-none">
+                    <input type="number" id="input-qtd2" min="0" step="any" class="w-full text-center text-lg font-bold bg-slate-900 border border-emerald-500/60 rounded p-1.5 text-slate-100 focus:outline-none">
                 </div>
             </div>
 
@@ -383,14 +383,6 @@
             ultimoCodigoLido = produto.codigo;
             tempoUltimaLeitura = agora;
 
-            if (inventarioColetado[produto.codigo]) {
-                tocarBip('erro');
-                if (html5QrCode) html5QrCode.pause();
-                alert(`⚠️ ATENÇÃO: O item [${produto.codigo}] já foi contado nesta sessão!`);
-                setTimeout(() => { if (html5QrCode) html5QrCode.resume(); }, 1200);
-                return;
-            }
-
             tocarBip('normal');
             if (html5QrCode) html5QrCode.pause();
             abrirModalContagem(produto);
@@ -415,12 +407,6 @@
             if (!valor) return;
 
             let produto = resolverProduto(valor);
-            if (inventarioColetado[produto.codigo]) {
-                alert(`⚠️ O item [${produto.codigo}] já consta no inventário.`);
-                input.value = '';
-                return;
-            }
-
             abrirModalContagem(produto);
             input.value = '';
         }
@@ -430,8 +416,20 @@
             document.getElementById('modal-codigo').innerText = produto.codigo;
             document.getElementById('modal-desc').innerText = produto.descricao;
             document.getElementById('modal-badge-un').innerText = produto.unidade;
-            document.getElementById('input-qtd1').value = 1;
-            document.getElementById('input-qtd2').value = 0;
+
+            let input1 = document.getElementById('input-qtd1');
+            let input2 = document.getElementById('input-qtd2');
+
+            // Se o item já foi contado antes, preenche com os valores existentes para permitir a 2ª Contagem
+            if (inventarioColetado[produto.codigo]) {
+                input1.value = inventarioColetado[produto.codigo].contagem1;
+                input2.value = inventarioColetado[produto.codigo].contagem2;
+                document.getElementById('modal-titulo-header').innerText = "Atualizar / 2ª Contagem";
+            } else {
+                input1.value = 1;
+                input2.value = 0;
+                document.getElementById('modal-titulo-header').innerText = "Lançamento de Estoque";
+            }
 
             let modal = document.getElementById('modal-qtd');
             modal.classList.remove('hidden');
@@ -543,7 +541,6 @@
             alert("Produto cadastrado com sucesso no Catálogo Mestre!");
         }
 
-        // CORREÇÃO: Função corrigida para apagar e redesenhar a tabela imediatamente
         function removerProdutoCatalogo(codigo) {
             if (confirm(`Remover o produto ${codigo} do catálogo?`)) {
                 delete catalogoProdutos[codigo];
@@ -581,11 +578,12 @@
         }
 
         function baixarExcelLocal() {
-            if (Object.keys(inventarioColetado).length === 0) {
+            let chaves = Object.keys(inventarioColetado);
+            if (chaves.length === 0) {
                 alert("Não há dados no inventário para exportar.");
                 return;
             }
-            let dadosExportar = Object.keys(inventarioColetado).map(cod => ({
+            let dadosExportar = chaves.map(cod => ({
                 "Código": cod,
                 "Descrição": inventarioColetado[cod].descricao,
                 "Unidade": inventarioColetado[cod].unidade,
@@ -601,7 +599,8 @@
         }
 
         function exportarCatalogoExcel() {
-            let dadosExportar = Object.keys(catalogoProdutos).map(cod => ({
+            let chaves = Object.keys(catalogoProdutos);
+            let dadosExportar = chaves.map(cod => ({
                 "Código": cod,
                 "Descrição": catalogoProdutos[cod].descricao,
                 "Unidade": catalogoProdutos[cod].unidade
@@ -656,10 +655,8 @@
             statusMsg.classList.remove('hidden');
             statusMsg.innerText = "Gerando planilha e preparando e-mail...";
 
-            // 1. Baixa o arquivo Excel localmente no celular/PC
             baixarExcelLocal();
 
-            // 2. Monta o corpo com todos os itens coletados para envio por e-mail
             let corpoTextoItens = chaves.map(cod => {
                 let item = inventarioColetado[cod];
                 let dif = item.contagem2 - item.contagem1;
@@ -674,7 +671,6 @@
                 message: `Relatório de Inventário - Grupo Brava\n\nTotal de Itens: ${chaves.length}\n\n--- ITENS CONTADOS ---\n${corpoTextoItens}`
             };
 
-            // 3. Dispara o e-mail via EmailJS contendo os dados detalhados da contagem
             emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, parametrosEnvio)
                 .then(function(response) {
                     statusMsg.innerText = "Planilha baixada e E-mail enviado com sucesso!";
@@ -687,7 +683,6 @@
                 });
         }
 
-        // Inicialização ao carregar a página
         window.onload = function() {
             atualizarTabelaInventario();
             atualizarContadoresBadge();
