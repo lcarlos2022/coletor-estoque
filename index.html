@@ -191,7 +191,7 @@
                 descricao = String(dados.descricao || dados.desc || dados.produto || dados.nome || "").trim();
                 unidade = String(dados.unidade || dados.un || unidade).trim();
                 if (codigo) {
-                    return { codigo, descricao: descricao || "Produto Cadastrado", unidade };
+                    return { codigo, descricao: descricao || "Produto sem descrição", unidade };
                 }
             } catch (e) {}
 
@@ -217,33 +217,40 @@
                     codigo = partes[0];
                 }
             } else {
-                // 3. Captura exata para códigos grudados (Ex: 074898-000Abraçadeira de Aço 3")
-                // Procura exatamente o padrão de números seguidos de hífen e 3 dígitos (ex: 074898-000)
-                let matchGrudado = textoLimpo.match(/^(\d+-\d{3})(.*)$/);
-                if (matchGrudado) {
-                    codigo = matchGrudado[1].trim();
-                    descricao = matchGrudado[2].trim();
+                // 3. CORREÇÃO DEFINITIVA: Encontra onde começa a primeira letra do texto descritivo
+                let indiceLetra = -1;
+                for (let i = 0; i < textoLimpo.length; i++) {
+                    // Verifica se o caractere é uma letra (incluindo acentuadas)
+                    if (/[a-zA-ZÀ-Úà-ú]/.test(textoLimpo[i])) {
+                        indiceLetra = i;
+                        break;
+                    }
+                }
+
+                if (indiceLetra > 0) {
+                    codigo = textoLimpo.substring(0, indiceLetra).trim();
+                    descricao = textoLimpo.substring(indiceLetra).trim();
                 }
             }
 
             if (!descricao) {
-                descricao = "Produto Cadastrado";
+                descricao = "Produto sem descrição";
             }
 
             return { codigo, descricao, unidade };
         }
 
         function onScanSuccess(decodedText) {
-            let agora = Date.now();
+            let agorav = Date.now();
             let itemProcessado = processarQRCode(decodedText);
 
             // Trava de segurança: impede leituras repetidas do mesmo código em menos de 3 segundos
-            if (itemProcessado.codigo === ultimoCodigoLido && (agora - tempoUltimaLeitura) < 3000) {
+            if (itemProcessado.codigo === ultimoCodigoLido && (agorav - tempoUltimaLeitura) < 3000) {
                 return; 
             }
 
             ultimoCodigoLido = itemProcessado.codigo;
-            tempoUltimaLeitura = agora;
+            tempoUltimaLeitura = agorav;
 
             // Validação estrita: se o produto já foi contado e está na lista
             if (itensContados[itemProcessado.codigo]) {
