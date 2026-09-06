@@ -645,22 +645,45 @@
         }
 
         function enviarRelatorioServidor() {
-            if (Object.keys(inventarioColetado).length === 0) {
+            let chaves = Object.keys(inventarioColetado);
+            if (chaves.length === 0) {
                 alert("O inventário está vazio. Realize contagens antes de enviar.");
                 return;
             }
             
             let statusMsg = document.getElementById('status-envio-msg');
             statusMsg.classList.remove('hidden');
-            statusMsg.innerText = "Processando e enviando relatório...";
+            statusMsg.innerText = "Gerando planilha e preparando e-mail...";
 
+            // 1. Baixa o arquivo Excel localmente no celular/PC
             baixarExcelLocal();
 
-            setTimeout(() => {
-                statusMsg.innerText = "Relatório gerado e baixado com sucesso!";
-                document.getElementById('stat-status').innerText = "Enviado / Baixado";
-                document.getElementById('stat-status').className = "text-xs font-bold text-emerald-400 mt-1";
-            }, 1000);
+            // 2. Monta o corpo com todos os itens coletados para envio por e-mail
+            let corpoTextoItens = chaves.map(cod => {
+                let item = inventarioColetado[cod];
+                let dif = item.contagem2 - item.contagem1;
+                return `[Cod: ${cod}] ${item.descricao} | Un: ${item.unidade} | 1ª Cont: ${item.contagem1} | 2ª Cont: ${item.contagem2} | Dif: ${dif}`;
+            }).join("\n");
+
+            let destinatarioCorp = document.getElementById('email-corp').value;
+            let destinatarioCelular = document.getElementById('email-celular').value;
+
+            let parametrosEnvio = {
+                to_email: `${destinatarioCorp}, ${destinatarioCelular}`,
+                message: `Relatório de Inventário - Grupo Brava\n\nTotal de Itens: ${chaves.length}\n\n--- ITENS CONTADOS ---\n${corpoTextoItens}`
+            };
+
+            // 3. Dispara o e-mail via EmailJS contendo os dados detalhados da contagem
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, parametrosEnvio)
+                .then(function(response) {
+                    statusMsg.innerText = "Planilha baixada e E-mail enviado com sucesso!";
+                    document.getElementById('stat-status').innerText = "Enviado com Sucesso";
+                    document.getElementById('stat-status').className = "text-xs font-bold text-emerald-400 mt-1";
+                }, function(error) {
+                    statusMsg.innerText = "Planilha baixada! (Erro no envio automático do e-mail).";
+                    document.getElementById('stat-status').innerText = "Baixado (E-mail falhou)";
+                    document.getElementById('stat-status').className = "text-xs font-bold text-amber-400 mt-1";
+                });
         }
 
         // Inicialização ao carregar a página
