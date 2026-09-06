@@ -49,7 +49,12 @@
                 <h1 class="text-base font-bold text-blue-400 tracking-wide">GRUPO BRAVA <span class="text-xs text-emerald-400 font-mono">| Sienge Sync</span></h1>
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">WMS & Inventário Corporativo</p>
             </div>
-            <div class="flex gap-1.5 overflow-x-auto py-1">
+            <div class="flex gap-1.5 items-center">
+                <!-- Botão de Emergência para Limpar Dados -->
+                <button onclick="forcarLimpezaTotal()" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap" title="Clica aqui se o item persistir">
+                    ⚠️ Zerar Tudo
+                </button>
+                <div class="h-5 w-[1px] bg-slate-700 mx-1"></div>
                 <button onclick="alternarAba('coleta')" id="tab-coleta-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap">
                     📱 Coletor
                 </button>
@@ -57,7 +62,7 @@
                     📚 Catálogo (<span id="qtd-catalogo-badge">0</span>)
                 </button>
                 <button onclick="alternarAba('etiquetas')" id="tab-etiquetas-btn" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap">
-                    🏷️ Gerar QR Sienge
+                    🏷️ Gerar QR
                 </button>
             </div>
         </div>
@@ -314,10 +319,10 @@
             try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
         })();
 
-        // LIMPEZA FORÇADA AUTOMÁTICA: Zera qualquer lixo antigo da memória do navegador nesta versão
-        if (!localStorage.getItem('brava_limpeza_realizada_v2')) {
+        // FORÇAR LIMPEZA AUTOMÁTICA EM BRUTO (Zera 100% o navegador se houver versão antiga)
+        if (!localStorage.getItem('brava_limpeza_definitiva_v3')) {
             localStorage.clear();
-            localStorage.setItem('brava_limpeza_realizada_v2', 'true');
+            localStorage.setItem('brava_limpeza_definitiva_v3', 'true');
         }
 
         let catalogoProdutos = JSON.parse(localStorage.getItem('brava_catalogo')) || {};
@@ -326,6 +331,13 @@
         let itemEmProcessamento = null;
         let ultimoCodigoLido = "";
         let tempoUltimaLeitura = 0;
+
+        function forcarLimpezaTotal() {
+            if (confirm("Deseja realmente apagar todo o catálogo e inventário gravados na memória e reiniciar limpo?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
 
         function salvarPersistencia() {
             localStorage.setItem('brava_catalogo', JSON.stringify(catalogoProdutos));
@@ -728,7 +740,7 @@
 
             let parametrosEnvio = {
                 to_email: `${document.getElementById('email-corp').value}, ${document.getElementById('email-celular').value}`,
-                message: `Relatório de Cruzamento Sienge - Grupo Brava\n\nTotal de Itens: ${chaves.length}\n\n--- DADOS ---\n${corpoTextoItens}`
+                message: `Relatório de Cruzamento Sienge - Grupo Brava\n\nTotal de Itens: ${chlices?.length || chaves.length}\n\n--- DADOS ---\n${corpoTextoItens}`
             };
 
             emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, parametrosEnvio)
