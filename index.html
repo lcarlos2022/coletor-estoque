@@ -314,7 +314,12 @@
             try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
         })();
 
-        // Catálogo inicia limpo se o usuário preferir, ou pega do armazenamento anterior
+        // LIMPEZA FORÇADA AUTOMÁTICA: Zera qualquer lixo antigo da memória do navegador nesta versão
+        if (!localStorage.getItem('brava_limpeza_realizada_v2')) {
+            localStorage.clear();
+            localStorage.setItem('brava_limpeza_realizada_v2', 'true');
+        }
+
         let catalogoProdutos = JSON.parse(localStorage.getItem('brava_catalogo')) || {};
         let inventarioColetado = JSON.parse(localStorage.getItem('brava_inventario')) || {};
         let html5QrCode = null;
@@ -565,7 +570,6 @@
             }
         }
 
-        // NOVO BOTÃO: Limpar todo o catálogo de uma vez só
         function limparCatalogoInteiro() {
             if (confirm("Tem certeza que deseja apagar TODOS os itens do catálogo atual?")) {
                 catalogoProdutos = {};
@@ -662,20 +666,6 @@
             let workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Cruzamento_Sienge");
             XLSX.writeFile(workbook, "Cruzamento_Inventario_Sienge.xlsx");
-        }
-
-        function exportarCatalogoExcel() {
-            let chaves = Object.keys(catalogoProdutos);
-            let dadosExportar = chaves.map(cod => ({
-                "Código": cod,
-                "Descrição": catalogoProdutos[cod].descricao,
-                "Unidade": catalogoProdutos[cod].unidade
-            }));
-
-            let worksheet = XLSX.utils.json_to_sheet(dadosExportar);
-            let workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "CatalogoSienge");
-            XLSX.writeFile(workbook, "Modelo_Importacao_Sienge.xlsx");
         }
 
         function importarCatalogoExcel(event) {
