@@ -15,23 +15,31 @@
     <!-- EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        html, body {
-            overflow: hidden !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            position: fixed !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            touch-action: none !important;
+        * {
+            box-sizing: border-box;
         }
-        #sistema-principal, #auth-wrapper {
+        html, body {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden !important;
+            margin: 0;
+            padding: 0;
+            touch-action: none;
+            background-color: #020617;
+        }
+        #auth-wrapper, #sistema-principal {
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 0;
             width: 100vw;
             height: 100vh;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             touch-action: pan-y;
+            background-color: #020617;
         }
         #reader video {
             object-fit: cover !important;
@@ -58,11 +66,11 @@
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans">
+<body class="bg-slate-950 text-slate-100 font-sans">
 
-    <!-- ================= TELA DE AUTENTICAÇÃO (CADASTRO / LOGIN / BIOMETRIA) ================= -->
-    <div id="auth-wrapper" class="bg-slate-950 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-6">
+    <!-- ================= TELA DE AUTENTICAÇÃO (LOGIN / CADASTRO) ================= -->
+    <div id="auth-wrapper" class="z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-6">
             
             <div class="text-center space-y-1">
                 <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-600/20 text-blue-400 rounded-xl mb-2 border border-blue-500/30 text-xl font-bold">
@@ -72,33 +80,21 @@
                 <p class="text-xs text-slate-400">WMS & Inventário Corporativo (Sienge Edition)</p>
             </div>
 
-            <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
-                <button onclick="mudarAuthTab('login')" id="btn-tab-login" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-blue-600 text-white shadow">Entrar</button>
-                <button onclick="mudarAuthTab('cadastro')" id="btn-tab-cadastro" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">Cadastrar</button>
-            </div>
-
-            <!-- BOTÃO DE LOGIN RÁPIDO POR BIOMETRIA -->
-            <div id="biometria-container" class="hidden">
-                <button onclick="fazerLoginBiometria()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3 rounded-xl text-xs shadow-lg transition-all flex items-center justify-center gap-2 border border-emerald-400/30">
-                    <span class="text-base">🪪</span> Entrar com Biometria / Reconhecimento
-                </button>
-                <div class="relative flex py-2 items-center">
-                    <div class="flex-grow border-t border-slate-700"></div>
-                    <span class="flex-shrink mx-4 text-[10px] text-slate-500 uppercase font-bold">ou use e-mail e senha</span>
-                    <div class="flex-grow border-t border-slate-700"></div>
-                </div>
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button type="button" onclick="mudarAuthTab('login')" id="btn-tab-login" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-blue-600 text-white shadow">Entrar</button>
+                <button type="button" onclick="mudarAuthTab('cadastro')" id="btn-tab-cadastro" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">Cadastrar</button>
             </div>
 
             <div id="form-login-box" class="space-y-4">
                 <div class="space-y-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase">E-mail Corporativo</label>
-                    <input type="email" id="login-email" placeholder="seu.email@brava.com.br" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-blue-500">
+                    <input type="email" id="login-email" placeholder="seu.email@brava.com.br" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="space-y-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase">Senha</label>
-                    <input type="password" id="login-senha" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-blue-500">
+                    <input type="password" id="login-senha" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-blue-500">
                 </div>
-                <button onclick="fazerLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-xs shadow transition-all">
+                <button type="button" onclick="fazerLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-xs shadow transition-all cursor-pointer">
                     Acessar Sistema
                 </button>
             </div>
@@ -106,22 +102,22 @@
             <div id="form-cadastro-box" class="space-y-3 hidden">
                 <div class="space-y-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase">Nome Completo</label>
-                    <input type="text" id="cad-nome" placeholder="Seu nome" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-100">
+                    <input type="text" id="cad-nome" placeholder="Seu nome" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
                 </div>
                 <div class="space-y-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase">CPF</label>
-                    <input type="text" id="cad-cpf" placeholder="000.000.000-00" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-100">
+                    <input type="text" id="cad-cpf" placeholder="000.000.000-00" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
                 </div>
                 <div class="space-y-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase">E-mail Corporativo</label>
-                    <input type="email" id="cad-email" placeholder="seu.email@brava.com.br" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-100">
+                    <input type="email" id="cad-email" placeholder="seu.email@brava.com.br" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
                 </div>
                 <div class="space-y-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase">Senha</label>
-                    <input type="password" id="cad-senha" placeholder="Crie uma senha" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-100">
+                    <input type="password" id="cad-senha" placeholder="Crie uma senha" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
                 </div>
-                <button onclick="fazerCadastro()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs shadow transition-all mt-2">
-                    Concluir Cadastro e Cadastrar Biometria
+                <button type="button" onclick="fazerCadastro()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs shadow transition-all mt-2 cursor-pointer">
+                    Concluir Cadastro
                 </button>
             </div>
 
@@ -131,38 +127,38 @@
     <!-- ================= SISTEMA PRINCIPAL ================= -->
     <div id="sistema-principal" class="hidden pb-12">
         <!-- Top Bar Corporativa -->
-        <header class="bg-slate-800 border-b border-slate-700 px-3 py-3 shadow-md sticky top-0 z-40">
+        <header class="bg-slate-900 border-b border-slate-800 px-3 py-3 shadow-md sticky top-0 z-40">
             <div class="max-w-4xl mx-auto space-y-2">
                 
-                <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
                     <div>
                         <h1 class="text-xs font-bold text-blue-400 tracking-wide">GRUPO BRAVA <span class="text-[10px] text-emerald-400 font-mono">| Sienge Sync</span></h1>
                     </div>
                     <div class="flex gap-2 items-center">
-                        <span id="usuario-logado-badge" class="text-[10px] bg-slate-700 text-slate-300 px-2 py-1 rounded font-mono"></span>
-                        <button onclick="fazerLogout()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1 rounded-lg text-xs font-bold transition-all shadow-sm" title="Sair do Sistema">
+                        <span id="usuario-logado-badge" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded font-mono"></span>
+                        <button type="button" onclick="fazerLogout()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer" title="Sair do Sistema">
                             🚪 Sair
                         </button>
                     </div>
                 </div>
 
                 <div class="text-center w-full">
-                    <h2 class="text-xs font-extrabold text-slate-200 uppercase tracking-widest bg-slate-900/60 py-1.5 px-4 rounded-md border border-slate-700/65 inline-block shadow-inner">
+                    <h2 class="text-xs font-extrabold text-slate-200 uppercase tracking-widest bg-slate-950 py-1.5 px-4 rounded-md border border-slate-800 inline-block shadow-inner">
                         INVENTARIO CORPORATIVO
                     </h2>
                 </div>
 
                 <div class="flex flex-wrap justify-center items-center gap-1.5 pt-1">
-                    <button onclick="forcarLimpezaTotal()" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm" title="Zerar Tudo">
+                    <button type="button" onclick="forcarLimpezaTotal()" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer" title="Zerar Tudo">
                         ⚠️ Zerar Tudo
                     </button>
-                    <button onclick="alternarAba('coleta')" id="tab-coleta-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
+                    <button type="button" onclick="alternarAba('coleta')" id="tab-coleta-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer">
                         📱 Coletor
                     </button>
-                    <button onclick="alternarAba('catalogo')" id="tab-catalogo-btn" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
+                    <button type="button" onclick="alternarAba('catalogo')" id="tab-catalogo-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer">
                         📚 Catálogo (<span id="qtd-catalogo-badge">0</span>)
                     </button>
-                    <button onclick="alternarAba('etiquetas')" id="tab-etiquetas-btn" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
+                    <button type="button" onclick="alternarAba('etiquetas')" id="tab-etiquetas-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer">
                         🏷️ Gerar QR
                     </button>
                 </div>
@@ -176,39 +172,39 @@
             <div id="secao-coleta" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-3">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg space-y-3">
                         <div class="flex justify-between items-center">
                             <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Leitor Óptico / QR</h2>
-                            <span class="text-[10px] bg-emerald-900 text-emerald-300 px-2 py-0.5 rounded-full font-mono">Pronto</span>
+                            <span class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full font-mono border border-emerald-800">Pronto</span>
                         </div>
-                        <div id="reader" class="w-full rounded-lg overflow-hidden border border-slate-700 bg-black h-[220px] relative shadow-inner"></div>
-                        <button onclick="iniciarCameraTraseira()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2">
+                        <div id="reader" class="w-full rounded-lg overflow-hidden border border-slate-800 bg-black h-[220px] relative shadow-inner"></div>
+                        <button type="button" onclick="iniciarCameraTraseira()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2 cursor-pointer">
                             🔄 Ativar / Alternar Câmera
                         </button>
                     </div>
 
-                    <div class="md:col-span-2 bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-4 flex flex-col justify-between">
+                    <div class="md:col-span-2 bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg space-y-4 flex flex-col justify-between">
                         <div>
                             <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider mb-2">Entrada Rápida / 2ª Contagem Automática</h2>
                             <div class="flex gap-2">
-                                <input type="text" id="input-busca-manual" placeholder="Digite o código do Sienge ou bipar..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500 font-mono">
-                                <button onclick="buscarEProcessarManual()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow">
+                                <input type="text" id="input-busca-manual" placeholder="Digite o código do Sienge ou bipar..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500 font-mono">
+                                <button type="button" onclick="buscarEProcessarManual()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow cursor-pointer">
                                     Adicionar
                                 </button>
                             </div>
                             <p class="text-[10px] text-slate-400 mt-1">Nota: Se bipar código já contado, abre direto para a 2ª Contagem sem duplicar.</p>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-700">
-                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/60 text-center">
+                        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800">
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
                                 <p class="text-[10px] text-slate-400 uppercase font-bold">Total Itens</p>
                                 <p id="stat-total" class="text-lg font-extrabold text-blue-400 font-mono">0</p>
                             </div>
-                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/60 text-center">
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
                                 <p class="text-[10px] text-slate-400 uppercase font-bold">Divergências</p>
                                 <p id="stat-divergencias" class="text-lg font-extrabold text-amber-400 font-mono">0</p>
                             </div>
-                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/60 text-center">
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
                                 <p class="text-[10px] text-slate-400 uppercase font-bold">Status Envio</p>
                                 <p id="stat-status" class="text-xs font-bold text-slate-300 mt-1">Não Enviado</p>
                             </div>
@@ -217,18 +213,18 @@
 
                 </div>
 
-                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                        <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Planilha de Contagem (Pronto para Cruzamento Sienge)</h2>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg space-y-3">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Planilha de Contagem (Cruzamento Sienge)</h2>
                         <div class="flex gap-2">
-                            <button onclick="limparInventario()" class="text-xs text-red-400 hover:text-red-300 font-semibold px-2 py-1 rounded bg-red-950/40 border border-red-900/50">Limpar Tudo</button>
+                            <button type="button" onclick="limparInventario()" class="text-xs text-red-400 hover:text-red-300 font-semibold px-2 py-1 rounded bg-red-950/40 border border-red-900/50 cursor-pointer">Limpar Tudo</button>
                         </div>
                     </div>
 
                     <div class="overflow-x-auto max-h-96">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-slate-900 text-slate-400 border-b border-slate-700">
+                                <tr class="bg-slate-950 text-slate-400 border-b border-slate-800">
                                     <th class="p-2.5 text-center font-bold">#</th>
                                     <th class="p-2.5 font-bold">Código Sienge</th>
                                     <th class="p-2.5 font-bold">Descrição do Material</th>
@@ -239,7 +235,7 @@
                                     <th class="p-2.5 text-center font-bold">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabela-inventario-body" class="divide-y divide-slate-700/60">
+                            <tbody id="tabela-inventario-body" class="divide-y divide-slate-800/60">
                                 <tr>
                                    <td colspan="8" class="text-center py-8 text-slate-500 italic">Nenhum item coletado até o momento.</td>
                                 </tr>
@@ -247,29 +243,29 @@
                         </table>
                     </div>
 
-                    <div class="pt-4 border-t border-slate-700 space-y-3">
+                    <div class="pt-4 border-t border-slate-800 space-y-3">
                         <p class="text-xs font-bold text-slate-300 uppercase tracking-wide">Destinatários para Relatório de Auditoria</p>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-700/60">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-950 p-3 rounded-lg border border-slate-800">
                             <div>
                                 <label class="block text-[10px] font-bold text-blue-400 uppercase mb-1">Corporativo</label>
-                                <input type="email" id="email-corp" value="luiz.oliveira@brava.com.br" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-slate-200">
+                                <input type="email" id="email-corp" value="luiz.oliveira@brava.com.br" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-slate-200">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-emerald-400 uppercase mb-1">Celular</label>
-                                <input type="email" id="email-celular" value="ocluiz2021@gmail.com" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-slate-200">
+                                <input type="email" id="email-celular" value="ocluiz2021@gmail.com" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-slate-200">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-purple-400 uppercase mb-1">Pessoal</label>
-                                <input type="email" id="email-pc" value="ocluiz@hotmail.com" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-slate-200">
+                                <input type="email" id="email-pc" value="ocluiz@hotmail.com" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-slate-200">
                             </div>
                         </div>
 
                         <div class="flex flex-col md:flex-row gap-2 pt-2">
-                            <button onclick="enviarRelatorioServidor()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2">
+                            <button type="button" onclick="enviarRelatorioServidor()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2 cursor-pointer">
                                 📊 Enviar E-mail e Baixar Planilha para Cruzamento Sienge (.xlsx)
                             </button>
-                            <button onclick="baixarExcelLocal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2">
+                            <button type="button" onclick="baixarExcelLocal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2 cursor-pointer">
                                 📥 Baixar Excel Avulso
                             </button>
                         </div>
@@ -280,14 +276,14 @@
 
             <!-- ================= ABA 2: CATÁLOGO ================= -->
             <div id="secao-catalogo" class="space-y-4 hidden">
-                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-4">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-700 pb-3">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
                         <div>
                             <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider">Catálogo Mestre (Extraído do Sienge)</h2>
                             <p class="text-[11px] text-slate-400">Importe a listagem de materiais do Sienge para alimentar o leitor automático.</p>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="limparCatalogoInteiro()" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 px-3 py-2 rounded-lg text-xs font-bold shadow transition-all">
+                            <button type="button" onclick="limparCatalogoInteiro()" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 px-3 py-2 rounded-lg text-xs font-bold shadow transition-all cursor-pointer">
                                 🗑️ Limpar Catálogo Inteiro
                             </button>
                             <label class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold cursor-pointer shadow transition-all flex items-center gap-1">
@@ -297,18 +293,18 @@
                         </div>
                     </div>
 
-                    <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/60 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                         <div class="md:col-span-3">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Código Sienge</label>
-                            <input type="text" id="cat-novo-codigo" placeholder="Ex: 074898" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-100 font-mono">
+                            <input type="text" id="cat-novo-codigo" placeholder="Ex: 074898" class="w-full bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-100 font-mono">
                         </div>
                         <div class="md:col-span-6">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Descrição do Material</label>
-                            <input type="text" id="cat-novo-desc" placeholder="Ex: Abraçadeira de Aço" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-100">
+                            <input type="text" id="cat-novo-desc" placeholder="Ex: Abraçadeira de Aço" class="w-full bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-100">
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unidade</label>
-                            <select id="cat-novo-unidade" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-100">
+                            <select id="cat-novo-unidade" class="w-full bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-100">
                                 <option value="UN">UN</option>
                                 <option value="PC">PC</option>
                                 <option value="KG">KG</option>
@@ -319,7 +315,7 @@
                             </select>
                         </div>
                         <div class="md:col-span-1">
-                            <button onclick="adicionarProdutoCatalogo()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded text-xs font-bold shadow">
+                            <button type="button" onclick="adicionarProdutoCatalogo()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded text-xs font-bold shadow cursor-pointer">
                                 + Salvar
                             </button>
                         </div>
@@ -328,14 +324,14 @@
                     <div class="overflow-x-auto max-h-96">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-slate-900 text-slate-400 border-b border-slate-700">
+                                <tr class="bg-slate-950 text-slate-400 border-b border-slate-800">
                                     <th class="p-2.5 font-bold">Código</th>
                                     <th class="p-2.5 font-bold">Descrição Sienge</th>
                                     <th class="p-2.5 text-center font-bold">Unid</th>
                                     <th class="p-2.5 text-center font-bold">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabela-catalogo-body" class="divide-y divide-slate-700/60"></tbody>
+                            <tbody id="tabela-catalogo-body" class="divide-y divide-slate-800/60"></tbody>
                         </table>
                     </div>
                 </div>
@@ -343,20 +339,20 @@
 
             <!-- ================= ABA 3: GERADOR DE ETIQUETAS QR SIENGE ================= -->
             <div id="secao-etiquetas" class="space-y-4 hidden">
-                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-4">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-700 pb-3">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
                         <div>
                             <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider">Gerador de Etiquetas QR (Padrão Sienge)</h2>
                             <p class="text-[11px] text-slate-400">Gere códigos QR visuais com os dados do Sienge para colar nas prateleiras do almoxarifado.</p>
                         </div>
-                        <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow transition-all flex items-center gap-2">
+                        <button type="button" onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow transition-all flex items-center gap-2 cursor-pointer">
                             🖨️ Imprimir Etiquetas
                         </button>
                     </div>
 
-                    <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-700/60 text-center">
+                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 text-center">
                         <p class="text-xs text-slate-300 mb-2">O gerador utiliza automaticamente os itens salvos no seu catálogo do Sienge.</p>
-                        <button onclick="renderizarEtiquetasQR()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow">
+                        <button type="button" onclick="renderizarEtiquetasQR()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow cursor-pointer">
                             🔄 Atualizar e Visualizar Etiquetas
                         </button>
                     </div>
@@ -369,13 +365,13 @@
 
         <!-- Modal de Contagem -->
         <div id="modal-qtd" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
-                <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+                <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
                     <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wider" id="modal-titulo-header">Lançamento Sienge</h3>
-                    <span class="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded font-mono" id="modal-badge-un">UN</span>
+                    <span class="text-xs bg-blue-950 text-blue-300 px-2 py-0.5 rounded font-mono border border-blue-800" id="modal-badge-un">UN</span>
                 </div>
                 
-                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 space-y-1">
+                <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
                     <p class="text-[10px] text-slate-400 font-bold uppercase">Código Sienge:</p>
                     <p id="modal-codigo" class="text-sm text-blue-400 font-mono font-bold"></p>
                     <p class="text-[10px] text-slate-400 font-bold uppercase pt-1">Descrição:</p>
@@ -383,19 +379,19 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700">
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
                         <label class="block text-[10px] font-bold text-blue-400 uppercase mb-1">1ª Contagem</label>
                         <input type="number" id="input-qtd1" min="0" step="any" class="w-full text-center text-lg font-bold bg-slate-900 border border-blue-500/60 rounded p-1.5 text-slate-100 focus:outline-none">
                     </div>
-                    <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700">
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
                         <label class="block text-[10px] font-bold text-emerald-400 uppercase mb-1">2ª Contagem</label>
                         <input type="number" id="input-qtd2" min="0" step="any" class="w-full text-center text-lg font-bold bg-slate-900 border border-emerald-500/60 rounded p-1.5 text-slate-100 focus:outline-none">
                     </div>
                 </div>
 
                 <div class="flex gap-2 pt-2">
-                    <button onclick="cancelarLeituraModal()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-300 py-2.5 rounded-lg font-semibold text-xs transition-all">Cancelar</button>
-                    <button onclick="salvarContagemModal()" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-semibold text-xs shadow transition-all">Confirmar</button>
+                    <button type="button" onclick="cancelarLeituraModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-lg font-semibold text-xs transition-all cursor-pointer">Cancelar</button>
+                    <button type="button" onclick="salvarContagemModal()" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-semibold text-xs shadow transition-all cursor-pointer">Confirmar</button>
                 </div>
             </div>
         </div>
@@ -423,7 +419,58 @@
         function salvarDadosLocais() {
             localStorage.setItem('brava_catalogo', JSON.stringify(catalogoProdutos));
             localStorage.setItem('brava_inventario', JSON.stringify(inventarioItens));
-            document.getElementById('qtd-catalogo-badge').innerText = catalogoProdutos.length;
+            let badge = document.getElementById('qtd-catalogo-badge');
+            if (badge) badge.innerText = catalogoProdutos.length;
+        }
+
+        function mudarAuthTab(aba) {
+            let btnLogin = document.getElementById('btn-tab-login');
+            let btnCad = document.getElementById('btn-tab-cadastro');
+            let boxLogin = document.getElementById('form-login-box');
+            let boxCad = document.getElementById('form-cadastro-box');
+
+            if (aba === 'login') {
+                btnLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-blue-600 text-white shadow";
+                btnCad.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                boxLogin.classList.remove('hidden');
+                boxLogin.style.display = 'block';
+                boxCad.classList.add('hidden');
+                boxCad.style.display = 'none';
+            } else {
+                btnCad.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-emerald-600 text-white shadow";
+                btnLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                boxCad.classList.remove('hidden');
+                boxCad.style.display = 'block';
+                boxLogin.classList.add('hidden');
+                boxLogin.style.display = 'none';
+            }
+        }
+
+        function fazerLogin() {
+            let email = document.getElementById('login-email').value.trim();
+            let senha = document.getElementById('login-senha').value;
+            if (!email || !senha) {
+                alert("Preencha o e-mail e a senha.");
+                return;
+            }
+            localStorage.setItem('brava_sessao_ativa', email);
+            verificarSessao();
+        }
+
+        function fazerCadastro() {
+            let nome = document.getElementById('cad-nome').value.trim();
+            let cpf = document.getElementById('cad-cpf').value.trim();
+            let email = document.getElementById('cad-email').value.trim();
+            let senha = document.getElementById('cad-senha').value;
+
+            if (!nome || !cpf || !email || !senha) {
+                alert("Preencha todos os campos do cadastro.");
+                return;
+            }
+
+            localStorage.setItem('brava_sessao_ativa', email);
+            alert("Cadastro realizado com sucesso!");
+            verificarSessao();
         }
 
         function verificarSessao() {
@@ -432,20 +479,22 @@
             let sistemaPrincipal = document.getElementById('sistema-principal');
 
             if (emailAtivo) {
+                authWrapper.style.display = 'none';
                 authWrapper.classList.add('hidden');
+                sistemaPrincipal.style.display = 'block';
                 sistemaPrincipal.classList.remove('hidden');
-                document.getElementById('usuario-logado-badge').innerText = emailAtivo;
+                
+                let userBadge = document.getElementById('usuario-logado-badge');
+                if (userBadge) userBadge.innerText = emailAtivo;
+
                 salvarDadosLocais();
                 atualizarTabelaCatalogo();
                 atualizarTabelaInventario();
             } else {
-                authWrapper.classList.remove('hidden');
+                sistemaPrincipal.style.display = 'none';
                 sistemaPrincipal.classList.add('hidden');
-                let ultimoEmail = localStorage.getItem('brava_ultimo_email');
-                if (ultimoEmail) {
-                    document.getElementById('login-email').value = ultimoEmail;
-                    document.getElementById('biometria-container').classList.remove('hidden');
-                }
+                authWrapper.style.display = 'flex';
+                authWrapper.classList.remove('hidden');
             }
         }
 
@@ -478,20 +527,20 @@
             sCatalogo.classList.add('hidden');
             sEtiquetas.classList.add('hidden');
 
-            bColeta.className = "bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm";
-            bCatalogo.className = "bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm";
-            bEtiquetas.className = "bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm";
+            bColeta.className = "bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
+            bCatalogo.className = "bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
+            bEtiquetas.className = "bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
 
             if (aba === 'coleta') {
                 sColeta.classList.remove('hidden');
-                bColeta.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm";
+                bColeta.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
             } else if (aba === 'catalogo') {
                 sCatalogo.classList.remove('hidden');
-                bCatalogo.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm";
+                bCatalogo.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
                 atualizarTabelaCatalogo();
             } else if (aba === 'etiquetas') {
                 sEtiquetas.classList.remove('hidden');
-                bEtiquetas.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm";
+                bEtiquetas.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
                 renderizarEtiquetasQR();
             }
         }
@@ -557,14 +606,16 @@
                 document.getElementById('modal-titulo-header').innerText = "1ª Contagem Sienge";
             }
 
-            document.getElementById('modal-qtd').classList.remove('hidden');
-            document.getElementById('modal-qtd').classList.add('flex');
+            let modal = document.getElementById('modal-qtd');
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
             document.getElementById('input-qtd1').focus();
         }
 
         function cancelarLeituraModal() {
-            document.getElementById('modal-qtd').classList.remove('flex');
-            document.getElementById('modal-qtd').classList.add('hidden');
+            let modal = document.getElementById('modal-qtd');
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
             itemSendoEditado = null;
         }
 
@@ -617,7 +668,7 @@
                 }
 
                 let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-700/40 transition-all";
+                tr.className = "hover:bg-slate-800/40 transition-all";
                 tr.innerHTML = `
                     <td class="p-2.5 text-center font-mono text-slate-400">${idx + 1}</td>
                     <td class="p-2.5 font-mono text-blue-400 font-bold">${item.codigo}</td>
@@ -627,8 +678,8 @@
                     <td class="p-2.5 text-center font-mono font-bold text-emerald-400">${q2Text}</td>
                     <td class="p-2.5 text-center font-mono">${dif}</td>
                     <td class="p-2.5 text-center flex justify-center gap-1">
-                        <button onclick='editarItemInventario(${idx})' class="bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white px-2 py-1 rounded text-[10px] font-bold">Editar</button>
-                        <button onclick='removerItemInventario(${idx})' class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white px-2 py-1 rounded text-[10px] font-bold">Excluir</button>
+                        <button type="button" onclick='editarItemInventario(${idx})' class="bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">Editar</button>
+                        <button type="button" onclick='removerItemInventario(${idx})' class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">Excluir</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -685,7 +736,8 @@
         function atualizarTabelaCatalogo() {
             let tbody = document.getElementById('tabela-catalogo-body');
             tbody.innerHTML = "";
-            document.getElementById('qtd-catalogo-badge').innerText = catalogoProdutos.length;
+            let badge = document.getElementById('qtd-catalogo-badge');
+            if (badge) badge.innerText = catalogoProdutos.length;
 
             if (catalogoProdutos.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 italic">Nenhum produto no catálogo.</td></tr>`;
@@ -694,13 +746,13 @@
 
             catalogoProdutos.forEach((prod, idx) => {
                 let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-700/40 transition-all";
+                tr.className = "hover:bg-slate-800/40 transition-all";
                 tr.innerHTML = `
                     <td class="p-2.5 font-mono text-blue-400 font-bold">${prod.codigo}</td>
                     <td class="p-2.5 font-semibold text-slate-200">${prod.desc}</td>
                     <td class="p-2.5 text-center font-mono text-slate-400">${prod.unidade}</td>
                     <td class="p-2.5 text-center">
-                        <button onclick="removerItemCatalogo(${idx})" class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white px-2 py-1 rounded text-[10px] font-bold">Excluir</button>
+                        <button type="button" onclick="removerItemCatalogo(${idx})" class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">Excluir</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -845,8 +897,9 @@
                 .then(() => {
                     msgStatus.className = "text-xs text-center font-semibold text-emerald-400";
                     msgStatus.innerText = "Relatório enviado com sucesso por e-mail! Iniciando download da planilha...";
-                    document.getElementById('stat-status').innerText = "Enviado ✓";
-                    document.getElementById('stat-status').className = "text-xs font-bold text-emerald-400 mt-1";
+                    let statStatus = document.getElementById('stat-status');
+                    statStatus.innerText = "Enviado ✓";
+                    statStatus.className = "text-xs font-bold text-emerald-400 mt-1";
                     baixarExcelLocal();
                 }, (err) => {
                     msgStatus.className = "text-xs text-center font-semibold text-red-400";
