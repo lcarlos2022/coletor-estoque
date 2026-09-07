@@ -6,17 +6,17 @@
     <title>WMS / Inventário - Almoxarifado Brava</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Bibliotecas auxiliares do seu app (html5-qrcode, SheetJS, EmailJS) -->
+    <!-- Bibliotecas auxiliares (html5-qrcode, SheetJS, EmailJS) -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
 
-    <!-- CABEÇALHO / TELA DE LOGIN (Onde aplicamos a nova regra de segurança) -->
+    <!-- CABEÇALHO / TELA DE LOGIN / CADASTRO -->
     <div id="auth-screen" class="flex-1 flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-            <h2 class="text-2xl font-bold text-center text-yellow-400 mb-6">Almoxarifado Brava - Acesso</h2>
+            <h2 id="tituloAuth" class="text-2xl font-bold text-center text-yellow-400 mb-6">Almoxarifado Brava - Acesso</h2>
             
             <form id="formAcesso" onsubmit="validarLoginOuCadastro(event)" class="space-y-4">
                 <div>
@@ -35,15 +35,15 @@
 
                 <div id="mensagemAlerta" class="text-sm text-red-400 hidden"></div>
 
-                <button type="submit" 
+                <button type="submit" id="btnAcao"
                     class="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold rounded-md transition duration-200">
-                    Entrar no Sistema
+                    Entrar / Cadastrar
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- APLICAÇÃO PRINCIPAL (Catálogo, Scanner QR Code, Padrão Pimaco e Funções Originais) -->
+    <!-- APLICAÇÃO PRINCIPAL (Catálogo, Scanner QR Code, Padrão Pimaco) -->
     <div id="app-screen" class="hidden flex-1 p-4 max-w-4xl mx-auto w-full space-y-6">
         <header class="flex justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700">
             <h1 class="text-xl font-bold text-yellow-400">WMS - Painel de Controle</h1>
@@ -73,25 +73,39 @@
     </div>
 
     <script>
-        // Usuário pré-cadastrado de exemplo para validação do e-mail
-        const usuarioSistema = {
-            email: "almoxarifado@grupobrava.com"
+        // Verifica ao abrir se já existe um usuário cadastrado para ajustar o texto da tela
+        window.onload = function() {
+            const emailSalvo = localStorage.getItem('wms_email_cadastrado');
+            if (emailSalvo) {
+                document.getElementById('tituloAuth').textContent = "Almoxarifado Brava - Login";
+                document.getElementById('btnAcao').textContent = "Entrar";
+            } else {
+                document.getElementById('tituloAuth').textContent = "Almoxarifado Brava - Primeiro Cadastro";
+                document.getElementById('btnAcao').textContent = "Cadastrar e Entrar";
+            }
         };
 
-        // Função de validação de Login/Cadastro solicitada
         function validarLoginOuCadastro(event) {
             event.preventDefault();
 
-            const emailDigitado = document.getElementById('emailInput').value.trim();
+            const emailDigitado = document.getElementById('emailInput').value.trim().toLowerCase();
             const senhaDigitada = document.getElementById('senhaInput').value;
             const divAlerta = document.getElementById('mensagemAlerta');
 
             divAlerta.classList.add('hidden');
             divAlerta.textContent = '';
 
-            // 1. Validação de E-mail
-            if (emailDigitado !== usuarioSistema.email) {
-                divAlerta.textContent = "Atenção: E-mail não confere com o cadastro do sistema.";
+            let emailSalvo = localStorage.getItem('wms_email_cadastrado');
+
+            // Se não tem e-mail salvo, este é o primeiro acesso (Cadastra o e-mail digitado)
+            if (!emailSalvo) {
+                localStorage.setItem('wms_email_cadastrado', emailDigitado);
+                emailSalvo = emailDigitado;
+            }
+
+            // 1. Validação de E-mail: O e-mail digitado precisa ser o mesmo cadastrado
+            if (emailDigitado !== emailSalvo) {
+                divAlerta.textContent = "Atenção: E-mail não confere com o e-mail cadastrado no sistema!";
                 divAlerta.classList.remove('hidden');
                 return;
             }
@@ -105,12 +119,9 @@
                 return;
             }
 
-            // Se passou em todas as regras, entra no app sem perder nenhuma função anterior
+            // Sucesso: Entra no app
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            
-            // Inicializa recursos do app se necessário
-            iniciarScannerSeDisponivel();
         }
 
         function sairDoApp() {
@@ -121,11 +132,6 @@
 
         function gerarEtiquetaPimaco() {
             alert("Módulo de etiquetas Pimaco acionado com sucesso com base nos dados do catálogo!");
-        }
-
-        function iniciarScannerSeDisponivel() {
-            // Mantém a estrutura pronta para o html5-qrcode sem quebrar caso o container mude
-            console.log("Módulo WMS / Scanner ativo.");
         }
     </script>
 </body>
