@@ -13,12 +13,12 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
 
-    <!-- CABEÇALHO / TELA DE LOGIN / CADASTRO -->
+    <!-- TELA DE LOGIN / ACESSO -->
     <div id="auth-screen" class="flex-1 flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-            <h2 id="tituloAuth" class="text-2xl font-bold text-center text-yellow-400 mb-6">Almoxarifado Brava - Acesso</h2>
+            <h2 class="text-2xl font-bold text-center text-yellow-400 mb-6">Almoxarifado Brava - Acesso</h2>
             
-            <form id="formAcesso" onsubmit="validarLoginOuCadastro(event)" class="space-y-4">
+            <form id="formAcesso" onsubmit="validarAcesso(event)" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium mb-1">E-mail de Acesso</label>
                     <input type="email" id="emailInput" required 
@@ -35,15 +35,9 @@
 
                 <div id="mensagemAlerta" class="text-sm text-red-400 hidden"></div>
 
-                <button type="submit" id="btnAcao"
+                <button type="submit" 
                     class="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold rounded-md transition duration-200">
-                    Entrar / Cadastrar
-                </button>
-
-                <!-- Botão de emergência caso queira trocar/limpar o e-mail gravado -->
-                <button type="button" onclick="limparCadastroSistema()" 
-                    class="w-full py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded transition duration-200">
-                    🔄 Redefinir E-mail Cadastrado
+                    Entrar no Sistema
                 </button>
             </form>
         </div>
@@ -79,66 +73,31 @@
     </div>
 
     <script>
-        window.onload = function() {
-            verificarStatusCadastro();
-        };
-
-        function verificarStatusCadastro() {
-            const emailSalvo = localStorage.getItem('wms_email_cadastrado');
-            if (emailSalvo) {
-                document.getElementById('tituloAuth').textContent = "Almoxarifado Brava - Login";
-                document.getElementById('btnAcao').textContent = "Entrar";
-            } else {
-                document.getElementById('tituloAuth').textContent = "Almoxarifado Brava - Cadastro";
-                document.getElementById('btnAcao').textContent = "Cadastrar e Entrar";
-            }
-        }
-
-        function validarLoginOuCadastro(event) {
+        function validarAcesso(event) {
             event.preventDefault();
 
-            const emailDigitado = document.getElementById('emailInput').value.trim().toLowerCase();
             const senhaDigitada = document.getElementById('senhaInput').value;
             const divAlerta = document.getElementById('mensagemAlerta');
 
             divAlerta.classList.add('hidden');
             divAlerta.textContent = '';
 
-            let emailSalvo = localStorage.getItem('wms_email_cadastrado');
-
-            // Se não houver e-mail cadastrado, grava automaticamente o que o usuário digitou
-            if (!emailSalvo) {
-                localStorage.setItem('wms_email_cadastrado', emailDigitado);
-                emailSalvo = emailDigitado;
-            }
-
-            // Validação de E-mail
-            if (emailDigitado !== emailSalvo) {
-                divAlerta.textContent = "Atenção: E-mail não confere com o cadastrado. Clique em 'Redefinir E-mail Cadastrado' abaixo se mudou de e-mail.";
-                divAlerta.classList.remove('hidden');
-                return;
-            }
-
-            // Regra rigorosa da Senha (6 a 8 dígitos, 1 maiúscula, números, 1 especial)
+            // Regra estrita da Senha solicitada:
+            // - De 6 a 8 caracteres ({6,8})
+            // - Pelo menos uma letra maiúscula (?=.*[A-Z])
+            // - Pelo menos um número (?=.*\d)
+            // - Pelo menos um caractere especial (?=.*[!@#$%^&*(),.?":{}|<>_-])
             const regexSenha = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_-])[A-Za-z\d!@#$%^&*(),.?":{}|<>_-]{6,8}$/;
 
             if (!regexSenha.test(senhaDigitada)) {
-                divAlerta.textContent = "A senha deve ter de 6 a 8 dígitos, contendo pelo menos uma letra maiúscula, números e um caractere especial.";
+                divAlerta.textContent = "A senha deve ter de 6 a 8 dígitos, contendo pelo menos uma letra maiúscula, números e um caractere especial (Ex: Brava@1).";
                 divAlerta.classList.remove('hidden');
                 return;
             }
 
-            // Sucesso
+            // Se a senha estiver correta, libera o acesso imediatamente para qualquer e-mail digitado
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-        }
-
-        function limparCadastroSistema() {
-            localStorage.removeItem('wms_email_cadastrado');
-            document.getElementById('emailInput').value = '';
-            document.getElementById('senhaInput').value = '';
-            verificarStatusCadastro();
-            alert("E-mail anterior apagado! Agora você pode digitar e cadastrar o seu e-mail novo.");
         }
 
         function sairDoApp() {
