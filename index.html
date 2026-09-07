@@ -3,1109 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario Corporativo - Sistema de Gestão e Contagem</title>
-    
-    <!-- Ícone Profissional (Favicon Dinâmico para a Aba) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M32 14L14 24v20l18 10 18-10V24L32 14z' fill='none' stroke='%233b82f6' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M32 14v20l18 10M32 34L14 44' fill='none' stroke='%233b82f6' stroke-width='3' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='34' r='6' fill='%2310b981'/%3E%3C/svg%3E">
-
-    <!-- Tailwind CSS -->
+    <title>Sienge Scanner Pro</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leitor QR Code / Barcode -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- SheetJS para Excel -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- QRCode Generator JS para Etiquetas -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <!-- EmailJS -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <style>
-        #reader video {
-            object-fit: cover !important;
-            width: 100% !important;
-            height: 220px !important;
-            border-radius: 0.5rem;
-        }
-        #reader__dashboard_section_csr button, #reader__dashboard_section_swaplink {
-            display: none !important;
-        }
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #area-impressao-etiquetas, #area-impressao-etiquetas * {
-                visibility: visible;
-            }
-            #area-impressao-etiquetas {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-        }
-    </style>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen pb-12 font-sans">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
 
-    <!-- ================= TELA DE AUTENTICAÇÃO / LOGIN ================= -->
-    <div id="tela-auth" class="fixed inset-0 bg-slate-950 flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-6">
-            <div class="text-center space-y-2">
-                <div class="w-12 h-12 bg-slate-800 border border-slate-700 rounded-xl mx-auto flex items-center justify-center shadow-inner">
-                    <svg class="w-6 h-6 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    </svg>
-                </div>
-                <h2 class="text-lg font-bold text-slate-100 tracking-wider">INVENTARIO CORPORATIVO</h2>
-                <p class="text-xs text-slate-400 uppercase tracking-widest font-semibold">Controle de Acesso Restrito</p>
+    <!-- Container Principal -->
+    <main class="max-w-md w-full mx-auto p-4 flex-grow flex flex-col justify-center">
+
+        <!-- ================= TELA 1: APRESENTAÇÃO (ÍCONE E NOME) ================= -->
+        <div id="view-splash" class="view-section text-center py-8">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-blue-600 text-white rounded-3xl shadow-lg mb-6 text-4xl">
+                <i class="fa-solid fa-barcode"></i>
             </div>
-
-            <!-- Abas Login / Cadastro -->
-            <div id="abas-auth-container" class="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
-                <button onclick="alternarTelaAuth('login')" id="btn-aba-login" class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all">Entrar</button>
-                <button onclick="alternarTelaAuth('cadastro')" id="btn-aba-cadastro" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition-all">Cadastrar Acesso</button>
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">Sienge Scanner Pro</h1>
+            <p class="text-slate-500 mb-8">Controle de Almoxarifado e Coleta Óptica</p>
+            
+            <div class="space-y-3">
+                <button onclick="mostrarTela('view-login')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow transition">
+                    Entrar no Sistema
+                </button>
+                <button onclick="mostrarTela('view-register')" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold py-3 px-4 rounded-xl shadow-sm transition">
+                    Criar Novo Cadastro
+                </button>
             </div>
+        </div>
 
-            <!-- Formulário de Login -->
-            <div id="form-login" class="space-y-4">
+        <!-- ================= TELA 2: CADASTRO ================= -->
+        <div id="view-register" class="view-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center mb-6">
+                <button onclick="mostrarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3">
+                    <i class="fa-solid fa-arrow-left text-lg"></i>
+                </button>
+                <h2 class="text-xl font-bold text-slate-900">Criar Cadastro</h2>
+            </div>
+            <form onsubmit="realizarCadastro(event)" class="space-y-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CPF (Usuário)</label>
-                    <input type="text" id="login-cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-blue-500">
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Nome Completo</label>
+                    <input type="text" id="reg-nome" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Senha</label>
-                    <input type="password" id="login-senha" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-blue-500">
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">E-mail Corporativo</label>
+                    <input type="email" id="reg-email" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                
-                <div class="flex justify-between items-center text-xs">
-                    <button onclick="abrirEsqueciSenha()" class="text-blue-400 hover:underline font-semibold">Esqueceu a senha?</button>
-                    <button onclick="realizarLoginBiometrico()" id="btn-biometria" class="hidden text-emerald-400 hover:underline font-semibold flex items-center gap-1">
-                        👆 Entrar com Biometria
-                    </button>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Senha</label>
+                    <input type="password" id="reg-senha" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow transition">
+                    Cadastrar e Continuar
+                </button>
+            </form>
+        </div>
 
-                <button onclick="realizarLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow transition-all">
-                    Acessar Sistema
+        <!-- ================= TELA 3: LOGIN ================= -->
+        <div id="view-login" class="view-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center mb-6">
+                <button onclick="mostrarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3">
+                    <i class="fa-solid fa-arrow-left text-lg"></i>
+                </button>
+                <h2 class="text-xl font-bold text-slate-900">Acessar Sistema</h2>
+            </div>
+            <form onsubmit="realizarLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">E-mail Corporativo</label>
+                    <input type="email" id="login-email" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Senha</label>
+                    <input type="password" id="login-senha" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow transition">
+                    Entrar
+                </button>
+            </form>
+        </div>
+
+        <!-- ================= TELA 4: TELA DE TRABALHO (LEITOR ÓPTICO) ================= -->
+        <div id="view-work" class="view-section hidden flex-grow flex flex-col">
+            <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-barcode"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-sm text-slate-900">Sienge Coleta</h2>
+                        <span id="user-display" class="text-xs text-slate-500">Operador</span>
+                    </div>
+                </div>
+                <button onclick="sair()" class="text-slate-400 hover:text-red-600 p-2" title="Sair">
+                    <i class="fa-solid fa-right-from-bracket text-lg"></i>
                 </button>
             </div>
 
-            <!-- Formulário de Cadastro -->
-            <div id="form-cadastro" class="space-y-3 hidden">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nome Completo</label>
-                    <input type="text" id="cad-nome" placeholder="Ex: Luiz Carlos Oliveira" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-100">
+            <!-- Área do Leitor Óptico / Câmera Simulada -->
+            <div class="bg-slate-900 rounded-2xl p-4 text-center text-white flex-grow flex flex-col justify-between shadow-inner relative overflow-hidden min-h-[250px]">
+                <div class="absolute inset-0 border-2 border-dashed border-blue-500/50 m-4 rounded-xl pointer-events-none flex items-center justify-center">
+                    <div class="w-3/4 h-0.5 bg-red-500 animate-pulse"></div>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">E-mail Corporativo</label>
-                    <input type="email" id="cad-email" placeholder="exemplo@empresa.com.br" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-100">
+                <div class="z-10 pt-2">
+                    <span class="bg-slate-800/80 text-xs px-3 py-1 rounded-full text-slate-300">Câmera Ativa</span>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Setor / Departamento</label>
-                    <input type="text" id="cad-setor" placeholder="Ex: Almoxarifado Central / Logística" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-100">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CPF</label>
-                    <input type="text" id="cad-cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-100 font-mono">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Senha de Acesso</label>
-                    <input type="password" id="cad-senha" placeholder="Crie uma senha segura" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-100">
-                </div>
-                <button onclick="realizarCadastro()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg text-xs font-bold shadow transition-all mt-2">
-                    Cadastrar e Autorizar
-                </button>
-            </div>
-
-            <!-- Formulário de Recuperação de Senha -->
-            <div id="form-recuperar" class="space-y-4 hidden">
-                <div class="text-left space-y-1">
-                    <h3 class="text-xs font-bold text-slate-200 uppercase">Recuperação de Senha</h3>
-                    <p class="text-[11px] text-slate-400">Informe seu CPF cadastrado para receber instruções ou redefinir sua senha.</p>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CPF do Cadastro</label>
-                    <input type="text" id="rec-cpf" placeholder="000.000.000-00" oninput="mascaraCPF(this)" maxlength="14" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100 font-mono">
-                </div>
-                <div id="bloco-nova-senha" class="space-y-3 hidden">
-                    <div>
-                        <label class="block text-[10px] font-bold text-emerald-400 uppercase mb-1">Nova Senha</label>
-                        <input type="password" id="rec-nova-senha" placeholder="Digite sua nova senha" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100">
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="voltarDoRecuperar()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-2.5 rounded-lg text-xs font-bold transition-all">Voltar</button>
-                    <button id="btn-acao-recuperar" onclick="enviarRecuperacaoEmail()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow transition-all">Enviar E-mail</button>
-                </div>
-            </div>
-            
-            <p id="auth-msg" class="text-xs text-center font-semibold text-rose-400 hidden"></p>
-        </div>
-    </div>
-
-    <!-- ================= CONTEÚDO PRINCIPAL (BLOQUEADO ATÉ LOGIN) ================= -->
-    <div id="conteudo-principal" class="hidden">
-        <!-- Top Bar Corporativa -->
-        <header class="bg-slate-800 border-b border-slate-700 px-4 py-3 shadow-md sticky top-0 z-40">
-            <div class="max-w-4xl mx-auto flex justify-between items-center">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-center shadow-inner">
-                        <svg class="w-5 h-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-base font-bold text-blue-400 tracking-wide">INVENTARIO CORPORATIVO <span class="text-xs text-emerald-400 font-mono">| Sienge Sync</span></h1>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold flex items-center gap-2">
-                            <span>Resp: <strong id="usuario-logado-nome" class="text-slate-200">Operador</strong></span>
-                            <span>•</span>
-                            <span id="usuario-logado-setor" class="text-slate-300">Setor</span>
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="flex gap-1.5 items-center">
-                    <button onclick="realizarLogout()" class="bg-slate-700 hover:bg-slate-600 text-rose-300 px-2 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap" title="Sair do sistema">
-                        🚪 Sair
-                    </button>
-                    <button onclick="forcarLimpezaTotal()" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap" title="Zerar dados e reiniciar">
-                        ⚠️ Zerar
-                    </button>
-                    <div class="h-5 w-[1px] bg-slate-700 mx-0.5"></div>
-                    <button onclick="alternarAba('coleta')" id="tab-coleta-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap">
-                        📱 Coletor
-                    </button>
-                    <button onclick="alternarAba('catalogo')" id="tab-catalogo-btn" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap">
-                        📚 Catálogo (<span id="qtd-catalogo-badge">0</span>)
-                    </button>
-                    <button onclick="alternarAba('etiquetas')" id="tab-etiquetas-btn" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap">
-                        🏷️ Gerar QR
+                <div class="z-10 pb-2">
+                    <p class="text-xs text-slate-400 mb-2">Aponte para o código de barras ou QR Code</p>
+                    <button onclick="simularLeitura()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow">
+                        Simular Leitura Óptica
                     </button>
                 </div>
             </div>
-        </header>
 
-        <main class="max-w-4xl mx-auto p-4 space-y-4">
-
-            <!-- ================= ABA 1: COLETOR ================= -->
-            <div id="secao-coleta" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-3">
-                        <div class="flex justify-between items-center">
-                            <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Leitor Óptico / QR</h2>
-                            <span class="text-[10px] bg-emerald-900 text-emerald-300 px-2 py-0.5 rounded-full font-mono">Pronto</span>
-                        </div>
-                        <div id="reader" class="w-full rounded-lg overflow-hidden border border-slate-700 bg-black h-[220px] relative shadow-inner"></div>
-                        <button onclick="iniciarCameraTraseira()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2">
-                            🔄 Ativar / Alternar Câmera
-                        </button>
-                    </div>
-
-                    <div class="md:col-span-2 bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-4 flex flex-col justify-between">
-                        <div>
-                            <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider mb-2">Entrada Rápida / 2ª Contagem Automática</h2>
-                            <div class="flex gap-2">
-                                <input type="text" id="input-busca-manual" placeholder="Digite o código do Sienge ou bipar..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500 font-mono">
-                                <button onclick="buscarEProcessarManual()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow">
-                                    Adicionar
-                                </button>
-                            </div>
-                            <p class="text-[10px] text-slate-400 mt-1">Nota: Se bipar código já contado, abre direto para a 2ª Contagem sem duplicar.</p>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-700">
-                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/60 text-center">
-                                <p class="text-[10px] text-slate-400 uppercase font-bold">Total Itens</p>
-                                <p id="stat-total" class="text-lg font-extrabold text-blue-400 font-mono">0</p>
-                            </div>
-                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/60 text-center">
-                                <p class="text-[10px] text-slate-400 uppercase font-bold">Divergências</p>
-                                <p id="stat-divergencias" class="text-lg font-extrabold text-amber-400 font-mono">0</p>
-                            </div>
-                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/60 text-center">
-                                <p class="text-[10px] text-slate-400 uppercase font-bold">Status Envio</p>
-                                <p id="stat-status" class="text-xs font-bold text-slate-300 mt-1">Não Enviado</p>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Lista de Coletas Recentes -->
+            <div class="mt-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-bold uppercase text-slate-500">Itens Lidos</h3>
+                    <span id="contador-itens" class="text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">0 itens</span>
                 </div>
-
-                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                        <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Planilha de Contagem (Pronto para Cruzamento Sienge)</h2>
-                        <div class="flex gap-2">
-                            <button onclick="limparInventario()" class="text-xs text-red-400 hover:text-red-300 font-semibold px-2 py-1 rounded bg-red-950/40 border border-red-900/50">Limpar Tudo</button>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto max-h-96">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-slate-900 text-slate-400 border-b border-slate-700">
-                                    <th class="p-2.5 text-center font-bold">#</th>
-                                    <th class="p-2.5 font-bold">Código Sienge</th>
-                                    <th class="p-2.5 font-bold">Descrição do Material</th>
-                                    <th class="p-2.5 text-center font-bold">Unid</th>
-                                    <th class="p-2.5 text-center font-bold">1ª Contagem</th>
-                                    <th class="p-2.5 text-center font-bold">2ª Contagem</th>
-                                    <th class="p-2.5 text-center font-bold">Dif</th>
-                                    <th class="p-2.5 text-center font-bold">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabela-inventario-body" class="divide-y divide-slate-700/60">
-                                <tr>
-                                   <td colspan="8" class="text-center py-8 text-slate-500 italic">Nenhum item coletado até o momento.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-700 space-y-3">
-                        <p class="text-xs font-bold text-slate-300 uppercase tracking-wide">Destinatários para Relatório de Auditoria</p>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-700/60">
-                            <div>
-                                <label class="block text-[10px] font-bold text-blue-400 uppercase mb-1">Corporativo</label>
-                                <input type="email" id="email-corp" value="suprimentos@empresa.com.br" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-slate-200">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-emerald-400 uppercase mb-1">Auditoria</label>
-                                <input type="email" id="email-celular" value="auditoria.estoque@empresa.com.br" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-slate-200">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-purple-400 uppercase mb-1">Gestão</label>
-                                <input type="email" id="email-pc" value="gestao@empresa.com.br" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-slate-200">
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col md:flex-row gap-2 pt-2">
-                            <button onclick="enviarRelatorioServidor()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2">
-                                📊 Enviar E-mail e Baixar Planilha para Cruzamento Sienge (.xlsx)
-                            </button>
-                            <button onclick="baixarExcelLocal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2">
-                                📥 Baixar Excel Avulso
-                            </button>
-                        </div>
-                        <p id="status-envio-msg" class="text-xs text-center font-semibold text-slate-400 hidden"></p>
-                    </div>
+                <div id="lista-itens" class="space-y-2 max-h-36 overflow-y-auto text-xs">
+                    <p class="text-slate-400 text-center py-4">Nenhum item coletado ainda.</p>
                 </div>
-            </div>
-
-            <!-- ================= ABA 2: CATÁLOGO DE PRODUTOS ================= -->
-            <div id="secao-catalogo" class="space-y-4 hidden">
-                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-4">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-700 pb-3">
-                        <div>
-                            <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider">Catálogo Mestre (Extraído do Sienge)</h2>
-                            <p class="text-[11px] text-slate-400">Importe a listagem de materiais do Sienge para alimentar o leitor automático.</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="limparCatalogoInteiro()" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 px-3 py-2 rounded-lg text-xs font-bold shadow transition-all">
-                                🗑️ Limpar Catálogo Inteiro
-                            </button>
-                            <label class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold cursor-pointer shadow transition-all flex items-center gap-1">
-                                📂 Importar Planilha Sienge (.xlsx)
-                                <input type="file" id="file-excel-catalogo" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarCatalogoExcel(event)">
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/60 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                        <div class="md:col-span-3">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Código Sienge</label>
-                            <input type="text" id="cat-novo-codigo" placeholder="Ex: 074898" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-100 font-mono">
-                        </div>
-                        <div class="md:col-span-6">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Descrição do Material</label>
-                            <input type="text" id="cat-novo-desc" placeholder="Ex: Abraçadeira de Aço" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-100">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unidade</label>
-                            <select id="cat-novo-unidade" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-slate-100">
-                                <option value="UN">UN</option>
-                                <option value="PC">PC</option>
-                                <option value="KG">KG</option>
-                                <option value="MT">MT</option>
-                                <option value="CX">CX</option>
-                                <option value="L">L</option>
-                                <option value="PCT">PCT</option>
-                            </select>
-                        </div>
-                        <div class="md:col-span-1">
-                            <button onclick="adicionarProdutoCatalogo()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded text-xs font-bold shadow">
-                                + Salvar
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto max-h-96">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-slate-900 text-slate-400 border-b border-slate-700">
-                                    <th class="p-2.5 font-bold">Código</th>
-                                    <th class="p-2.5 font-bold">Descrição Sienge</th>
-                                    <th class="p-2.5 text-center font-bold">Unid</th>
-                                    <th class="p-2.5 text-center font-bold">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabela-catalogo-body" class="divide-y divide-slate-700/60"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ================= ABA 3: GERADOR DE ETIQUETAS QR SIENGE ================= -->
-            <div id="secao-etiquetas" class="space-y-4 hidden">
-                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg space-y-4">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-700 pb-3">
-                        <div>
-                            <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider">Gerador de Etiquetas QR (Padrão Sienge)</h2>
-                            <p class="text-[11px] text-slate-400">Gere códigos QR visuais com os dados do Sienge para colar nas prateleiras do almoxarifado.</p>
-                        </div>
-                        <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow transition-all flex items-center gap-2">
-                            🖨️ Imprimir Etiquetas
-                        </button>
-                    </div>
-
-                    <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-700/60 text-center">
-                        <p class="text-xs text-slate-300 mb-2">O gerador utiliza automaticamente os itens salvos no seu catálogo do Sienge.</p>
-                        <button onclick="renderizarEtiquetasQR()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow">
-                            🔄 Atualizar e Visualizar Etiquetas
-                        </button>
-                    </div>
-
-                    <div id="area-impressao-etiquetas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2"></div>
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <!-- Modal de Contagem -->
-    <div id="modal-qtd" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
-            <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
-                <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wider" id="modal-titulo-header">Lançamento Sienge</h3>
-                <span class="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded font-mono" id="modal-badge-un">UN</span>
-            </div>
-            
-            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 space-y-1">
-                <p class="text-[10px] text-slate-400 font-bold uppercase">Código Sienge:</p>
-                <p id="modal-codigo" class="text-sm text-blue-400 font-mono font-bold"></p>
-                <p class="text-[10px] text-slate-400 font-bold uppercase pt-1">Descrição:</p>
-                <p id="modal-desc" class="text-xs text-slate-200 font-semibold"></p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700">
-                    <label class="block text-[10px] font-bold text-blue-400 uppercase mb-1">1ª Contagem</label>
-                    <input type="number" id="input-qtd1" min="0" step="any" class="w-full text-center text-lg font-bold bg-slate-900 border border-blue-500/60 rounded p-1.5 text-slate-100 focus:outline-none">
-                </div>
-                <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700">
-                    <label class="block text-[10px] font-bold text-emerald-400 uppercase mb-1">2ª Contagem</label>
-                    <input type="number" id="input-qtd2" min="0" step="any" class="w-full text-center text-lg font-bold bg-slate-900 border border-emerald-500/60 rounded p-1.5 text-slate-100 focus:outline-none">
-                </div>
-            </div>
-
-            <div class="flex gap-2 pt-2">
-                <button onclick="cancelarLeituraModal()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-300 py-2.5 rounded-lg font-semibold text-xs transition-all">Cancelar</button>
-                <button onclick="salvarContagemModal()" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-semibold text-xs shadow transition-all">Confirmar</button>
             </div>
         </div>
-    </div>
 
+    </main>
+
+    <!-- Rodapé Simples -->
+    <footer class="text-center py-3 text-xs text-slate-400">
+        Sienge Scanner Pro &copy; 2026
+    </footer>
+
+    <!-- Script de Controle das Telas -->
     <script>
-        const EMAILJS_PUBLIC_KEY = "dO0wI6pOJV9s518uu";
-        const EMAILJS_SERVICE_ID = "service_f8n7him";
-        const EMAILJS_TEMPLATE_ID = "template_mppjgke";
+        let itensColetados = [];
 
-        (function() {
-            try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
-        })();
-
-        let usuariosCadastrados = JSON.parse(localStorage.getItem('inventario_usuarios')) || {};
-        let usuarioSessaoAtiva = JSON.parse(localStorage.getItem('inventario_sessao_ativa')) || null;
-        let catalogoProdutos = JSON.parse(localStorage.getItem('brava_catalogo')) || {};
-        let inventarioColetado = JSON.parse(localStorage.getItem('brava_inventario')) || {};
-        let html5QrCode = null;
-        let itemEmProcessamento = null;
-        let ultimoCodigoLido = "";
-        let tempoUltimaLeitura = 0;
-
-        function mascaraCPF(input) {
-            let v = input.value.replace(/\D/g, "");
-            if (v.length > 11) v = v.slice(0, 11);
-            v = v.replace(/(\d{3})(\d)/, "$1.$2");
-            v = v.replace(/(\d{3})(\d)/, "$1.$2");
-            v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-            input.value = v;
+        // Função para alternar entre as telas
+        function mostrarTela(idTela) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(idTela).classList.remove('hidden');
         }
 
-        function alternarTelaAuth(tipo) {
-            let fLogin = document.getElementById('form-login');
-            let fCad = document.getElementById('form-cadastro');
-            let fRec = document.getElementById('form-recuperar');
-            let abasContainer = document.getElementById('abas-auth-container');
-            let bLogin = document.getElementById('btn-aba-login');
-            let bCad = document.getElementById('btn-aba-cadastro');
-            let msg = document.getElementById('auth-msg');
-            msg.classList.add('hidden');
+        // Salva o cadastro no navegador
+        function realizarCadastro(e) {
+            e.preventDefault();
+            const nome = document.getElementById('reg-nome').value;
+            const email = document.getElementById('reg-email').value;
+            const senha = document.getElementById('reg-senha').value;
 
-            fRec.classList.add('hidden');
+            localStorage.setItem('sienge_user_nome', nome);
+            localStorage.setItem('sienge_user_email', email);
+            localStorage.setItem('sienge_user_senha', senha);
 
-            if (tipo === 'login') {
-                fLogin.classList.remove('hidden');
-                fCad.classList.add('hidden');
-                abasContainer.classList.remove('hidden');
-                bLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all";
-                bCad.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition-all";
-            } else if (tipo === 'cadastro') {
-                fLogin.classList.add('hidden');
-                fCad.classList.remove('hidden');
-                abasContainer.classList.remove('hidden');
-                bCad.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white transition-all";
-                bLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition-all";
-            }
+            alert('Cadastro realizado com sucesso!');
+            mostrarTela('view-login'); // Vai para a tela de login
         }
 
-        function abrirEsqueciSenha() {
-            let fLogin = document.getElementById('form-login');
-            let fCad = document.getElementById('form-cadastro');
-            let fRec = document.getElementById('form-recuperar');
-            let abasContainer = document.getElementById('abas-auth-container');
-            let msg = document.getElementById('auth-msg');
-            msg.classList.add('hidden');
+        // Verifica o login
+        function realizarLogin(e) {
+            e.preventDefault();
+            const emailInput = document.getElementById('login-email').value;
+            const senhaInput = document.getElementById('login-senha').value;
 
-            fLogin.classList.add('hidden');
-            fCad.classList.add('hidden');
-            abasContainer.classList.add('hidden');
-            fRec.classList.remove('hidden');
+            const salvoEmail = localStorage.getItem('sienge_user_email');
+            const salvoSenha = localStorage.getItem('sienge_user_senha');
+            const salvoNome = localStorage.getItem('sienge_user_nome') || 'Operador';
 
-            document.getElementById('bloco-nova-senha').classList.add('hidden');
-            document.getElementById('btn-acao-recuperar').innerText = "Enviar E-mail";
-            document.getElementById('rec-cpf').value = '';
-            document.getElementById('rec-nova-senha').value = '';
-        }
-
-        function voltarDoRecuperar() {
-            alternarTelaAuth('login');
-        }
-
-        function enviarRecuperacaoEmail() {
-            let cpf = document.getElementById('rec-cpf').value.trim();
-            let msg = document.getElementById('auth-msg');
-            let blocoNova = document.getElementById('bloco-nova-senha');
-            let btnAcao = document.getElementById('btn-acao-recuperar');
-
-            if (!cpf) {
-                msg.innerText = "Informe o seu CPF cadastrado.";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            if (!usuariosCadastrados[cpf]) {
-                msg.innerText = "CPF não encontrado no sistema.";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            let usuario = usuariosCadastrados[cpf];
-
-            if (blocoNova.classList.contains('hidden')) {
-                msg.classList.add('hidden');
-                
-                // Dispara e-mail simulado via EmailJS notificando a redefinição
-                let paramEmail = {
-                    to_email: usuario.email || "suprimentos@empresa.com.br",
-                    message: `Olá ${usuario.nome},\n\nRecebemos uma solicitação de redefinição de senha para o Inventário Corporativo vinculada ao CPF: ${cpf}.\n\nSeu acesso foi autorizado para cadastrar uma nova senha diretamente na tela do sistema.`
-                };
-                
-                try {
-                    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, paramEmail);
-                } catch(e) {}
-
-                blocoNova.classList.remove('hidden');
-                btnAcao.innerText = "Salvar Nova Senha";
-                alert(`Instruções e link de redefinição enviados para o e-mail: ${usuario.email || 'Cadastrado'}. Defina sua nova senha abaixo.`);
+            // Se o e-mail e senha baterem, ou se não houver cadastro (para testes), entra
+            if ((salvoEmail && emailInput === salvoEmail && senhaInput === salvoSenha) || !salvoEmail) {
+                document.getElementById('user-display').innerText = salvoNome;
+                mostrarTela('view-work'); // Vai para a tela de trabalho (leitor)
             } else {
-                let novaSenha = document.getElementById('rec-nova-senha').value.trim();
-                if (!novaSenha) {
-                    msg.innerText = "Digite a nova senha.";
-                    msg.classList.remove('hidden');
-                    return;
-                }
-
-                usuariosCadastrados[cpf].senha = novaSenha;
-                localStorage.setItem('inventario_usuarios', JSON.stringify(usuariosCadastrados));
-                alert("Senha alterada com sucesso! Faça login com sua nova senha.");
-                alternarTelaAuth('login');
+                alert('E-mail ou senha incorretos.');
             }
         }
 
-        function realizarCadastro() {
-            let nome = document.getElementById('cad-nome').value.trim();
-            let email = document.getElementById('cad-email').value.trim();
-            let setor = document.getElementById('cad-setor').value.trim();
-            let cpf = document.getElementById('cad-cpf').value.trim();
-            let senha = document.getElementById('cad-senha').value.trim();
-            let msg = document.getElementById('auth-msg');
-
-            if (!nome || !email || !setor || !cpf || !senha) {
-                msg.innerText = "Preencha todos os campos do cadastro.";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            if (cpf.length < 14) {
-                msg.innerText = "Digite um CPF válido completo.";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            if (usuariosCadastrados[cpf]) {
-                msg.innerText = "Este CPF já possui cadastro no sistema.";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            usuariosCadastrados[cpf] = { nome, email, setor, senha };
-            localStorage.setItem('inventario_usuarios', JSON.stringify(usuariosCadastrados));
-
-            // Salva o CPF no navegador para lembrar no login por biometria futuramente
-            localStorage.setItem('inventario_ultimo_cpf_bio', cpf);
-
-            alert("Cadastro realizado com sucesso! Faça o login agora.");
-            alternarTelaAuth('login');
-            document.getElementById('login-cpf').value = cpf;
-            verificarDisponibilidadeBiometria();
+        // Botão de sair
+        function sair() {
+            mostrarTela('view-splash'); // Volta para a tela inicial
         }
 
-        function realizarLogin() {
-            let cpf = document.getElementById('login-cpf').value.trim();
-            let senha = document.getElementById('login-senha').value.trim();
-            let msg = document.getElementById('auth-msg');
-
-            if (!cpf || !senha) {
-                msg.innerText = "Informe o CPF e a senha.";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            if (!usuariosCadastrados[cpf] || usuariosCadastrados[cpf].senha !== senha) {
-                msg.innerText = "CPF não cadastrado ou senha incorreta.";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            usuarioSessaoAtiva = usuariosCadastrados[cpf];
-            usuarioSessaoAtiva.cpf = cpf;
-            localStorage.setItem('inventario_sessao_ativa', JSON.stringify(usuarioSessaoAtiva));
-            localStorage.setItem('inventario_ultimo_cpf_bio', cpf);
-
-            verificarSessao();
-        }
-
-        async function realizarLoginBiometrico() {
-            let msg = document.getElementById('auth-msg');
-            let cpfSalvo = localStorage.getItem('inventario_ultimo_cpf_bio');
-
-            if (!cpfSalvo || !usuariosCadastrados[cpfSalvo]) {
-                msg.innerText = "Nenhuma credencial biométrica vinculada neste aparelho. Faça login com senha primeiro.";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            if (!window.PublicKeyCredential) {
-                msg.innerText = "Seu dispositivo ou navegador não suporta autenticação biométrica.";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            try {
-                // Simulação de autenticação biométrica segura via WebAuthn
-                const publicKey = {
-                    challenge: new Uint8Array([21,31,105,74,105,84,102,114]),
-                    rpId: window.location.hostname || "localhost",
-                    timeout: 60000,
-                    userVerification: "required"
-                };
-
-                await navigator.credentials.get({ publicKey });
-
-                // Biometria confirmada com sucesso pelo hardware
-                usuarioSessaoAtiva = usuariosCadastrados[cpfSalvo];
-                usuarioSessaoAtiva.cpf = cpfSalvo;
-                localStorage.setItem('inventario_sessao_ativa', JSON.stringify(usuarioSessaoAtiva));
-                verificarSessao();
-            } catch (err) {
-                msg.innerText = "Autenticação biométrica cancelada ou não reconhecida.";
-                msg.classList.remove('hidden');
-            }
-        }
-
-        function verificarDisponibilidadeBiometria() {
-            let btnBio = document.getElementById('btn-biometria');
-            let cpfSalvo = localStorage.getItem('inventario_ultimo_cpf_bio');
-            if (cpfSalvo && usuariosCadastrados[cpfSalvo] && window.PublicKeyCredential) {
-                btnBio.classList.remove('hidden');
-            } else {
-                btnBio.classList.add('hidden');
-            }
-        }
-
-        function realizarLogout() {
-            if (confirm("Deseja encerrar sua sessão?")) {
-                localStorage.removeItem('inventario_sessao_ativa');
-                location.reload();
-            }
-        }
-
-        function verificarSessao() {
-            if (usuarioSessaoAtiva) {
-                document.getElementById('tela-auth').classList.add('hidden');
-                document.getElementById('conteudo-principal').classList.remove('hidden');
-                document.getElementById('usuario-logado-nome').innerText = usuarioSessaoAtiva.nome;
-                document.getElementById('usuario-logado-setor').innerText = usuarioSessaoAtiva.setor;
-                atualizarTabelaInventario();
-                atualizarContadoresBadge();
-            } else {
-                document.getElementById('tela-auth').classList.remove('hidden');
-                document.getElementById('conteudo-principal').classList.add('hidden');
-                verificarDisponibilidadeBiometria();
-            }
-        }
-
-        function forcarLimpezaTotal() {
-            if (confirm("Deseja realmente apagar todo o catálogo, inventário e usuários gravados?")) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        function salvarPersistencia() {
-            localStorage.setItem('brava_catalogo', JSON.stringify(catalogoProdutos));
-            localStorage.setItem('brava_inventario', JSON.stringify(inventarioColetado));
-            atualizarContadoresBadge();
-        }
-
-        function atualizarContadoresBadge() {
-            let totalCat = Object.keys(catalogoProdutos).length;
-            let badge = document.getElementById('qtd-catalogo-badge');
-            if (badge) badge.innerText = totalCat;
-        }
-
-        function alternarAba(aba) {
-            let secColeta = document.getElementById('secao-coleta');
-            let secCatalogo = document.getElementById('secao-catalogo');
-            let secEtiquetas = document.getElementById('secao-etiquetas');
+        // Simula a leitura da câmera
+        function simularLeitura() {
+            const codigoExemplo = 'SKU-' + Math.floor(100000 + Math.random() * 900000);
+            itensColetados.unshift({ codigo: codigoExemplo, hora: new Date().toLocaleTimeString() });
             
-            let btnColeta = document.getElementById('tab-coleta-btn');
-            let btnCatalogo = document.getElementById('tab-catalogo-btn');
-            let btnEtiquetas = document.getElementById('tab-etiquetas-btn');
-
-            secColeta.classList.add('hidden');
-            secCatalogo.classList.add('hidden');
-            secEtiquetas.classList.add('hidden');
-
-            btnColeta.className = "bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap";
-            btnCatalogo.className = "bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap";
-            btnEtiquetas.className = "bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap";
-
-            if (aba === 'coleta') {
-                secColeta.classList.remove('hidden');
-                btnColeta.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap";
-            } else if (aba === 'catalogo') {
-                secCatalogo.classList.remove('hidden');
-                btnCatalogo.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap";
-                atualizarTabelaCatalogo();
-            } else if (aba === 'etiquetas') {
-                secEtiquetas.classList.remove('hidden');
-                btnEtiquetas.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm whitespace-nowrap";
-                renderizarEtiquetasQR();
-            }
+            atualizarListaItens();
         }
 
-        function tocarBip(tipo = 'normal') {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                if (tipo === 'erro') {
-                    oscillator.frequency.setValueAtTime(250, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                } else {
-                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                }
-                oscillator.connect(gain);
-                gain.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.12);
-            } catch (e) {}
-        }
-
-        function resolverProduto(rawText) {
-            let codigoLimpado = String(rawText || "").trim();
-            if (catalogoProdutos[codigoLimpado]) {
-                return {
-                    codigo: codigoLimpado,
-                    descricao: catalogoProdutos[codigoLimpado].descricao,
-                    unidade: catalogoProdutos[codigoLimpado].unidade || "UN"
-                };
-            }
-            return {
-                codigo: codigoLimpado,
-                descricao: `Material [${codigoLimpado}] (Cadastrar no Catálogo Sienge)`,
-                unidade: "UN"
-            };
-        }
-
-        function onScanSuccess(decodedText) {
-            let agora = Date.now();
-            let produto = resolverProduto(decodedText);
-
-            if (produto.codigo === ultimoCodigoLido && (agora - tempoUltimaLeitura) < 3000) return;
-
-            ultimoCodigoLido = produto.codigo;
-            tempoUltimaLeitura = agora;
-
-            tocarBip('normal');
-            if (html5QrCode) html5QrCode.pause();
-            abrirModalContagem(produto);
-        }
-
-        function iniciarCameraTraseira() {
-            if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 200, height: 200 } },
-                onScanSuccess
-            ).catch(err => { alert("Erro ao iniciar a câmera: " + err); });
-        }
-
-        function buscarEProcessarManual() {
-            let input = document.getElementById('input-busca-manual');
-            let valor = input.value.trim();
-            if (!valor) return;
-            let produto = resolverProduto(valor);
-            abrirModalContagem(produto);
-            input.value = '';
-        }
-
-        function abrirModalContagem(produto) {
-            itemEmProcessamento = produto;
-            document.getElementById('modal-codigo').innerText = produto.codigo;
-            document.getElementById('modal-desc').innerText = produto.descricao;
-            document.getElementById('modal-badge-un').innerText = produto.unidade;
-
-            let input1 = document.getElementById('input-qtd1');
-            let input2 = document.getElementById('input-qtd2');
-
-            if (inventarioColetado[produto.codigo]) {
-                input1.value = inventarioColetado[produto.codigo].contagem1;
-                input2.value = inventarioColetado[produto.codigo].contagem2;
-                document.getElementById('modal-titulo-header').innerText = "Atualizar / 2ª Contagem";
-            } else {
-                input1.value = 1;
-                input2.value = 0;
-                document.getElementById('modal-titulo-header').innerText = "Lançamento Sienge";
-            }
-
-            let modal = document.getElementById('modal-qtd');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function salvarContagemModal() {
-            let qtd1 = parseFloat(document.getElementById('input-qtd1').value) || 0;
-            let qtd2 = parseFloat(document.getElementById('input-qtd2').value) || 0;
-
-            inventarioColetado[itemEmProcessamento.codigo] = {
-                descricao: itemEmProcessamento.descricao,
-                unidade: itemEmProcessamento.unidade,
-                contagem1: qtd1,
-                contagem2: qtd2,
-                responsavel: usuarioSessaoAtiva ? usuarioSessaoAtiva.nome : "Desconhecido"
-            };
-
-            salvarPersistencia();
-            atualizarTabelaInventario();
-            fecharModalContagem();
-        }
-
-        function cancelarLeituraModal() { fecharModalContagem(); }
-
-        function fecharModalContagem() {
-            let modal = document.getElementById('modal-qtd');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            itemEmProcessamento = null;
-            setTimeout(() => { if (html5QrCode) html5QrCode.resume(); }, 300);
-        }
-
-        function limparInventario() {
-            if (confirm("Tem certeza que deseja apagar todos os itens coletados?")) {
-                inventarioColetado = {};
-                salvarPersistencia();
-                atualizarTabelaInventario();
-            }
-        }
-
-        function removerItemInventario(codigo) {
-            if (confirm(`Remover o item ${codigo} do inventário?`)) {
-                delete inventarioColetado[codigo];
-                salvarPersistencia();
-                atualizarTabelaInventario();
-            }
-        }
-
-        function atualizarTabelaInventario() {
-            let tbody = document.getElementById('tabela-inventario-body');
-            let chaves = Object.keys(inventarioColetado);
-            tbody.innerHTML = '';
-            let totalDivergencias = 0;
-
-            if (chaves.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500 italic">Nenhum item coletado até o momento.</td></tr>`;
-                document.getElementById('stat-total').innerText = 0;
-                document.getElementById('stat-divergencias').innerText = 0;
-                return;
-            }
-
-            chaves.forEach((codigo, index) => {
-                let item = inventarioColetado[codigo];
-                let dif = item.contagem2 - item.contagem1;
-                if (dif !== 0) totalDivergencias++;
-                let corDif = dif === 0 ? 'text-slate-300' : (dif > 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold');
-
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-700/40 transition-all border-b border-slate-700/40";
-                tr.innerHTML = `
-                    <td class="p-2.5 text-center text-slate-400">${index + 1}</td>
-                    <td class="p-2.5 font-mono text-blue-400 font-bold">${codigo}</td>
-                    <td class="p-2.5 text-slate-200 font-medium">${item.descricao}</td>
-                    <td class="p-2.5 text-center text-slate-400 font-mono">${item.unidade}</td>
-                    <td class="p-2.5 text-center font-mono text-blue-300 font-bold">${item.contagem1}</td>
-                    <td class="p-2.5 text-center font-mono text-emerald-300 font-bold">${item.contagem2}</td>
-                    <td class="p-2.5 text-center font-mono ${corDif}">${dif}</td>
-                    <td class="p-2.5 text-center">
-                        <button onclick="removerItemInventario('${codigo}')" class="text-rose-400 hover:text-rose-300 px-2 py-1 rounded bg-rose-950/40 border border-rose-900/40 text-[10px]">Excluir</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('stat-total').innerText = chaves.length;
-            document.getElementById('stat-divergencias').innerText = totalDivergencias;
-        }
-
-        function adicionarProdutoCatalogo() {
-            let codigo = document.getElementById('cat-novo-codigo').value.trim();
-            let desc = document.getElementById('cat-novo-desc').value.trim();
-            let unid = document.getElementById('cat-novo-unidade').value;
-
-            if (!codigo || !desc) {
-                alert("Preencha o código Sienge e a descrição.");
-                return;
-            }
-
-            catalogoProdutos[codigo] = { descricao: desc, unidade: unid };
-            salvarPersistencia();
-            atualizarTabelaCatalogo();
-
-            document.getElementById('cat-novo-codigo').value = '';
-            document.getElementById('cat-novo-desc').value = '';
-            alert("Material cadastrado com sucesso!");
-        }
-
-        function removerProdutoCatalogo(codigo) {
-            if (confirm(`Remover o material ${codigo} do catálogo?`)) {
-                delete catalogoProdutos[codigo];
-                salvarPersistencia();
-                atualizarTabelaCatalogo();
-            }
-        }
-
-        function limparCatalogoInteiro() {
-            if (confirm("Tem certeza que deseja apagar TODOS os itens do catálogo atual?")) {
-                catalogoProdutos = {};
-                salvarPersistencia();
-                atualizarTabelaCatalogo();
-                alert("Catálogo limpo com sucesso!");
-            }
-        }
-
-        function atualizarTabelaCatalogo() {
-            let tbody = document.getElementById('tabela-catalogo-body');
-            let chaves = Object.keys(catalogoProdutos);
-            tbody.innerHTML = '';
-
-            if (chaves.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 italic">Nenhum produto cadastrado no catálogo.</td></tr>`;
-                atualizarContadoresBadge();
-                return;
-            }
-
-            chaves.forEach(codigo => {
-                let item = catalogoProdutos[codigo];
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-700/40 transition-all border-b border-slate-700/40";
-                tr.innerHTML = `
-                    <td class="p-2.5 font-mono text-blue-400 font-bold">${codigo}</td>
-                    <td class="p-2.5 text-slate-200 font-medium">${item.descricao}</td>
-                    <td class="p-2.5 text-center text-slate-400 font-mono">${item.unidade || 'UN'}</td>
-                    <td class="p-2.5 text-center">
-                        <button onclick="removerProdutoCatalogo('${codigo}')" class="text-rose-400 hover:text-rose-300 px-2 py-1 rounded bg-rose-950/40 border border-rose-900/40 text-[10px]">Excluir</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-            atualizarContadoresBadge();
-        }
-
-        function renderizarEtiquetasQR() {
-            let container = document.getElementById('area-impressao-etiquetas');
-            let chaves = Object.keys(catalogoProdutos);
-            container.innerHTML = '';
-
-            if (chaves.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 italic col-span-3 text-center py-8">Nenhum material no catálogo para gerar etiquetas.</p>`;
-                return;
-            }
-
-            chaves.forEach((codigo, i) => {
-                let item = catalogoProdutos[codigo];
-                let cardId = `qrcode-box-${i}`;
-
-                let card = document.createElement('div');
-                card.className = "bg-white text-slate-900 p-3 rounded-lg border border-slate-300 shadow flex flex-col items-center justify-between text-center page-break";
-                card.innerHTML = `
-                    <div class="font-bold text-[10px] text-blue-900 uppercase tracking-widest border-b pb-1 w-full">INVENTARIO CORPORATIVO</div>
-                    <div class="my-2 p-1 bg-slate-50 border rounded flex justify-center items-center" id="${cardId}"></div>
-                    <div class="w-full">
-                        <p class="font-mono text-xs font-bold text-slate-800">Cód: ${codigo}</p>
-                        <p class="text-[11px] font-semibold text-slate-700 line-clamp-2">${item.descricao}</p>
-                        <p class="text-[10px] text-slate-500 uppercase mt-0.5 font-bold">Unidade: ${item.unidade || 'UN'}</p>
-                    </div>
-                `;
-                container.appendChild(card);
-
-                try {
-                    new QRCode(document.getElementById(cardId), {
-                        text: codigo,
-                        width: 90,
-                        height: 90,
-                        colorDark: "#000000",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
-                } catch(e) {}
-            });
-        }
-
-        function baixarExcelLocal() {
-            let chaves = Object.keys(inventarioColetado);
-            if (chaves.length === 0) {
-                alert("Não há dados coletados para exportar.");
-                return;
-            }
-            let dadosExportar = chaves.map(cod => ({
-                "Código Sienge": cod,
-                "Descrição do Material": inventarioColetado[cod].descricao,
-                "Unidade": inventarioColetado[cod].unidade,
-                "1ª Contagem": inventarioColetado[cod].contagem1,
-                "2ª Contagem": inventarioColetado[cod].contagem2,
-                "Diferença (Físico vs Sistema)": inventarioColetado[cod].contagem2 - inventarioColetado[cod].contagem1,
-                "Responsável Coleta": inventarioColetado[cod].responsavel || "N/D"
-            }));
-
-            let worksheet = XLSX.utils.json_to_sheet(dadosExportar);
-            let workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Cruzamento_Sienge");
-            XLSX.writeFile(workbook, "Cruzamento_Inventario_Sienge.xlsx");
-        }
-
-        function importarCatalogoExcel(event) {
-            let file = event.target.files[0];
-            if (!file) return;
-
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, { type: 'array' });
-                    let firstSheet = workbook.SheetNames[0];
-                    let rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
-
-                    let totalAdicionados = 0;
-                    rows.forEach(row => {
-                        let keys = Object.keys(row);
-                        let codKey = keys.find(k => /c[oó]d/i.test(k)) || keys[0];
-                        let descKey = keys.find(k => /descr/i.test(k)) || keys[1];
-                        let unidKey = keys.find(k => /unid/i.test(k)) || keys[2];
-
-                        let cod = String(row[codKey] || "").trim();
-                        let desc = String(row[descKey] || "").trim();
-                        let unid = String(unidKey && row[unidKey] ? row[unidKey] : "UN").trim();
-
-                        if (cod && desc && cod !== "undefined" && desc !== "undefined") {
-                            catalogoProdutos[cod] = { descricao: desc, unidade: unid };
-                            totalAdicionados++;
-                        }
-                    });
-
-                    salvarPersistencia();
-                    atualizarTabelaCatalogo();
-                    alert(`Sucesso! ${totalAdicionados} itens do Sienge foram carregados e salvos no catálogo.`);
-                } catch(err) {
-                    alert("Erro ao ler o arquivo Excel: " + err);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function enviarRelatorioServidor() {
-            let chaves = Object.keys(inventarioColetado);
-            if (chaves.length === 0) {
-                alert("O inventário está vazio.");
-                return;
-            }
+        // Atualiza a tabela de itens lidos
+        function atualizarListaItens() {
+            const container = document.getElementById('lista-itens');
+            document.getElementById('contador-itens').innerText = `${itensColetados.length} itens`;
             
-            let statusMsg = document.getElementById('status-envio-msg');
-            statusMsg.classList.remove('hidden');
-            statusMsg.innerText = "Gerando planilha e preparando envio...";
+            if (itensColetados.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-center py-4">Nenhum item coletado ainda.</p>';
+                return;
+            }
 
-            baixarExcelLocal();
-
-            let corpoTextoItens = chaves.map(cod => {
-                let item = inventarioColetado[cod];
-                let dif = item.contagem2 - item.contagem1;
-                return `[Cod: ${cod}] ${item.descricao} | 1ª Cont: ${item.contagem1} | 2ª Cont: ${item.contagem2} | Dif: ${dif} | Resp: ${item.responsavel}`;
-            }).join("\n");
-
-            let parametrosEnvio = {
-                to_email: `${document.getElementById('email-corp').value}, ${document.getElementById('email-celular').value}`,
-                message: `Relatório de Inventário Corporativo\nResponsável pelo Envio: ${usuarioSessaoAtiva.nome} (${usuarioSessaoAtiva.setor})\n\nTotal de Itens: ${chaves.length}\n\n--- DADOS ---\n${corpoTextoItens}`
-            };
-
-            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, parametrosEnvio)
-                .then(function(response) {
-                    statusMsg.innerText = "Planilha baixada e E-mail enviado com sucesso!";
-                    let statStatus = document.getElementById('stat-status');
-                    statStatus.innerText = "Enviado com Sucesso";
-                    statStatus.className = "text-xs font-bold text-emerald-400 mt-1";
-                }, function(error) {
-                    statusMsg.innerText = "Planilha baixada! (Erro no envio automático do e-mail).";
-                    let statStatus = document.getElementById('stat-status');
-                    statStatus.innerText = "Baixado (E-mail falhou)";
-                    statStatus.className = "text-xs font-bold text-amber-400 mt-1";
-                });
+            container.innerHTML = itensColetados.map(item => `
+                <div class="flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-100">
+                    <span class="font-mono font-bold text-slate-700">${item.codigo}</span>
+                    <span class="text-slate-400">${item.hora}</span>
+                </div>
+            `).join('');
         }
-
-        window.onload = function() {
-            verificarSessao();
-        };
     </script>
 </body>
 </html>
