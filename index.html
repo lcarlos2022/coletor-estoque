@@ -13,31 +13,37 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
 
-    <!-- TELA DE LOGIN / ACESSO -->
+    <!-- TELA DE LOGIN / CADASTRO EXCLUSIVO -->
     <div id="auth-screen" class="flex-1 flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-            <h2 class="text-2xl font-bold text-center text-yellow-400 mb-6">Almoxarifado Brava - Acesso</h2>
+            <h2 id="tituloTelaAuth" class="text-2xl font-bold text-center text-yellow-400 mb-6">Almoxarifado Brava - Acesso</h2>
             
-            <form id="formAcesso" onsubmit="validarAcesso(event)" class="space-y-4">
+            <form id="formAcesso" onsubmit="processarAcesso(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-1">E-mail de Acesso</label>
+                    <label class="block text-sm font-medium mb-1">Seu E-mail</label>
                     <input type="email" id="emailInput" required 
                         class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:border-yellow-400 text-white"
                         placeholder="seu.email@empresa.com">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium mb-1">Senha (6 a 8 dígitos, 1 Maiúscula, Números, 1 Especial)</label>
+                    <label class="block text-sm font-medium mb-1">Sua Senha (6 a 8 dígitos, 1 Maiúscula, Números, 1 Especial)</label>
                     <input type="password" id="senhaInput" required 
                         class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:border-yellow-400 text-white"
                         placeholder="Ex: Brava@1">
                 </div>
 
-                <div id="mensagemAlerta" class="text-sm text-red-400 hidden"></div>
+                <div id="mensagemAlerta" class="text-sm text-red-400 hidden p-2 bg-red-900/30 rounded border border-red-700"></div>
 
-                <button type="submit" 
+                <button type="submit" id="btnSubmitTexto"
                     class="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold rounded-md transition duration-200">
-                    Entrar no Sistema
+                    Cadastrar / Entrar
+                </button>
+
+                <!-- Botão para redefinir caso queira trocar o dono do acesso depois -->
+                <button type="button" onclick="resetarAcessoGerente()" 
+                    class="w-full py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded transition duration-200">
+                    🔄 Redefinir Credenciais de Acesso
                 </button>
             </form>
         </div>
@@ -73,37 +79,88 @@
     </div>
 
     <script>
-        function validarAcesso(event) {
+        // Ao carregar a página, verifica se já existe um dono cadastrado
+        window.onload = function() {
+            atualizarVisualTela();
+        };
+
+        function atualizarVisualTela() {
+            const emailSalvo = localStorage.getItem('wms_dono_email');
+            if (emailSalvo) {
+                document.getElementById('tituloTelaAuth').textContent = "Almoxarifado Brava - Restrito";
+                document.getElementById('btnSubmitTexto').textContent = "Entrar no Sistema";
+            } else {
+                document.getElementById('tituloTelaAuth').textContent = "Almoxarifado Brava - Primeiro Registro";
+                document.getElementById('btnSubmitTexto').textContent = "Registrar Meu Acesso";
+            }
+        }
+
+        function processarAcesso(event) {
             event.preventDefault();
 
+            const emailDigitado = document.getElementById('emailInput').value.trim().toLowerCase();
             const senhaDigitada = document.getElementById('senhaInput').value;
             const divAlerta = document.getElementById('mensagemAlerta');
 
             divAlerta.classList.add('hidden');
             divAlerta.textContent = '';
 
-            // Regra estrita da Senha solicitada:
-            // - De 6 a 8 caracteres ({6,8})
-            // - Pelo menos uma letra maiúscula (?=.*[A-Z])
-            // - Pelo menos um número (?=.*\d)
-            // - Pelo menos um caractere especial (?=.*[!@#$%^&*(),.?":{}|<>_-])
-            const regexSenha = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_-])[A-Za-z\d!@#$%^&*(),.?":{}|<>_-]{6,8}$/;
+            // 1. Validação da Senha (6 a 8 dígitos, maiúscula, números, especial)
+            const temTamanhoValido = senhaDigitada.length >= 6 && senhaDigitada.length <= 8;
+            const temMaiuscula = /[A-Z]/.test(senhaDigitada);
+            const temNumero = /[0-9]/.test(senhaDigitada);
+            const temEspecial = /[^A-Za-z0-9]/.test(senhaDigitada);
 
-            if (!regexSenha.test(senhaDigitada)) {
-                divAlerta.textContent = "A senha deve ter de 6 a 8 dígitos, contendo pelo menos uma letra maiúscula, números e um caractere especial (Ex: Brava@1).";
+            if (!temTamanhoValido || !temMaiuscula || !temNumero || !temEspecial) {
+                divAlerta.textContent = "A senha deve ter de 6 a 8 caracteres, contendo pelo menos 1 letra maiúscula, números e 1 caractere especial (Ex: Brava@1).";
                 divAlerta.classList.remove('hidden');
                 return;
             }
 
-            // Se a senha estiver correta, libera o acesso imediatamente para qualquer e-mail digitado
+            let emailSalvo = localStorage.getItem('wms_dono_email');
+            let senhaSalva = localStorage.getItem('wms_dono_senha');
+
+            // Se ainda não tem ninguém cadastrado, este primeiro acesso vira o dono definitivo do app!
+            if (!emailSalvo) {
+                localStorage.setItem('wms_dono_email', emailDigitado);
+                localStorage.setItem('wms_dono_senha', senhaDigitada);
+                alert("Seu acesso exclusivo foi registrado com sucesso! Agora o app está protegido com o seu e-mail e senha.");
+                liberarEntradaApp();
+                return;
+            }
+
+            // Se já tem dono cadastrado, exige que digite exatamente o e-mail e a senha cadastrados
+            if (emailDigitado !== emailSalvo || senhaDigitada !== senhaSalva) {
+                divAlerta.textContent = "Acesso Negado: E-mail ou senha incorretos! Este sistema é restrito.";
+                divAlerta.classList.remove('hidden');
+                return;
+            }
+
+            // Se bateu certinho, entra
+            liberarEntradaApp();
+        }
+
+        function liberarEntradaApp() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
         }
 
         function sairDoApp() {
             document.getElementById('app-screen').classList.add('hidden');
-            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('auth-screen').classList.add('flex');
             document.getElementById('formAcesso').reset();
+            atualizarVisualTela();
+        }
+
+        function resetarAcessoGerente() {
+            if (confirm("Deseja apagar o acesso atual para cadastrar um novo e-mail e senha?")) {
+                localStorage.removeItem('wms_dono_email');
+                localStorage.removeItem('wms_dono_senha');
+                document.getElementById('emailInput').value = '';
+                document.getElementById('senhaInput').value = '';
+                atualizarVisualTela();
+                alert("Acesso limpo! Agora você pode cadastrar um novo e-mail e senha.");
+            }
         }
 
         function gerarEtiquetaPimaco() {
