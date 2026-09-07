@@ -3,138 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sienge Scanner Pro - Versão 3</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome para Ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Sienge Scanner Pro</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #f1f5f9; color: #1e293b; display: flex; flex-direction: column; min-height: 100vh; justify-content: space-between; align-items: center; padding: 20px; }
+        .container { width: 100%; max-width: 400px; background: #ffffff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin: auto; }
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .icon-box { width: 80px; height: 80px; background-color: #2563eb; color: white; font-size: 36px; display: flex; align-items: center; justify-content: center; border-radius: 20px; margin: 0 auto 20px auto; }
+        h1 { font-size: 24px; margin-bottom: 8px; color: #0f172a; }
+        p { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
+        .btn-primary { background-color: #2563eb; color: white; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-secondary { background-color: #f8fafc; color: #334155; border: 1px solid #cbd5e1; }
+        .btn-secondary:hover { background-color: #f1f5f9; }
+        .form-group { margin-bottom: 16px; text-align: left; }
+        label { display: block; font-size: 12px; font-weight: bold; text-transform: uppercase; color: #64748b; margin-bottom: 6px; }
+        input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .scanner-box { background-color: #0f172a; color: white; border-radius: 12px; padding: 20px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: space-between; position: relative; margin-top: 10px; }
+        .scanner-line { width: 80%; height: 2px; background-color: #ef4444; position: absolute; top: 50%; left: 10%; box-shadow: 0 0 8px #ef4444; }
+        .list-item { background: #f8fafc; padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; border: 1px solid #e2e8f0; }
+        .header-work { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: white; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    </style>
 </head>
-<body class="bg-blue-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
+<body>
 
-    <!-- Container Principal -->
-    <main class="max-w-md w-full mx-auto p-4 flex-grow flex flex-col justify-center">
+    <div class="container">
 
-        <!-- ================= TELA 1: APRESENTAÇÃO (ÍCONE E NOME) ================= -->
-        <div id="view-splash" class="view-section text-center py-8">
-            <div class="inline-flex items-center justify-center w-24 h-24 bg-blue-600 text-white rounded-3xl shadow-lg mb-6 text-4xl">
-                <i class="fa-solid fa-boxes-stacked"></i>
-            </div>
-            <h1 class="text-3xl font-bold text-slate-900 mb-2">Sienge Scanner Pro</h1>
-            <p class="text-slate-500 mb-8">Controle de Almoxarifado e Coleta Óptica</p>
+        <!-- ================= TELA 1: APRESENTAÇÃO ================= -->
+        <div id="view-splash" class="view-section text-center">
+            <div class="icon-box">📦</div>
+            <h1>Sienge Scanner Pro</h1>
+            <p>Controle de Almoxarifado e Coleta Óptica</p>
             
-            <div class="space-y-3">
-                <button onclick="mudarTela('view-login')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow transition">
-                    Entrar no Sistema
-                </button>
-                <button onclick="mudarTela('view-register')" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold py-3 px-4 rounded-xl shadow-sm transition">
-                    Criar Novo Cadastro
-                </button>
-            </div>
+            <button onclick="mudarTela('view-login')" class="btn btn-primary">Entrar no Sistema</button>
+            <button onclick="mudarTela('view-register')" class="btn btn-secondary">Criar Novo Cadastro</button>
         </div>
 
         <!-- ================= TELA 2: CADASTRO ================= -->
-        <div id="view-register" class="view-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div class="flex items-center mb-6">
-                <button type="button" onclick="mudarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3 p-1">
-                    <i class="fa-solid fa-arrow-left text-lg"></i>
-                </button>
-                <h2 class="text-xl font-bold text-slate-900">Criar Cadastro</h2>
+        <div id="view-register" class="view-section hidden">
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <button onclick="mudarTela('view-splash')" style="background:none; border:none; cursor:pointer; font-size:16px; margin-right:10px;">⬅️</button>
+                <h2 style="font-size: 18px;">Criar Cadastro</h2>
             </div>
-            <form onsubmit="realizarCadastro(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Nome Completo</label>
-                    <input type="text" id="reg-nome" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <form onsubmit="realizarCadastro(event)">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="reg-nome" required>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">E-mail Corporativo</label>
-                    <input type="email" id="reg-email" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="form-group">
+                    <label>E-mail Corporativo</label>
+                    <input type="email" id="reg-email" required>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Senha</label>
-                    <input type="password" id="reg-senha" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="reg-senha" required>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow transition">
-                    Cadastrar e Continuar
-                </button>
+                <button type="submit" class="btn btn-primary">Cadastrar e Continuar</button>
             </form>
         </div>
 
         <!-- ================= TELA 3: LOGIN ================= -->
-        <div id="view-login" class="view-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div class="flex items-center mb-6">
-                <button type="button" onclick="mudarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3 p-1">
-                    <i class="fa-solid fa-arrow-left text-lg"></i>
-                </button>
-                <h2 class="text-xl font-bold text-slate-900">Acessar Sistema</h2>
+        <div id="view-login" class="view-section hidden">
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <button onclick="mudarTela('view-splash')" style="background:none; border:none; cursor:pointer; font-size:16px; margin-right:10px;">⬅️</button>
+                <h2 style="font-size: 18px;">Acessar Sistema</h2>
             </div>
-            <form onsubmit="realizarLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">E-mail Corporativo</label>
-                    <input type="email" id="login-email" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <form onsubmit="realizarLogin(event)">
+                <div class="form-group">
+                    <label>E-mail Corporativo</label>
+                    <input type="email" id="login-email" required>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Senha</label>
-                    <input type="password" id="login-senha" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="login-senha" required>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow transition">
-                    Entrar
-                </button>
+                <button type="submit" class="btn btn-primary">Entrar</button>
             </form>
         </div>
 
-        <!-- ================= TELA 4: TELA DE TRABALHO (LEITOR ÓPTICO) ================= -->
-        <div id="view-work" class="view-section hidden flex-grow flex flex-col">
-            <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                <div class="flex items-center space-x-2">
-                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold">
-                        <i class="fa-solid fa-barcode"></i>
-                    </div>
-                    <div>
-                        <h2 class="font-bold text-sm text-slate-900">Sienge Coleta</h2>
-                        <span id="user-display" class="text-xs text-slate-500">Operador</span>
-                    </div>
+        <!-- ================= TELA 4: TRABALHO (LEITOR) ================= -->
+        <div id="view-work" class="view-section hidden">
+            <div class="header-work">
+                <div>
+                    <strong id="user-display" style="font-size: 14px; display: block;">Operador</strong>
+                    <span style="font-size: 11px; color: #64748b;">Sienge Coleta Ativa</span>
                 </div>
-                <button onclick="mudarTela('view-splash')" class="text-slate-400 hover:text-red-600 p-2" title="Sair do Sistema">
-                    <i class="fa-solid fa-right-from-bracket text-lg"></i>
-                </button>
+                <button onclick="mudarTela('view-splash')" style="background:none; border:none; color: #dc2626; cursor:pointer; font-weight:bold;">Sair</button>
             </div>
 
-            <!-- Área do Leitor Óptico / Câmera Simulada -->
-            <div class="bg-slate-900 rounded-2xl p-4 text-center text-white flex-grow flex flex-col justify-between shadow-inner relative overflow-hidden min-h-[250px]">
-                <div class="absolute inset-0 border-2 border-dashed border-blue-500/50 m-4 rounded-xl pointer-events-none flex items-center justify-center">
-                    <div class="w-3/4 h-0.5 bg-red-500 animate-pulse"></div>
-                </div>
-                <div class="z-10 pt-2">
-                    <span class="bg-slate-800/80 text-xs px-3 py-1 rounded-full text-slate-300">Câmera Ativa</span>
-                </div>
-                <div class="z-10 pb-2">
-                    <p class="text-xs text-slate-400 mb-2">Aponte para o código de barras ou QR Code</p>
-                    <button onclick="simularLeitura()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow">
-                        Simular Leitura Óptica
-                    </button>
+            <div class="scanner-box">
+                <span style="font-size: 12px; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; align-self: center;">Câmera do Leitor</span>
+                <div class="scanner-line"></div>
+                <div>
+                    <p style="color: #94a3b8; font-size: 12px; margin-bottom: 10px;">Aponte para o código de barras</p>
+                    <button onclick="simularLeitura()" class="btn btn-primary" style="margin-bottom: 0;">Simular Leitura Óptica</button>
                 </div>
             </div>
 
-            <!-- Lista de Coletas Recentes -->
-            <div class="mt-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-xs font-bold uppercase text-slate-500">Itens Lidos</h3>
-                    <span id="contador-itens" class="text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">0 itens</span>
+            <div style="margin-top: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Itens Lidos</span>
+                    <span id="contador-itens" style="font-size: 12px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">0 itens</span>
                 </div>
-                <div id="lista-itens" class="space-y-2 max-h-36 overflow-y-auto text-xs">
-                    <p class="text-slate-400 text-center py-4">Nenhum item coletado ainda.</p>
+                <div id="lista-itens" style="max-height: 120px; overflow-y: auto;">
+                    <p style="text-align: center; color: #94a3b8; font-size: 12px; padding: 15px 0;">Nenhum item coletado.</p>
                 </div>
             </div>
         </div>
 
     </main>
 
-    <!-- Rodapé Simples -->
-    <footer class="text-center py-3 text-xs text-slate-400">
+    <footer style="font-size: 12px; color: #94a3b8; margin-top: 20px;">
         Sienge Scanner Pro &copy; 2026
     </footer>
 
-    <!-- Script de Controle das Telas -->
     <script>
         let itensColetados = [];
 
@@ -153,7 +137,7 @@
             localStorage.setItem('sienge_user_email', email);
             localStorage.setItem('sienge_user_senha', senha);
 
-            alert('Cadastro realizado com sucesso! Faça seu login.');
+            alert('Cadastro realizado com sucesso!');
             document.getElementById('login-email').value = email;
             mudarTela('view-login');
         }
@@ -178,22 +162,14 @@
         function simularLeitura() {
             const codigoExemplo = 'SKU-' + Math.floor(100000 + Math.random() * 900000);
             itensColetados.unshift({ codigo: codigoExemplo, hora: new Date().toLocaleTimeString() });
-            atualizarListaItens();
-        }
-
-        function atualizarListaItens() {
+            
             const container = document.getElementById('lista-itens');
             document.getElementById('contador-itens').innerText = `${itensColetados.length} itens`;
             
-            if (itensColetados.length === 0) {
-                container.innerHTML = '<p class="text-slate-400 text-center py-4">Nenhum item coletado ainda.</p>';
-                return;
-            }
-
             container.innerHTML = itensColetados.map(item => `
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-100">
-                    <span class="font-mono font-bold text-slate-700">${item.codigo}</span>
-                    <span class="text-slate-400">${item.hora}</span>
+                <div class="list-item">
+                    <strong>${item.codigo}</strong>
+                    <span style="color: #64748b;">${item.hora}</span>
                 </div>
             `).join('');
         }
