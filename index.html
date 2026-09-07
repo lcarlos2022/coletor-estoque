@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Brava Enterprise - Coletor e Gestor de Estoque Profissional (Sienge Edition)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,9 +15,23 @@
     <!-- EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        body {
-            overflow-x: hidden !important;
-            max-width: 100vw !important;
+        html, body {
+            overflow: hidden !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            position: fixed !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            touch-action: none !important;
+        }
+        #sistema-principal, #auth-wrapper {
+            position: absolute;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
         }
         #reader video {
             object-fit: cover !important;
@@ -44,10 +58,10 @@
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen pb-12 font-sans">
+<body class="bg-slate-900 text-slate-100 font-sans">
 
     <!-- ================= TELA DE AUTENTICAÇÃO (CADASTRO / LOGIN / BIOMETRIA) ================= -->
-    <div id="auth-wrapper" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
+    <div id="auth-wrapper" class="bg-slate-950 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-6">
             
             <div class="text-center space-y-1">
@@ -115,7 +129,7 @@
     </div>
 
     <!-- ================= SISTEMA PRINCIPAL ================= -->
-    <div id="sistema-principal" class="hidden">
+    <div id="sistema-principal" class="hidden pb-12">
         <!-- Top Bar Corporativa -->
         <header class="bg-slate-800 border-b border-slate-700 px-3 py-3 shadow-md sticky top-0 z-40">
             <div class="max-w-4xl mx-auto space-y-2">
@@ -511,7 +525,6 @@
         function processarCodigoLido(codigo) {
             let produto = catalogoProdutos.find(p => p.codigo === codigo);
             if (!produto) {
-                // Se não estiver no catálogo, cadastra automaticamente provisório
                 produto = { codigo: codigo, desc: "MATERIAL EXTRAÍDO / AVULSO", unidade: "UN" };
                 catalogoProdutos.push(produto);
                 salvarDadosLocais();
@@ -838,7 +851,7 @@
                 }, (err) => {
                     msgStatus.className = "text-xs text-center font-semibold text-red-400";
                     msgStatus.innerText = "Erro ao enviar e-mail: " + JSON.stringify(err);
-                    baixarExcelLocal(); // Baixa mesmo se falhar o e-mail
+                    baixarExcelLocal();
                 });
         }
 
