@@ -37,13 +37,13 @@
 
                 <button type="submit" id="btnSubmitTexto"
                     class="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold rounded-md transition duration-200">
-                    Cadastrar / Entrar
+                    Entrar no Sistema
                 </button>
 
-                <!-- Botão para redefinir caso queira trocar o dono do acesso depois -->
-                <button type="button" onclick="resetarAcessoGerente()" 
-                    class="w-full py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded transition duration-200">
-                    🔄 Redefinir Credenciais de Acesso
+                <!-- Botão visível de redefinição para limpar qualquer dado travado -->
+                <button type="button" onclick="forcarResetAcesso()" 
+                    class="w-full py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded transition duration-200 mt-2">
+                    ⚠️ Limpar Senha e Cadastrar Nova
                 </button>
             </form>
         </div>
@@ -79,19 +79,18 @@
     </div>
 
     <script>
-        // Ao carregar a página, verifica se já existe um dono cadastrado
         window.onload = function() {
-            atualizarVisualTela();
+            verificarEstadoInicial();
         };
 
-        function atualizarVisualTela() {
+        function verificarEstadoInicial() {
             const emailSalvo = localStorage.getItem('wms_dono_email');
             if (emailSalvo) {
                 document.getElementById('tituloTelaAuth').textContent = "Almoxarifado Brava - Restrito";
-                document.getElementById('btnSubmitTexto').textContent = "Entrar no Sistema";
+                document.getElementById('btnSubmitTexto').textContent = "Entrar";
             } else {
                 document.getElementById('tituloTelaAuth').textContent = "Almoxarifado Brava - Primeiro Registro";
-                document.getElementById('btnSubmitTexto').textContent = "Registrar Meu Acesso";
+                document.getElementById('btnSubmitTexto').textContent = "Cadastrar Acesso";
             }
         }
 
@@ -105,14 +104,14 @@
             divAlerta.classList.add('hidden');
             divAlerta.textContent = '';
 
-            // 1. Validação da Senha (6 a 8 dígitos, maiúscula, números, especial)
+            // Regra da Senha: 6 a 8 dígitos, 1 maiúscula, números, 1 especial
             const temTamanhoValido = senhaDigitada.length >= 6 && senhaDigitada.length <= 8;
             const temMaiuscula = /[A-Z]/.test(senhaDigitada);
             const temNumero = /[0-9]/.test(senhaDigitada);
             const temEspecial = /[^A-Za-z0-9]/.test(senhaDigitada);
 
             if (!temTamanhoValido || !temMaiuscula || !temNumero || !temEspecial) {
-                divAlerta.textContent = "A senha deve ter de 6 a 8 caracteres, contendo pelo menos 1 letra maiúscula, números e 1 caractere especial (Ex: Brava@1).";
+                divAlerta.textContent = "A senha deve ter de 6 a 8 caracteres, contendo 1 letra maiúscula, números e 1 caractere especial (Ex: Brava@1).";
                 divAlerta.classList.remove('hidden');
                 return;
             }
@@ -120,47 +119,44 @@
             let emailSalvo = localStorage.getItem('wms_dono_email');
             let senhaSalva = localStorage.getItem('wms_dono_senha');
 
-            // Se ainda não tem ninguém cadastrado, este primeiro acesso vira o dono definitivo do app!
+            // Se não existe cadastro, registra o seu e-mail e senha como os oficiais
             if (!emailSalvo) {
                 localStorage.setItem('wms_dono_email', emailDigitado);
                 localStorage.setItem('wms_dono_senha', senhaDigitada);
-                alert("Seu acesso exclusivo foi registrado com sucesso! Agora o app está protegido com o seu e-mail e senha.");
-                liberarEntradaApp();
+                alert("Acesso cadastrado e protegido com sucesso!");
+                entrarNoPainel();
                 return;
             }
 
-            // Se já tem dono cadastrado, exige que digite exatamente o e-mail e a senha cadastrados
+            // Se já existe, confere se bate com o salvo
             if (emailDigitado !== emailSalvo || senhaDigitada !== senhaSalva) {
-                divAlerta.textContent = "Acesso Negado: E-mail ou senha incorretos! Este sistema é restrito.";
+                divAlerta.textContent = "E-mail ou senha incorretos! Acesso negado.";
                 divAlerta.classList.remove('hidden');
                 return;
             }
 
-            // Se bateu certinho, entra
-            liberarEntradaApp();
+            entrarNoPainel();
         }
 
-        function liberarEntradaApp() {
+        function entrarNoPainel() {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
         }
 
         function sairDoApp() {
             document.getElementById('app-screen').classList.add('hidden');
-            document.getElementById('auth-screen').classList.add('flex');
+            document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('formAcesso').reset();
-            atualizarVisualTela();
+            verificarEstadoInicial();
         }
 
-        function resetarAcessoGerente() {
-            if (confirm("Deseja apagar o acesso atual para cadastrar um novo e-mail e senha?")) {
-                localStorage.removeItem('wms_dono_email');
-                localStorage.removeItem('wms_dono_senha');
-                document.getElementById('emailInput').value = '';
-                document.getElementById('senhaInput').value = '';
-                atualizarVisualTela();
-                alert("Acesso limpo! Agora você pode cadastrar um novo e-mail e senha.");
-            }
+        function forcarResetAcesso() {
+            localStorage.removeItem('wms_dono_email');
+            localStorage.removeItem('wms_dono_senha');
+            document.getElementById('emailInput').value = '';
+            document.getElementById('senhaInput').value = '';
+            verificarEstadoInicial();
+            alert("Memória limpa! Agora digite seu e-mail e sua nova senha e clique em 'Cadastrar Acesso'.");
         }
 
         function gerarEtiquetaPimaco() {
