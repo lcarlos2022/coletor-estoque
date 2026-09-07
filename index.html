@@ -555,27 +555,48 @@
             document.getElementById('stat-divergencias').innerText = totalDivergencias;
         }
 
+        // Funções adicionais do Catálogo e Exportação continuam operacionais...
+        function atualizarTabelaCatalogo() {
+            let tbody = document.getElementById('tabela-catalogo-body');
+            let chaves = Object.keys(catalogoProdutos);
+            tbody.innerHTML = '';
+            if (chaves.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-500 italic">Nenhum produto cadastrado no catálogo.</td></tr>`;
+                return;
+            }
+            chaves.forEach((codigo) => {
+                let item = catalogoProdutos[codigo];
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-700/40 border-b border-slate-700/40";
+                tr.innerHTML = `
+                    <td class="p-2.5 font-mono text-blue-400 font-bold">${codigo}</td>
+                    <td class="p-2.5 text-slate-200">${item.descricao}</td>
+                    <td class="p-2.5 text-center font-mono text-slate-400">${item.unidade || 'UN'}</td>
+                    <td class="p-2.5 text-center">
+                        <button onclick="removerItemCatalogo('${codigo}')" class="text-rose-400 hover:text-rose-300 px-2 py-1 rounded bg-rose-950/40 border border-rose-900/40 text-[10px]">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
         function adicionarProdutoCatalogo() {
             let codigo = document.getElementById('cat-novo-codigo').value.trim();
             let desc = document.getElementById('cat-novo-desc').value.trim();
             let unid = document.getElementById('cat-novo-unidade').value;
-
             if (!codigo || !desc) {
-                alert("Preencha o código Sienge e a descrição.");
+                alert("Preencha o código e a descrição do material.");
                 return;
             }
-
             catalogoProdutos[codigo] = { descricao: desc, unidade: unid };
             salvarPersistencia();
             atualizarTabelaCatalogo();
-
             document.getElementById('cat-novo-codigo').value = '';
             document.getElementById('cat-novo-desc').value = '';
-            alert("Material cadastrado com sucesso!");
         }
 
-        function removerProdutoCatalogo(codigo) {
-            if (confirm(`Remover o material ${codigo} do catálogo?`)) {
+        function removerItemCatalogo(codigo) {
+            if (confirm(`Remover ${codigo} do catálogo?`)) {
                 delete catalogoProdutos[codigo];
                 salvarPersistencia();
                 atualizarTabelaCatalogo();
@@ -583,184 +604,132 @@
         }
 
         function limparCatalogoInteiro() {
-            if (confirm("Tem certeza que deseja apagar TODOS os itens do catálogo atual?")) {
+            if (confirm("Deseja apagar todo o catálogo mestre?")) {
                 catalogoProdutos = {};
                 salvarPersistencia();
                 atualizarTabelaCatalogo();
-                alert("Catálogo limpo com sucesso!");
             }
-        }
-
-        function atualizarTabelaCatalogo() {
-            let tbody = document.getElementById('tabela-catalogo-body');
-            let chaves = Object.keys(catalogoProdutos);
-            tbody.innerHTML = '';
-
-            if (chaves.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 italic">Nenhum produto cadastrado no catálogo.</td></tr>`;
-                atualizarContadoresBadge();
-                return;
-            }
-
-            chaves.forEach(codigo => {
-                let item = catalogoProdutos[codigo];
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-700/40 transition-all border-b border-slate-700/40";
-                tr.innerHTML = `
-                    <td class="p-2.5 font-mono text-blue-400 font-bold">${codigo}</td>
-                    <td class="p-2.5 text-slate-200 font-medium">${item.descricao}</td>
-                    <td class="p-2.5 text-center text-slate-400 font-mono">${item.unidade || 'UN'}</td>
-                    <td class="p-2.5 text-center">
-                        <button onclick="removerProdutoCatalogo('${codigo}')" class="text-rose-400 hover:text-rose-300 px-2 py-1 rounded bg-rose-950/40 border border-rose-900/40 text-[10px]">Excluir</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-            atualizarContadoresBadge();
-        }
-
-        function renderizarEtiquetasQR() {
-            let container = document.getElementById('area-impressao-etiquetas');
-            let chaves = Object.keys(catalogoProdutos);
-            container.innerHTML = '';
-
-            if (chaves.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 italic col-span-3 text-center py-8">Nenhum material no catálogo para gerar etiquetas.</p>`;
-                return;
-            }
-
-            chaves.forEach((codigo, i) => {
-                let item = catalogoProdutos[codigo];
-                let cardId = `qrcode-box-${i}`;
-
-                let card = document.createElement('div');
-                card.className = "bg-white text-slate-900 p-3 rounded-lg border border-slate-300 shadow flex flex-col items-center justify-between text-center page-break";
-                card.innerHTML = `
-                    <div class="font-bold text-[10px] text-blue-900 uppercase tracking-widest border-b pb-1 w-full">GRUPO BRAVA | SIENGE</div>
-                    <div class="my-2 p-1 bg-slate-50 border rounded flex justify-center items-center" id="${cardId}"></div>
-                    <div class="w-full">
-                        <p class="font-mono text-xs font-bold text-slate-800">Cód: ${codigo}</p>
-                        <p class="text-[11px] font-semibold text-slate-700 line-clamp-2">${item.descricao}</p>
-                        <p class="text-[10px] text-slate-500 uppercase mt-0.5 font-bold">Unidade: ${item.unidade || 'UN'}</p>
-                    </div>
-                `;
-                container.appendChild(card);
-
-                try {
-                    new QRCode(document.getElementById(cardId), {
-                        text: codigo,
-                        width: 90,
-                        height: 90,
-                        colorDark: "#000000",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
-                } catch(e) {}
-            });
-        }
-
-        function baixarExcelLocal() {
-            let chaves = Object.keys(inventarioColetado);
-            if (chaves.length === 0) {
-                alert("Não há dados coletados para exportar.");
-                return;
-            }
-            let dadosExportar = chaves.map(cod => ({
-                "Código Sienge": cod,
-                "Descrição do Material": inventarioColetado[cod].descricao,
-                "Unidade": inventarioColetado[cod].unidade,
-                "1ª Contagem": inventarioColetado[cod].contagem1,
-                "2ª Contagem": inventarioColetado[cod].contagem2,
-                "Diferença (Físico vs Sistema)": inventarioColetado[cod].contagem2 - inventarioColetado[cod].contagem1
-            }));
-
-            let worksheet = XLSX.utils.json_to_sheet(dadosExportar);
-            let workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Cruzamento_Sienge");
-            XLSX.writeFile(workbook, "Cruzamento_Inventario_Sienge.xlsx");
         }
 
         function importarCatalogoExcel(event) {
             let file = event.target.files[0];
             if (!file) return;
-
             let reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     let data = new Uint8Array(e.target.result);
                     let workbook = XLSX.read(data, { type: 'array' });
                     let firstSheet = workbook.SheetNames[0];
-                    let rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
-
-                    let totalAdicionados = 0;
+                    let rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
+                    
+                    let count = 0;
                     rows.forEach(row => {
-                        let keys = Object.keys(row);
-                        let codKey = keys.find(k => /c[oó]d/i.test(k)) || keys[0];
-                        let descKey = keys.find(k => /descr/i.test(k)) || keys[1];
-                        let unidKey = keys.find(k => /unid/i.test(k)) || keys[2];
-
-                        let cod = String(row[codKey] || "").trim();
-                        let desc = String(row[descKey] || "").trim();
-                        let unid = String(unidKey && row[unidKey] ? row[unidKey] : "UN").trim();
-
-                        if (cod && desc && cod !== "undefined" && desc !== "undefined") {
-                            catalogoProdutos[cod] = { descricao: desc, unidade: unid };
-                            totalAdicionados++;
+                        if (row && row.length >= 2) {
+                            let cod = String(row[0] || "").trim();
+                            let desc = String(row[1] || "").trim();
+                            let unid = String(row[2] || "UN").trim().toUpperCase();
+                            if (cod && desc && cod.toLowerCase() !== 'código') {
+                                catalogoProdutos[cod] = { descricao: desc, unidade: unid || "UN" };
+                                count++;
+                            }
                         }
                     });
-
                     salvarPersistencia();
                     atualizarTabelaCatalogo();
-                    alert(`Sucesso! ${totalAdicionados} itens do Sienge foram carregados e salvos no catálogo.`);
-                } catch(err) {
-                    alert("Erro ao ler o arquivo Excel: " + err);
+                    alert(`Importação concluída! ${count} itens adicionados ao catálogo.`);
+                } catch (err) {
+                    alert("Erro ao ler planilha: " + err.message);
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
+        function baixarExcelLocal() {
+            let chaves = Object.keys(inventarioColetado);
+            if (chaves.length === 0) {
+                alert("Nenhum dado para exportar.");
+                return;
+            }
+            let dadosExport = chaves.map(cod => ({
+                "Código Sienge": cod,
+                "Descrição do Material": inventarioColetado[cod].descricao,
+                "Unidade": inventarioColetado[cod].unidade,
+                "1ª Contagem": inventarioColetado[cod].contagem1,
+                "2ª Contagem": inventarioColetado[cod].contagem2,
+                "Divergência": inventarioColetado[cod].contagem2 - inventarioColetado[cod].contagem1
+            }));
+            let worksheet = XLSX.utils.json_to_sheet(dadosExport);
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario_Sienge");
+            XLSX.writeFile(workbook, "Inventario_Brava_Sienge.xlsx");
+        }
+
+        function renderizarEtiquetasQR() {
+            let area = document.getElementById('area-impressao-etiquetas');
+            area.innerHTML = '';
+            let chaves = Object.keys(catalogoProdutos);
+            if (chaves.length === 0) {
+                area.innerHTML = `<p class="col-span-full text-center text-slate-500 py-6 italic">Cadastre itens no Catálogo para gerar as etiquetas QR.</p>`;
+                return;
+            }
+            chaves.forEach(codigo => {
+                let item = catalogoProdutos[codigo];
+                let card = document.createElement('div');
+                card.className = "bg-white text-slate-900 p-4 rounded-lg border border-slate-300 flex flex-col items-center justify-between text-center shadow";
+                card.innerHTML = `
+                    <p class="text-[10px] font-bold uppercase text-slate-600">Grupo Brava | Sienge</p>
+                    <p class="text-xs font-mono font-bold text-blue-700">${codigo}</p>
+                    <div id="qrcode-${codigo}" class="my-2"></div>
+                    <p class="text-[11px] font-semibold text-slate-800 line-clamp-2">${item.descricao}</p>
+                    <span class="mt-1 text-[10px] bg-slate-200 px-2 py-0.5 rounded font-mono font-bold">${item.unidade || 'UN'}</span>
+                `;
+                area.appendChild(card);
+                new QRCode(document.getElementById(`qrcode-${codigo}`), {
+                    text: codigo,
+                    width: 90,
+                    height: 90
+                });
+            });
+        }
+
         function enviarRelatorioServidor() {
             let chaves = Object.keys(inventarioColetado);
             if (chaves.length === 0) {
-                alert("O inventário está vazio.");
+                alert("Nenhum item coletado para envio.");
                 return;
             }
-            
-            let statusMsg = document.getElementById('status-envio-msg');
-            statusMsg.classList.remove('hidden');
-            statusMsg.innerText = "Gerando planilha e preparando envio...";
+            let msg = document.getElementById('status-envio-msg');
+            msg.classList.remove('hidden');
+            msg.innerText = "Gerando planilha e enviando relatório por e-mail...";
 
             baixarExcelLocal();
 
-            let corpoTextoItens = chaves.map(cod => {
-                let item = inventarioColetado[cod];
-                let dif = item.contagem2 - item.contagem1;
-                return `[Cod: ${cod}] ${item.descricao} | 1ª Cont: ${item.contagem1} | 2ª Cont: ${item.contagem2} | Dif: ${dif}`;
-            }).join("\n");
+            let emailsDestino = [
+                document.getElementById('email-corp').value,
+                document.getElementById('email-celular').value,
+                document.getElementById('email-pc').value
+            ].filter(Boolean).join(',');
 
-            let parametrosEnvio = {
-                to_email: `${document.getElementById('email-corp').value}, ${document.getElementById('email-celular').value}`,
-                message: `Relatório de Cruzamento Sienge - Grupo Brava\n\nTotal de Itens: ${chlices?.length || chaves.length}\n\n--- DADOS ---\n${corpoTextoItens}`
+            let resumoTexto = chaves.map(k => `• [${k}] ${inventarioColetado[k].descricao} | 1ª: ${inventarioColetado[k].contagem1} | 2ª: ${inventarioColetado[k].contagem2}`).join('\n');
+
+            let templateParams = {
+                to_email: emailsDestino,
+                message: `Relatório de Inventário Brava Sienge\n\nTotal de Itens: ${chaves.length}\n\n${resumoTexto}`
             };
 
-            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, parametrosEnvio)
-                .then(function(response) {
-                    statusMsg.innerText = "Planilha baixada e E-mail enviado com sucesso!";
-                    let statStatus = document.getElementById('stat-status');
-                    statStatus.innerText = "Enviado com Sucesso";
-                    statStatus.className = "text-xs font-bold text-emerald-400 mt-1";
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                .then(function() {
+                    msg.innerText = "✅ Relatório enviado com sucesso e planilha baixada!";
+                    document.getElementById('stat-status').innerText = "Enviado";
+                    document.getElementById('stat-status').className = "text-xs font-bold text-emerald-400 mt-1";
                 }, function(error) {
-                    statusMsg.innerText = "Planilha baixada! (Erro no envio automático do e-mail).";
-                    let statStatus = document.getElementById('stat-status');
-                    statStatus.innerText = "Baixado (E-mail falhou)";
-                    statStatus.className = "text-xs font-bold text-amber-400 mt-1";
+                    msg.innerText = "⚠️ Planilha baixada localmente, mas erro ao enviar e-mail: " + JSON.stringify(error);
                 });
         }
 
-        window.onload = function() {
-            atualizarTabelaInventario();
-            atualizarContadoresBadge();
-        };
+        // Inicialização dos badges
+        atualizarContadoresBadge();
+        atualizarTabelaInventario();
     </script>
 </body>
 </html>
