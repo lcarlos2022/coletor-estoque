@@ -85,6 +85,7 @@
                 <button type="button" onclick="mudarAuthTab('cadastro')" id="btn-tab-cadastro" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">Cadastrar</button>
             </div>
 
+            <!-- Formulário de Login -->
             <div id="form-login-box" class="space-y-4">
                 <div class="space-y-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase">E-mail Corporativo</label>
@@ -99,7 +100,8 @@
                 </button>
             </div>
 
-            <div id="form-cadastro-box" class="space-y-3 hidden">
+            <!-- Formulário de Cadastro -->
+            <div id="form-cadastro-box" class="space-y-3 hidden" style="display: none;">
                 <div class="space-y-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase">Nome Completo</label>
                     <input type="text" id="cad-nome" placeholder="Seu nome" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
@@ -125,7 +127,7 @@
     </div>
 
     <!-- ================= SISTEMA PRINCIPAL ================= -->
-    <div id="sistema-principal" class="hidden pb-12">
+    <div id="sistema-principal" class="hidden pb-12" style="display: none;">
         <!-- Top Bar Corporativa -->
         <header class="bg-slate-900 border-b border-slate-800 px-3 py-3 shadow-md sticky top-0 z-40">
             <div class="max-w-4xl mx-auto space-y-2">
@@ -432,17 +434,17 @@
             if (aba === 'login') {
                 btnLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-blue-600 text-white shadow";
                 btnCad.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
-                boxLogin.classList.remove('hidden');
                 boxLogin.style.display = 'block';
-                boxCad.classList.add('hidden');
+                boxLogin.classList.remove('hidden');
                 boxCad.style.display = 'none';
+                boxCad.classList.add('hidden');
             } else {
                 btnCad.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-emerald-600 text-white shadow";
                 btnLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
-                boxCad.classList.remove('hidden');
                 boxCad.style.display = 'block';
-                boxLogin.classList.add('hidden');
+                boxCad.classList.remove('hidden');
                 boxLogin.style.display = 'none';
+                boxLogin.classList.add('hidden');
             }
         }
 
