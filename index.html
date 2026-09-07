@@ -39,6 +39,12 @@
                     class="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold rounded-md transition duration-200">
                     Entrar / Cadastrar
                 </button>
+
+                <!-- Botão de emergência caso queira trocar/limpar o e-mail gravado -->
+                <button type="button" onclick="limparCadastroSistema()" 
+                    class="w-full py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded transition duration-200">
+                    🔄 Redefinir E-mail Cadastrado
+                </button>
             </form>
         </div>
     </div>
@@ -73,17 +79,20 @@
     </div>
 
     <script>
-        // Verifica ao abrir se já existe um usuário cadastrado para ajustar o texto da tela
         window.onload = function() {
+            verificarStatusCadastro();
+        };
+
+        function verificarStatusCadastro() {
             const emailSalvo = localStorage.getItem('wms_email_cadastrado');
             if (emailSalvo) {
                 document.getElementById('tituloAuth').textContent = "Almoxarifado Brava - Login";
                 document.getElementById('btnAcao').textContent = "Entrar";
             } else {
-                document.getElementById('tituloAuth').textContent = "Almoxarifado Brava - Primeiro Cadastro";
+                document.getElementById('tituloAuth').textContent = "Almoxarifado Brava - Cadastro";
                 document.getElementById('btnAcao').textContent = "Cadastrar e Entrar";
             }
-        };
+        }
 
         function validarLoginOuCadastro(event) {
             event.preventDefault();
@@ -97,20 +106,20 @@
 
             let emailSalvo = localStorage.getItem('wms_email_cadastrado');
 
-            // Se não tem e-mail salvo, este é o primeiro acesso (Cadastra o e-mail digitado)
+            // Se não houver e-mail cadastrado, grava automaticamente o que o usuário digitou
             if (!emailSalvo) {
                 localStorage.setItem('wms_email_cadastrado', emailDigitado);
                 emailSalvo = emailDigitado;
             }
 
-            // 1. Validação de E-mail: O e-mail digitado precisa ser o mesmo cadastrado
+            // Validação de E-mail
             if (emailDigitado !== emailSalvo) {
-                divAlerta.textContent = "Atenção: E-mail não confere com o e-mail cadastrado no sistema!";
+                divAlerta.textContent = "Atenção: E-mail não confere com o cadastrado. Clique em 'Redefinir E-mail Cadastrado' abaixo se mudou de e-mail.";
                 divAlerta.classList.remove('hidden');
                 return;
             }
 
-            // 2. Regra da Senha: 6 a 8 dígitos, pelo menos 1 maiúscula, números e 1 caractere especial
+            // Regra rigorosa da Senha (6 a 8 dígitos, 1 maiúscula, números, 1 especial)
             const regexSenha = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_-])[A-Za-z\d!@#$%^&*(),.?":{}|<>_-]{6,8}$/;
 
             if (!regexSenha.test(senhaDigitada)) {
@@ -119,9 +128,17 @@
                 return;
             }
 
-            // Sucesso: Entra no app
+            // Sucesso
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
+        }
+
+        function limparCadastroSistema() {
+            localStorage.removeItem('wms_email_cadastrado');
+            document.getElementById('emailInput').value = '';
+            document.getElementById('senhaInput').value = '';
+            verificarStatusCadastro();
+            alert("E-mail anterior apagado! Agora você pode digitar e cadastrar o seu e-mail novo.");
         }
 
         function sairDoApp() {
