@@ -6,25 +6,26 @@
     <title>Sienge Scanner Pro</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background-color: #f1f5f9; color: #1e293b; display: flex; flex-direction: column; min-height: 100vh; justify-content: space-between; align-items: center; padding: 20px; }
-        .container { width: 100%; max-width: 400px; background: #ffffff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin: auto; }
+        body { background-color: #f1f5f9; color: #1e293b; display: flex; flex-direction: column; min-height: 100vh; justify-content: space-between; align-items: center; padding: 15px; }
+        .container { width: 100%; max-width: 450px; background: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin: auto; }
         .hidden { display: none !important; }
         .text-center { text-align: center; }
         .icon-box { width: 80px; height: 80px; background-color: #2563eb; color: white; font-size: 36px; display: flex; align-items: center; justify-content: center; border-radius: 20px; margin: 0 auto 20px auto; }
         h1 { font-size: 24px; margin-bottom: 8px; color: #0f172a; }
         p { color: #64748b; font-size: 14px; margin-bottom: 24px; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
         .btn-primary { background-color: #2563eb; color: white; }
         .btn-primary:hover { background-color: #1d4ed8; }
         .btn-secondary { background-color: #f8fafc; color: #334155; border: 1px solid #cbd5e1; }
-        .btn-secondary:hover { background-color: #f1f5f9; }
-        .form-group { margin-bottom: 16px; text-align: left; }
-        label { display: block; font-size: 12px; font-weight: bold; text-transform: uppercase; color: #64748b; margin-bottom: 6px; }
-        input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
-        .scanner-box { background-color: #0f172a; color: white; border-radius: 12px; padding: 20px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: space-between; position: relative; margin-top: 10px; }
-        .scanner-line { width: 80%; height: 2px; background-color: #ef4444; position: absolute; top: 50%; left: 10%; box-shadow: 0 0 8px #ef4444; }
-        .list-item { background: #f8fafc; padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; border: 1px solid #e2e8f0; }
-        .header-work { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: white; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .btn-success { background-color: #16a34a; color: white; }
+        .form-group { margin-bottom: 14px; text-align: left; }
+        label { display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #64748b; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .scanner-box { background-color: #0f172a; color: white; border-radius: 12px; padding: 16px; text-align: center; position: relative; margin-bottom: 15px; }
+        .scanner-line { width: 80%; height: 2px; background-color: #ef4444; position: absolute; top: 45%; left: 10%; box-shadow: 0 0 8px #ef4444; }
+        .list-item { background: #f8fafc; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 6px; border: 1px solid #e2e8f0; }
+        .header-work { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: white; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .badge { font-size: 11px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #475569; }
     </style>
 </head>
 <body>
@@ -83,39 +84,49 @@
             </form>
         </div>
 
-        <!-- ================= TELA 4: TRABALHO (LEITOR) ================= -->
+        <!-- ================= TELA 4: TRABALHO (LEITOR E RECONCILIAÇÃO) ================= -->
         <div id="view-work" class="view-section hidden">
             <div class="header-work">
                 <div>
-                    <strong id="user-display" style="font-size: 14px; display: block;">Operador</strong>
-                    <span style="font-size: 11px; color: #64748b;">Sienge Coleta Ativa</span>
+                    <strong id="user-display" style="font-size: 13px; display: block;">Operador</strong>
+                    <span style="font-size: 11px; color: #16a34a; font-weight: bold;">● Sienge Conectado</span>
                 </div>
-                <button onclick="mudarTela('view-splash')" style="background:none; border:none; color: #dc2626; cursor:pointer; font-weight:bold;">Sair</button>
+                <button onclick="mudarTela('view-splash')" style="background:none; border:none; color: #dc2626; cursor:pointer; font-weight:bold; font-size: 13px;">Sair</button>
             </div>
 
+            <!-- Bloco de Leitura Óptica e Entrada Manual -->
             <div class="scanner-box">
-                <span style="font-size: 12px; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; align-self: center;">Câmera do Leitor</span>
+                <span style="font-size: 11px; background: rgba(255,255,255,0.15); padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">Leitor Óptico Ativo</span>
                 <div class="scanner-line"></div>
-                <div>
-                    <p style="color: #94a3b8; font-size: 12px; margin-bottom: 10px;">Aponte para o código de barras</p>
-                    <button onclick="simularLeitura()" class="btn btn-primary" style="margin-bottom: 0;">Simular Leitura Óptica</button>
+                
+                <div style="margin-top: 10px;">
+                    <input type="text" id="manual-sku" placeholder="Digitar SKU ou Código..." style="background: white; color: #1e293b; margin-bottom: 8px; text-align: center; font-weight: bold;">
+                    <div style="display: flex; gap: 6px;">
+                        <button onclick="adicionarManual()" class="btn btn-primary" style="margin-bottom:0; font-size: 13px; padding: 10px;">Incluir Item</button>
+                        <button onclick="simularLeitura()" class="btn btn-secondary" style="margin-bottom:0; font-size: 13px; padding: 10px; background: #334155; color: white; border: none;">Simular Leitura</button>
+                    </div>
                 </div>
             </div>
 
-            <div style="margin-top: 16px;">
+            <!-- Painel de Gerenciamento de Estoque -->
+            <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Itens Lidos</span>
-                    <span id="contador-itens" style="font-size: 12px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">0 itens</span>
+                    <span style="font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase;">Itens Coletados</span>
+                    <span id="contador-itens" class="badge">0 itens</span>
                 </div>
-                <div id="lista-itens" style="max-height: 120px; overflow-y: auto;">
-                    <p style="text-align: center; color: #94a3b8; font-size: 12px; padding: 15px 0;">Nenhum item coletado.</p>
+                
+                <div id="lista-itens" style="max-height: 160px; overflow-y: auto; margin-bottom: 12px;">
+                    <p style="text-align: center; color: #94a3b8; font-size: 12px; padding: 20px 0;">Nenhum material coletado ainda.</p>
                 </div>
+
+                <!-- Botões de Ação ERP / Excel -->
+                <button onclick="exportarExcel()" class="btn btn-success" style="font-size: 13px; padding: 10px;">📥 Exportar para Excel / Sienge</button>
             </div>
         </div>
 
     </main>
 
-    <footer style="font-size: 12px; color: #94a3b8; margin-top: 20px;">
+    <footer style="font-size: 12px; color: #94a3b8; margin-top: 15px; text-align: center;">
         Sienge Scanner Pro &copy; 2026
     </footer>
 
@@ -160,18 +171,77 @@
         }
 
         function simularLeitura() {
-            const codigoExemplo = 'SKU-' + Math.floor(100000 + Math.random() * 900000);
-            itensColetados.unshift({ codigo: codigoExemplo, hora: new Date().toLocaleTimeString() });
-            
+            const skusExemplo = ['SKU-CIMENTO-50KG', 'SKU-TUBO-PVC-100MM', 'SKU-CABO-2.5MM', 'SKU-DISJUNTOR-32A', 'SKU-ARGASSA-AC1'];
+            const codigoAleatorio = skusExemplo[Math.floor(Math.random() * skusExemplo.length)];
+            adicionarItemLista(codigoAleatorio);
+        }
+
+        function adicionarManual() {
+            const input = document.getElementById('manual-sku');
+            const valor = input.value.trim();
+            if (!valor) {
+                alert('Digite um código válido.');
+                return;
+            }
+            adicionarItemLista(valor);
+            input.value = '';
+        }
+
+        function adicionarItemLista(codigo) {
+            // Verifica se o item já existe para incrementar a quantidade
+            const itemExistente = itensColetados.find(i => i.codigo === codigo);
+            if (itemExistente) {
+                itemExistente.qtd += 1;
+            } else {
+                itensColetados.unshift({ codigo: codigo, qtd: 1, hora: new Date().toLocaleTimeString() });
+            }
+            atualizarTelaItens();
+        }
+
+        function atualizarTelaItens() {
             const container = document.getElementById('lista-itens');
-            document.getElementById('contador-itens').innerText = `${itensColetados.length} itens`;
+            document.getElementById('contador-itens').innerText = `${itensColetados.reduce((acc, i) => acc + i.qtd, 0)} itens`;
             
-            container.innerHTML = itensColetados.map(item => `
+            if (itensColetados.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #94a3b8; font-size: 12px; padding: 20px 0;">Nenhum material coletado ainda.</p>';
+                return;
+            }
+
+            container.innerHTML = itensColetados.map((item, index) => `
                 <div class="list-item">
-                    <strong>${item.codigo}</strong>
-                    <span style="color: #64748b;">${item.hora}</span>
+                    <div>
+                        <strong style="color: #0f172a; display: block;">${item.codigo}</strong>
+                        <span style="color: #64748b; font-size: 11px;">Hora: ${item.hora}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="badge">Qtd: ${item.qtd}</span>
+                        <button onclick="removerItem(${index})" style="background: none; border: none; color: #dc2626; cursor: pointer; font-size: 14px;" title="Remover">✕</button>
+                    </div>
                 </div>
             `).join('');
+        }
+
+        function removerItem(index) {
+            itensColetados.splice(index, 1);
+            atualizarTelaItens();
+        }
+
+        function exportarExcel() {
+            if (itensColetados.length === 0) {
+                alert('Não há itens para exportar.');
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,SKU;Quantidade;Horario\n" 
+                + itensColetados.map(e => `${e.codigo};${e.qtd};${e.hora}`).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "sienge_inventario.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            alert('Relatório exportado com sucesso para integração!');
         }
     </script>
 </body>
