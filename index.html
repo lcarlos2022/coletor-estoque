@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sienge Scanner Pro</title>
+    <title>Sienge Scanner Pro - Versão 3</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome para Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
+<body class="bg-blue-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
 
     <!-- Container Principal -->
     <main class="max-w-md w-full mx-auto p-4 flex-grow flex flex-col justify-center">
@@ -17,16 +17,16 @@
         <!-- ================= TELA 1: APRESENTAÇÃO (ÍCONE E NOME) ================= -->
         <div id="view-splash" class="view-section text-center py-8">
             <div class="inline-flex items-center justify-center w-24 h-24 bg-blue-600 text-white rounded-3xl shadow-lg mb-6 text-4xl">
-                <i class="fa-solid fa-barcode"></i>
+                <i class="fa-solid fa-boxes-stacked"></i>
             </div>
             <h1 class="text-3xl font-bold text-slate-900 mb-2">Sienge Scanner Pro</h1>
             <p class="text-slate-500 mb-8">Controle de Almoxarifado e Coleta Óptica</p>
             
             <div class="space-y-3">
-                <button onclick="mostrarTela('view-login')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow transition">
+                <button onclick="mudarTela('view-login')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow transition">
                     Entrar no Sistema
                 </button>
-                <button onclick="mostrarTela('view-register')" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold py-3 px-4 rounded-xl shadow-sm transition">
+                <button onclick="mudarTela('view-register')" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold py-3 px-4 rounded-xl shadow-sm transition">
                     Criar Novo Cadastro
                 </button>
             </div>
@@ -35,7 +35,7 @@
         <!-- ================= TELA 2: CADASTRO ================= -->
         <div id="view-register" class="view-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center mb-6">
-                <button type="button" onclick="mostrarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3 p-1">
+                <button type="button" onclick="mudarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3 p-1">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </button>
                 <h2 class="text-xl font-bold text-slate-900">Criar Cadastro</h2>
@@ -62,7 +62,7 @@
         <!-- ================= TELA 3: LOGIN ================= -->
         <div id="view-login" class="view-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center mb-6">
-                <button type="button" onclick="mostrarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3 p-1">
+                <button type="button" onclick="mudarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3 p-1">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </button>
                 <h2 class="text-xl font-bold text-slate-900">Acessar Sistema</h2>
@@ -94,7 +94,7 @@
                         <span id="user-display" class="text-xs text-slate-500">Operador</span>
                     </div>
                 </div>
-                <button onclick="sairSistema()" class="text-slate-400 hover:text-red-600 p-2" title="Sair do Sistema">
+                <button onclick="mudarTela('view-splash')" class="text-slate-400 hover:text-red-600 p-2" title="Sair do Sistema">
                     <i class="fa-solid fa-right-from-bracket text-lg"></i>
                 </button>
             </div>
@@ -138,7 +138,7 @@
     <script>
         let itensColetados = [];
 
-        function mostrarTela(idTela) {
+        function mudarTela(idTela) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             document.getElementById(idTela).classList.remove('hidden');
         }
@@ -154,10 +154,8 @@
             localStorage.setItem('sienge_user_senha', senha);
 
             alert('Cadastro realizado com sucesso! Faça seu login.');
-            
-            // Limpa o formulário de cadastro e vai para a tela de login preenchendo o e-mail
             document.getElementById('login-email').value = email;
-            mostrarTela('view-login');
+            mudarTela('view-login');
         }
 
         function realizarLogin(e) {
@@ -171,15 +169,10 @@
 
             if ((salvoEmail && emailInput === salvoEmail && senhaInput === salvoSenha) || !salvoEmail) {
                 document.getElementById('user-display').innerText = salvoNome;
-                mostrarTela('view-work');
+                mudarTela('view-work');
             } else {
                 alert('E-mail ou senha incorretos.');
             }
-        }
-
-        function sairSistema() {
-            // Volta para a tela inicial (splash)
-            mostrarTela('view-splash');
         }
 
         function simularLeitura() {
