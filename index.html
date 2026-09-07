@@ -35,7 +35,7 @@
         <!-- ================= TELA 2: CADASTRO ================= -->
         <div id="view-register" class="view-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center mb-6">
-                <button onclick="mostrarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3">
+                <button type="button" onclick="mostrarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3 p-1">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </button>
                 <h2 class="text-xl font-bold text-slate-900">Criar Cadastro</h2>
@@ -62,7 +62,7 @@
         <!-- ================= TELA 3: LOGIN ================= -->
         <div id="view-login" class="view-section hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center mb-6">
-                <button onclick="mostrarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3">
+                <button type="button" onclick="mostrarTela('view-splash')" class="text-slate-400 hover:text-slate-600 mr-3 p-1">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </button>
                 <h2 class="text-xl font-bold text-slate-900">Acessar Sistema</h2>
@@ -94,7 +94,7 @@
                         <span id="user-display" class="text-xs text-slate-500">Operador</span>
                     </div>
                 </div>
-                <button onclick="sair()" class="text-slate-400 hover:text-red-600 p-2" title="Sair">
+                <button onclick="sairSistema()" class="text-slate-400 hover:text-red-600 p-2" title="Sair do Sistema">
                     <i class="fa-solid fa-right-from-bracket text-lg"></i>
                 </button>
             </div>
@@ -138,13 +138,11 @@
     <script>
         let itensColetados = [];
 
-        // Função para alternar entre as telas
         function mostrarTela(idTela) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             document.getElementById(idTela).classList.remove('hidden');
         }
 
-        // Salva o cadastro no navegador
         function realizarCadastro(e) {
             e.preventDefault();
             const nome = document.getElementById('reg-nome').value;
@@ -155,11 +153,13 @@
             localStorage.setItem('sienge_user_email', email);
             localStorage.setItem('sienge_user_senha', senha);
 
-            alert('Cadastro realizado com sucesso!');
-            mostrarTela('view-login'); // Vai para a tela de login
+            alert('Cadastro realizado com sucesso! Faça seu login.');
+            
+            // Limpa o formulário de cadastro e vai para a tela de login preenchendo o e-mail
+            document.getElementById('login-email').value = email;
+            mostrarTela('view-login');
         }
 
-        // Verifica o login
         function realizarLogin(e) {
             e.preventDefault();
             const emailInput = document.getElementById('login-email').value;
@@ -169,29 +169,25 @@
             const salvoSenha = localStorage.getItem('sienge_user_senha');
             const salvoNome = localStorage.getItem('sienge_user_nome') || 'Operador';
 
-            // Se o e-mail e senha baterem, ou se não houver cadastro (para testes), entra
             if ((salvoEmail && emailInput === salvoEmail && senhaInput === salvoSenha) || !salvoEmail) {
                 document.getElementById('user-display').innerText = salvoNome;
-                mostrarTela('view-work'); // Vai para a tela de trabalho (leitor)
+                mostrarTela('view-work');
             } else {
                 alert('E-mail ou senha incorretos.');
             }
         }
 
-        // Botão de sair
-        function sair() {
-            mostrarTela('view-splash'); // Volta para a tela inicial
+        function sairSistema() {
+            // Volta para a tela inicial (splash)
+            mostrarTela('view-splash');
         }
 
-        // Simula a leitura da câmera
         function simularLeitura() {
             const codigoExemplo = 'SKU-' + Math.floor(100000 + Math.random() * 900000);
             itensColetados.unshift({ codigo: codigoExemplo, hora: new Date().toLocaleTimeString() });
-            
             atualizarListaItens();
         }
 
-        // Atualiza a tabela de itens lidos
         function atualizarListaItens() {
             const container = document.getElementById('lista-itens');
             document.getElementById('contador-itens').innerText = `${itensColetados.length} itens`;
