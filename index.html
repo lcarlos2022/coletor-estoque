@@ -862,7 +862,7 @@
                 "Unidade": item.unidade,
                 "1ª Contagem": item.qtd1,
                 "2ª Contagem": item.qtd2 !== null ? item.qtd2 : "",
-                "Diferença (Q2 - Q1)": item.qtd2 !== null ? item.qtd2 - item.qtd1 : ""
+                "Dif": item.qtd2 !== null ? item.qtd2 - item.qtd1 : ""
             }));
 
             let worksheet = XLSX.utils.json_to_sheet(dadosExport);
