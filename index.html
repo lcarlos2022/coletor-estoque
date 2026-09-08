@@ -869,12 +869,11 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Função robusta com forçamento de visibilidade e renderização em lote sequencial
+        // Função ajustada com nível de correção de erro M e renderização otimizada para leitura instantânea por celular
         function renderizarEtiquetasQR() {
             let secaoEtiquetas = document.getElementById('secao-etiquetas');
             let estavaOculto = secaoEtiquetas.classList.contains('hidden');
             
-            // Garante que a seção esteja visível no DOM para o qrcode.js calcular os pixels corretamente
             if (estavaOculto) {
                 secaoEtiquetas.classList.remove('hidden');
             }
@@ -888,7 +887,6 @@
                 return;
             }
 
-            // 1. Cria os elementos estruturais das etiquetas
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
                 card.className = "bg-white text-slate-900 p-3 rounded-lg border border-slate-300 shadow flex flex-col items-center justify-between space-y-2";
@@ -898,32 +896,32 @@
                         <p class="text-xs font-bold text-slate-800 line-clamp-1">${p.desc}</p>
                         <p class="text-[10px] font-mono text-slate-600">Cód: ${p.codigo} | ${p.unidade}</p>
                     </div>
-                    <div id="qrcode-${idx}" class="p-1 bg-white border border-slate-200 rounded flex items-center justify-center" style="width: 102px; height: 102px; min-width: 102px; min-height: 102px;"></div>
+                    <div id="qrcode-${idx}" class="p-1.5 bg-white border border-slate-200 rounded flex items-center justify-center" style="width: 110px; height: 110px; min-width: 110px; min-height: 110px;"></div>
                     <p class="text-[9px] text-slate-500 uppercase font-bold">Impresso para Prateleira</p>
                 `;
                 area.appendChild(card);
             });
 
-            // 2. Injeta os códigos QR sequencialmente com intervalo seguro
             catalogoProdutos.forEach((p, idx) => {
                 setTimeout(() => {
                     let containerEl = document.getElementById(`qrcode-${idx}`);
                     if (containerEl && containerEl.childElementCount === 0) {
                         try {
+                            // Formato simplificado e limpo para garantir leitura imediata por qualquer celular
                             let textoCargaQR = `${p.codigo} | ${p.desc} | ${p.unidade}`;
                             new QRCode(containerEl, {
                                 text: textoCargaQR,
-                                width: 90,
-                                height: 90,
+                                width: 96,
+                                height: 96,
                                 colorDark: "#000000",
                                 colorLight: "#ffffff",
-                                correctLevel: QRCode.CorrectLevel.H
+                                correctLevel: QRCode.CorrectLevel.M // Nível balanceado que melhora drasticamente a leitura da câmera
                             });
                         } catch (e) {
                             console.error("Erro QR Code no item " + p.codigo, e);
                         }
                     }
-                }, idx * 50); // 50ms de espaçamento por item para processamento fluido
+                }, idx * 40);
             });
         }
 
