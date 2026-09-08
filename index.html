@@ -4,7 +4,7 @@
     <title>Brava Enterprise - Coletor e Gestor de Estoque Profissional (Sienge Edition)</title>
     
     <!-- Configuração PWA para Instalação Nativa -->
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Brava%20Enterprise%20Sienge%22%2C%22short_name%22%3A%22Brava%20Sienge%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23020617%22%2C%22theme_color%22%3A%22%23020617%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Butf%2C%253Csvg%2520xmlns%253D%2527http%253A%2F%2Fwww.w3.org%2F2000%2Fsvg%2527%2520viewBox%253D%25270%25200%252024%252024%2527%253E%253Crect%2520width%253D%252724%2527%2520height%253D%252724%2527%2520fill%253D%2527%25232563eb%2527%252F%253E%253Ctext%2520x%253D%252712%2527%2520y%253D%252717%2527%2520font-size%253D%252714%2527%2520text-anchor%253D%2527middle%253D%2527%2520fill%253D%2527%2523ffffff%2527%253E%25F0%259F%2593%25A6%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Brava%20Enterprise%20Sienge%22%2C%22short_name%22%3A%22Brava%20Sienge%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23020617%22%2C%22theme_color%22%3A%22%23020617%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2Bhutf%2C%253Csvg%2520xmlns%253D%2527http%253A%2F%2Fwww.w3.org%2F2000%2Fsvg%2527%2520viewBox%253D%25270%25200%252024%252024%2527%253E%253Crect%2520width%253D%252724%2527%2520height%253D%252724%2527%2520fill%253D%2527%25232563eb%2527%252F%253E%253Ctext%2520x%253D%252712%2527%2520y%253D%252717%2527%2520font-size%253D%252714%2527%2520text-anchor%253D%2527middle%253D%2527%2520fill%253D%2527%2523ffffff%2527%253E%25F0%259F%2593%25A6%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
     <meta name="theme-color" content="#020617">
 
     <!-- Tailwind CSS -->
@@ -700,7 +700,7 @@
             tbody.innerHTML = '';
 
             let totalItens = inventarioItens.length;
-            let divergencias = 0;
+            let divergências = 0;
 
             if (totalItens === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500 italic">Nenhum item coletado até o momento.</td></tr>`;
@@ -711,7 +711,7 @@
 
             inventarioItens.forEach((item, index) => {
                 let dif = item.qtd2 - item.qtd1;
-                if (dif !== 0) divergencias++;
+                if (dif !== 0) divergências++;
 
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-900/50 transition-all border-b border-slate-800/40";
@@ -732,7 +732,7 @@
             });
 
             document.getElementById('stat-total').innerText = totalItens;
-            document.getElementById('stat-divergencias').innerText = divergencias;
+            document.getElementById('stat-divergencias').innerText = divergências;
         }
 
         function editarItemInventario(codigo) {
@@ -869,7 +869,7 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Função otimizada para renderizar 100% dos QR Codes sem falhar em branco
+        // Função corrigida com loop sequencial controlado para renderizar 100% dos QR Codes em lote
         function renderizarEtiquetasQR() {
             let area = document.getElementById('area-impressao-etiquetas');
             area.innerHTML = '';
@@ -879,6 +879,7 @@
                 return;
             }
 
+            // 1. Cria primeiro todos os elementos visuais das etiquetas na tela
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
                 card.className = "bg-white text-slate-900 p-3 rounded-lg border border-slate-300 shadow flex flex-col items-center justify-between space-y-2";
@@ -888,15 +889,15 @@
                         <p class="text-xs font-bold text-slate-800 line-clamp-1">${p.desc}</p>
                         <p class="text-[10px] font-mono text-slate-600">Cód: ${p.codigo} | ${p.unidade}</p>
                     </div>
-                    <div id="qrcode-${idx}" class="p-1 bg-white border border-slate-200 rounded flex items-center justify-center" style="width: 102px; height: 102px;"></div>
+                    <div id="qrcode-${idx}" class="p-1 bg-white border border-slate-200 rounded flex items-center justify-center" style="width: 102px; height: 102px; min-width: 102px; min-height: 102px;"></div>
                     <p class="text-[9px] text-slate-500 uppercase font-bold">Impresso para Prateleira</p>
                 `;
                 area.appendChild(card);
             });
 
-            // Passada rápida de injeção direta usando requestAnimationFrame para garantir renderização síncrona visual
-            requestAnimationFrame(() => {
-                catalogoProdutos.forEach((p, idx) => {
+            // 2. Injeta os QR codes de forma escalonada para o navegador processar todos sem travar
+            catalogoProdutos.forEach((p, idx) => {
+                setTimeout(() => {
                     let containerEl = document.getElementById(`qrcode-${idx}`);
                     if (containerEl && containerEl.childElementCount === 0) {
                         try {
@@ -910,10 +911,10 @@
                                 correctLevel: QRCode.CorrectLevel.H
                             });
                         } catch (e) {
-                            console.error("Erro QR Code:", e);
+                            console.error("Erro QR Code no item " + p.codigo, e);
                         }
                     }
-                });
+                }, idx * 40); // Intervalo progressivo de segurança de 40ms por item
             });
         }
 
