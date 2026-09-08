@@ -111,8 +111,8 @@
                     <input type="email" id="cad-email" placeholder="seu.email@brava.com.br" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
                 </div>
                 <div class="space-y-1">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Senha</label>
-                    <input type="password" id="cad-senha" placeholder="Crie uma senha" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Senha (6-8 dígitos, 1 Maiúscula, Números, 1 Especial)</label>
+                    <input type="password" id="cad-senha" placeholder="Ex: Brava@1" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
                 </div>
                 <button type="button" onclick="fazerCadastro()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs shadow transition-all mt-2 cursor-pointer">
                     Concluir Cadastro
@@ -444,13 +444,47 @@
             }
         }
 
+        function validarRegraSenha(senha) {
+            // 6 a 8 dígitos, pelo menos 1 maiúscula, números e 1 caractere especial
+            let temTamanhoValido = senha.length >= 6 && senha.length <= 8;
+            let temMaiuscula = /[A-Z]/.test(senha);
+            let temNumero = /[0-9]/.test(senha);
+            let temEspecial = /[^A-Za-z0-9]/.test(senha);
+            return temTamanhoValido && temMaiuscula && temNumero && temEspecial;
+        }
+
         function fazerLogin() {
-            let email = document.getElementById('login-email').value.trim();
+            let email = document.getElementById('login-email').value.trim().toLowerCase();
             let senha = document.getElementById('login-senha').value;
+            
             if (!email || !senha) {
                 alert("Preencha o e-mail e a senha.");
                 return;
             }
+
+            let emailSalvo = localStorage.getItem('brava_cad_email');
+            let senhaSalva = localStorage.getItem('brava_cad_senha');
+
+            // Se ainda não houver cadastro prévio no navegador, permite o primeiro acesso e salva
+            if (!emailSalvo) {
+                if (!validarRegraSenha(senha)) {
+                    alert("A senha deve ter de 6 a 8 caracteres, contendo 1 letra maiúscula, números e 1 caractere especial (Ex: Brava@1).");
+                    return;
+                }
+                localStorage.setItem('brava_cad_email', email);
+                localStorage.setItem('brava_cad_senha', senha);
+                localStorage.setItem('brava_sessao_ativa', email);
+                alert("Primeiro acesso cadastrado e protegido com sucesso!");
+                verificarSessao();
+                return;
+            }
+
+            // Valida se o e-mail e a senha conferem rigorosamente com os cadastrados
+            if (email !== emailSalvo || senha !== senhaSalva) {
+                alert("E-mail ou senha incorretos! Acesso negado.");
+                return;
+            }
+
             localStorage.setItem('brava_sessao_ativa', email);
             verificarSessao();
         }
@@ -458,7 +492,7 @@
         function fazerCadastro() {
             let nome = document.getElementById('cad-nome').value.trim();
             let cpf = document.getElementById('cad-cpf').value.trim();
-            let email = document.getElementById('cad-email').value.trim();
+            let email = document.getElementById('cad-email').value.trim().toLowerCase();
             let senha = document.getElementById('cad-senha').value;
 
             if (!nome || !cpf || !email || !senha) {
@@ -466,6 +500,13 @@
                 return;
             }
 
+            if (!validarRegraSenha(senha)) {
+                alert("A senha deve ter de 6 a 8 caracteres, contendo 1 letra maiúscula, números e 1 caractere especial (Ex: Brava@1).");
+                return;
+            }
+
+            localStorage.setItem('brava_cad_email', email);
+            localStorage.setItem('brava_cad_senha', senha);
             localStorage.setItem('brava_sessao_ativa', email);
             alert("Cadastro realizado com sucesso!");
             verificarSessao();
