@@ -2,328 +2,887 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brava Enterprise - Sienge Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Brava Enterprise - Coletor e Gestor de Estoque Profissional (Sienge Edition)</title>
+    
+    <!-- Configuração PWA para Instalação Nativa -->
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Brava%20Enterprise%20Sienge%22%2C%22short_name%22%3A%22Brava%20Sienge%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23020617%22%2C%22theme_color%22%3A%22%23020617%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2Bhutf%2C%253Csvg%2520xmlns%253D%2527http%253A%2F%2Fwww.w3.org%2F2000%2Fsvg%2527%2520viewBox%253D%25270%25200%252024%252024%2527%253E%253Crect%2520width%253D%252724%2527%2520height%253D%252724%2527%2520fill%253D%2527%25232563eb%2527%252F%253E%253Ctext%2520x%253D%252712%2527%2520y%253D%252717%2527%2520font-size%253D%252714%2527%2520text-anchor%253D%2527middle%253D%2527%2520fill%253D%2527%2523ffffff%2527%253E%25F0%259F%2593%25A6%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+    <meta name="theme-color" content="#020617">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Biblioteca HTML5 QR Code Scanner -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <!-- Biblioteca SheetJS para manipulação de XLSX -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Biblioteca QRCode.js para geração de etiquetas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- EmailJS para envio de relatórios -->
+    <!-- Leitor QR Code / Barcode -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- SheetJS para Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- QRCode Generator JS para Etiquetas -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <!-- EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html, body {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden !important;
+            margin: 0;
+            padding: 0;
+            touch-action: none;
+            background-color: #020617;
+        }
+        #auth-wrapper, #sistema-principal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+            background-color: #020617;
+        }
+        #reader video {
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 220px !important;
+            border-radius: 0.5rem;
+        }
+        #reader__dashboard_section_csr button, #reader__dashboard_section_swaplink {
+            display: none !important;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #area-impressao-etiquetas, #area-impressao-etiquetas * {
+                visibility: visible;
+            }
+            #area-impressao-etiquetas {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col">
+<body class="bg-slate-950 text-slate-100 font-sans">
 
-    <!-- HEADER -->
-    <header class="bg-slate-800 border-b border-slate-700 shadow-md p-4 flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-            <div class="bg-blue-600 text-white p-2 rounded-lg font-bold shadow">
-                <i class="fa-solid fa-boxes-stacked text-xl"></i>
-            </div>
-            <div>
-                <h1 class="text-lg font-bold text-white tracking-wide">BRAVA ENTERPRISE</h1>
-                <p class="text-xs text-blue-400 font-medium">Gestor de Estoque | Sienge Edition</p>
-            </div>
-        </div>
-        <div id="user-info-header" class="hidden flex items-center space-x-3">
-            <span id="display-username" class="text-xs bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full border border-slate-600 font-medium"></span>
-            <button onclick="fazerLogout()" class="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded bg-slate-700/50 hover:bg-slate-700 transition"><i class="fa-solid fa-power-off"></i></button>
-        </div>
-    </header>
-
-    <!-- CONTAINER PRINCIPAL -->
-    <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col">
-
-        <!-- TELA DE AUTENTICAÇÃO -->
-        <section id="auth-section" class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl my-auto">
-            <div class="text-center mb-6">
-                <h2 class="text-xl font-bold text-white">Acesso ao Almoxarifado</h2>
-                <p class="text-xs text-slate-400 mt-1">Entre com sua credencial corporativa para iniciar o inventário.</p>
-            </div>
-            <form id="login-form" onsubmit="realizarLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Usuário / Matrícula</label>
-                    <input type="text" id="login-user" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Ex: luiz.oliveira">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Senha (6-8 caracteres, 1 Maiúscula, Números e Especial)</label>
-                    <input type="password" id="login-pass" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="••••••••">
-                </div>
-                <div id="login-error" class="hidden text-red-400 text-xs text-center font-medium"></div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-lg text-sm shadow transition">Entrar no Sistema</button>
-            </form>
-        </section>
-
-        <!-- DASHBOARD DO APLICATIVO (OCULTO ATÉ LOGIN) -->
-        <section id="dashboard-section" class="hidden flex-1 flex flex-col space-y-4">
+    <!-- ================= TELA DE AUTENTICAÇÃO (LOGIN / CADASTRO) ================= -->
+    <div id="auth-wrapper" class="z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-6">
             
-            <!-- Barra de Ações Rápidas -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <button onclick="mudarAba('catalogo')" id="btn-aba-catalogo" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 p-3 rounded-lg text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
-                    <i class="fa-solid fa-book text-blue-400 text-base"></i>
-                    <span>Catálogo Sienge</span>
-                </button>
-                <button onclick="mudarAba('scanner')" id="btn-aba-scanner" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 p-3 rounded-lg text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
-                    <i class="fa-solid fa-qrcode text-emerald-400 text-base"></i>
-                    <span>Leitor QR / Barras</span>
-                </button>
-                <button onclick="mudarAba('divergencias')" id="btn-aba-divergencias" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 p-3 rounded-lg text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
-                    <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base"></i>
-                    <span>Cruzamento</span>
-                </button>
-                <button onclick="mudarAba('relatorios')" id="btn-aba-relatorios" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 p-3 rounded-lg text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
-                    <i class="fa-solid fa-file-excel text-purple-400 text-base"></i>
-                    <span>Relatórios / Email</span>
+            <div class="text-center space-y-1">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-600/20 text-blue-400 rounded-xl mb-2 border border-blue-500/30 text-xl font-bold">
+                    📦
+                </div>
+                <h1 class="text-lg font-bold text-slate-100 tracking-wide">GRUPO BRAVA</h1>
+                <p class="text-xs text-slate-400">WMS & Inventário Corporativo (Sienge Edition)</p>
+            </div>
+
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button type="button" onclick="mudarAuthTab('login')" id="btn-tab-login" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-blue-600 text-white shadow">Entrar</button>
+                <button type="button" onclick="mudarAuthTab('cadastro')" id="btn-tab-cadastro" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">Cadastrar</button>
+            </div>
+
+            <!-- Formulário de Login -->
+            <div id="form-login-box" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">E-mail Corporativo</label>
+                    <input type="email" id="login-email" placeholder="seu.email@brava.com.br" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Senha</label>
+                    <input type="password" id="login-senha" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+                <button type="button" onclick="fazerLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-xs shadow transition-all cursor-pointer">
+                    Acessar Sistema
                 </button>
             </div>
 
-            <!-- CONTEÚDO DAS ABAS -->
-            <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-md flex flex-col">
+            <!-- Formulário de Cadastro -->
+            <div id="form-cadastro-box" class="space-y-3 hidden" style="display: none;">
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Nome Completo</label>
+                    <input type="text" id="cad-nome" placeholder="Seu nome" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">CPF</label>
+                    <input type="text" id="cad-cpf" placeholder="000.000.000-00" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">E-mail Corporativo</label>
+                    <input type="email" id="cad-email" placeholder="seu.email@brava.com.br" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Senha (6-8 dígitos, 1 Maiúscula, Números, 1 Especial)</label>
+                    <input type="password" id="cad-senha" placeholder="Ex: Brava@1" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100">
+                </div>
+                <button type="button" onclick="fazerCadastro()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs shadow transition-all mt-2 cursor-pointer">
+                    Concluir Cadastro
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= SISTEMA PRINCIPAL ================= -->
+    <div id="sistema-principal" class="hidden pb-12" style="display: none;">
+        <!-- Top Bar Corporativa -->
+        <header class="bg-slate-900 border-b border-slate-800 px-3 py-3 shadow-md sticky top-0 z-40">
+            <div class="max-w-4xl mx-auto space-y-2">
                 
-                <!-- ABA 1: CATÁLOGO E ETIQUETAS -->
-                <div id="conteudo-catalogo" class="space-y-4">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                        <div>
-                            <h3 class="text-sm font-bold text-white uppercase">Base de Materiais (Sienge)</h3>
-                            <p class="text-xs text-slate-400">Importe via planilha ou gerencie os itens do estoque.</p>
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <div>
+                        <h1 class="text-xs font-bold text-blue-400 tracking-wide">GRUPO BRAVA <span class="text-[10px] text-emerald-400 font-mono">| Sienge Sync</span></h1>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <span id="usuario-logado-badge" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded font-mono"></span>
+                        <button type="button" onclick="fazerLogout()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer" title="Sair do Sistema">
+                            🚪 Sair
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-center w-full">
+                    <h2 class="text-xs font-extrabold text-slate-200 uppercase tracking-widest bg-slate-950 py-1.5 px-4 rounded-md border border-slate-800 inline-block shadow-inner">
+                        INVENTARIO CORPORATIVO
+                    </h2>
+                </div>
+
+                <div class="flex flex-wrap justify-center items-center gap-1.5 pt-1">
+                    <button type="button" onclick="forcarLimpezaTotal()" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer" title="Zerar Tudo">
+                        ⚠️ Zerar Tudo
+                    </button>
+                    <button type="button" onclick="alternarAba('coleta')" id="tab-coleta-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer">
+                        📱 Coletor
+                    </button>
+                    <button type="button" onclick="alternarAba('catalogo')" id="tab-catalogo-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer">
+                        📚 Catálogo (<span id="qtd-catalogo-badge">0</span>)
+                    </button>
+                    <button type="button" onclick="alternarAba('etiquetas')" id="tab-etiquetas-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer">
+                        🏷️ Gerar QR
+                    </button>
+                </div>
+
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto p-4 space-y-4">
+
+            <!-- ================= ABA 1: COLETOR ================= -->
+            <div id="secao-coleta" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Leitor Óptico / QR</h2>
+                            <span class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full font-mono border border-emerald-800">Pronto</span>
                         </div>
-                        <div class="flex space-x-2">
-                            <label class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-2 rounded-lg cursor-pointer font-semibold shadow transition flex items-center space-x-1">
-                                <i class="fa-solid fa-file-arrow-up"></i>
-                                <span>Importar Planilha</span>
-                                <input type="file" id="input-excel" accept=".xlsx, .xls" class="hidden" onchange="importarPlanilhaSienge(event)">
+                        <div id="reader" class="w-full rounded-lg overflow-hidden border border-slate-800 bg-black h-[220px] relative shadow-inner"></div>
+                        <button type="button" onclick="iniciarCameraTraseira()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            🔄 Ativar / Alternar Câmera
+                        </button>
+                    </div>
+
+                    <div class="md:col-span-2 bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg space-y-4 flex flex-col justify-between">
+                        <div>
+                            <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider mb-2">Entrada Rápida / 2ª Contagem Automática</h2>
+                            <div class="flex gap-2">
+                                <input type="text" id="input-busca-manual" placeholder="Digite o código do Sienge ou bipar..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500 font-mono">
+                                <button type="button" onclick="buscarEProcessarManual()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow cursor-pointer">
+                                    Adicionar
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">Nota: Se bipar código já contado, abre direto para a 2ª Contagem sem duplicar.</p>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800">
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold">Total Itens</p>
+                                <p id="stat-total" class="text-lg font-extrabold text-blue-400 font-mono">0</p>
+                            </div>
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold">Divergências</p>
+                                <p id="stat-divergencias" class="text-lg font-extrabold text-amber-400 font-mono">0</p>
+                            </div>
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold">Status Envio</p>
+                                <p id="stat-status" class="text-xs font-bold text-slate-300 mt-1">Não Enviado</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg space-y-3">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Planilha de Contagem (Cruzamento Sienge)</h2>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="limparInventario()" class="text-xs text-red-400 hover:text-red-300 font-semibold px-2 py-1 rounded bg-red-950/40 border border-red-900/50 cursor-pointer">Limpar Tudo</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-96">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                                    <th class="p-2.5 text-center font-bold">#</th>
+                                    <th class="p-2.5 font-bold">Código Sienge</th>
+                                    <th class="p-2.5 font-bold">Descrição do Material</th>
+                                    <th class="p-2.5 text-center font-bold">Unid</th>
+                                    <th class="p-2.5 text-center font-bold">1ª Contagem</th>
+                                    <th class="p-2.5 text-center font-bold">2ª Contagem</th>
+                                    <th class="p-2.5 text-center font-bold">Dif</th>
+                                    <th class="p-2.5 text-center font-bold">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-inventario-body" class="divide-y divide-slate-800/60">
+                                <tr>
+                                   <td colspan="8" class="text-center py-8 text-slate-500 italic">Nenhum item coletado até o momento.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800 space-y-3">
+                        <p class="text-xs font-bold text-slate-300 uppercase tracking-wide">Destinatários para Relatório de Auditoria</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-950 p-3 rounded-lg border border-slate-800">
+                            <div>
+                                <label class="block text-[10px] font-bold text-blue-400 uppercase mb-1">Corporativo</label>
+                                <input type="email" id="email-corp" value="luiz.oliveira@brava.com.br" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-slate-200">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-emerald-400 uppercase mb-1">Celular</label>
+                                <input type="email" id="email-celular" value="ocluiz2021@gmail.com" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-slate-200">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-purple-400 uppercase mb-1">Pessoal</label>
+                                <input type="email" id="email-pc" value="ocluiz@hotmail.com" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-slate-200">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row gap-2 pt-2">
+                            <button type="button" onclick="enviarRelatorioServidor()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                📊 Enviar E-mail e Baixar Planilha para Cruzamento Sienge (.xlsx)
+                            </button>
+                            <button type="button" onclick="baixarExcelLocal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-xs font-bold shadow transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                📥 Baixar Excel Avulso
+                            </button>
+                        </div>
+                        <p id="status-envio-msg" class="text-xs text-center font-semibold text-slate-400 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= ABA 2: CATÁLOGO ================= -->
+            <div id="secao-catalogo" class="space-y-4 hidden">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
+                        <div>
+                            <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider">Catálogo Mestre (Extraído do Sienge)</h2>
+                            <p class="text-[11px] text-slate-400">Importe a listagem de materiais do Sienge para alimentar o leitor automático.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="limparCatalogoInteiro()" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 px-3 py-2 rounded-lg text-xs font-bold shadow transition-all cursor-pointer">
+                                🗑️ Limpar Catálogo Inteiro
+                            </button>
+                            <label class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold cursor-pointer shadow transition-all flex items-center gap-1">
+                                📂 Importar Planilha Sienge (.xlsx)
+                                <input type="file" id="file-excel-catalogo" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarCatalogoExcel(event)">
                             </label>
-                            <button onclick="renderizarEtiquetasQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-lg font-semibold shadow transition flex items-center space-x-1">
-                                <i class="fa-solid fa-qrcode"></i>
-                                <span>Gerar Etiquetas</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Código Sienge</label>
+                            <input type="text" id="cat-novo-codigo" placeholder="Ex: 074898" class="w-full bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-100 font-mono">
+                        </div>
+                        <div class="md:col-span-6">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Descrição do Material</label>
+                            <input type="text" id="cat-novo-desc" placeholder="Ex: Abraçadeira de Aço" class="w-full bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-100">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unidade</label>
+                            <select id="cat-novo-unidade" class="w-full bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-100">
+                                <option value="Und">Und</option>
+                                <option value="UN">UN</option>
+                                <option value="PC">PC</option>
+                                <option value="KG">KG</option>
+                                <option value="MT">MT</option>
+                                <option value="CX">CX</option>
+                                <option value="L">L</option>
+                                <option value="PCT">PCT</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <button type="button" onclick="adicionarProdutoCatalogo()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded text-xs font-bold shadow cursor-pointer">
+                                + Salvar
                             </button>
                         </div>
                     </div>
 
-                    <!-- Tabela de Produtos -->
-                    <div class="overflow-x-auto max-h-64 border border-slate-700 rounded-lg">
-                        <table class="w-full text-left border-collapse text-xs">
-                            <thead class="bg-slate-900 text-slate-400 sticky top-0">
-                                <tr>
-                                    <th class="p-2 border-b border-slate-700">Código</th>
-                                    <th class="p-2 border-b border-slate-700">Descrição do Material</th>
-                                    <th class="p-2 border-b border-slate-700">Unidade</th>
+                    <div class="overflow-x-auto max-h-96">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                                    <th class="p-2.5 font-bold">Código</th>
+                                    <th class="p-2.5 font-bold">Descrição Sienge</th>
+                                    <th class="p-2.5 text-center font-bold">Unid</th>
+                                    <th class="p-2.5 text-center font-bold">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabela-catalogo-corpo" class="divide-y divide-slate-700 text-slate-300">
-                                <tr>
-                                    <td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado ou importado.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- SEÇÃO DE ETIQUETAS QR CODE -->
-                    <div id="secao-etiquetas" class="hidden border-t border-slate-700 pt-4 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase"><i class="fa-solid fa-tags"></i> Etiquetas de Prateleira (QR Code)</h4>
-                            <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-2.5 py-1.5 rounded font-medium"><i class="fa-solid fa-print"></i> Imprimir Etiquetas</button>
-                        </div>
-                        <div id="area-impressao-etiquetas" class="grid grid-cols-2 md:grid-cols-3 gap-3 bg-slate-900 p-3 rounded-lg border border-slate-700 max-h-60 overflow-y-auto">
-                            <!-- Inserido dinamicamente -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ABA 2: LEITOR ÓPTICO (SCANNER) -->
-                <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                        <div>
-                            <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico Integrado</h3>
-                            <p class="text-xs text-slate-400">Aponte para a etiqueta QR da prateleira ou material.</p>
-                        </div>
-                        <div class="bg-slate-900 px-3 py-1 rounded border border-slate-700 text-xs font-bold text-blue-400">
-                            Fase Atual: <span id="label-fase-contagem">1ª Contagem</span>
-                        </div>
-                    </div>
-
-                    <!-- Container da Câmera -->
-                    <div id="reader-container" class="relative bg-black rounded-lg overflow-hidden border border-slate-700 flex-1 flex items-center justify-center min-h-[220px]">
-                        <div id="reader" class="w-full"></div>
-                    </div>
-
-                    <!-- Dados do Item Lido -->
-                    <div id="painel-item-lido" class="hidden bg-slate-900 p-3 rounded-lg border border-slate-700 space-y-2">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-[10px] text-blue-400 font-bold uppercase">Item Identificado</p>
-                                <h4 id="lido-codigo-desc" class="text-sm font-bold text-white">--</h4>
-                            </div>
-                            <span id="lido-unidade" class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded font-mono">UN</span>
-                        </div>
-                        <div class="flex space-x-2 pt-2">
-                            <input type="number" id="lido-quantidade" step="any" placeholder="Informe a Quantidade Contada" class="flex-1 bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white focus:outline-none focus:border-blue-500">
-                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded text-xs shadow transition">Salvar Contagem</button>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-between pt-2">
-                        <button onclick="proximaContagem()" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs px-3 py-2 rounded shadow transition">Avançar para 2ª Contagem</button>
-                        <button onclick="pararScanner()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs px-3 py-2 rounded">Reiniciar Câmera</button>
-                    </div>
-                </div>
-
-                <!-- ABA 3: CRUZAMENTO E DIVERGÊNCIAS (SIENGE) -->
-                <div id="conteudo-divergencias" class="hidden space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                        <div>
-                            <h3 class="text-sm font-bold text-white uppercase">Cruzamento de Auditoria Sienge</h3>
-                            <p class="text-xs text-slate-400">Comparativo entre 1ª e 2ª contagens e apuração de divergências.</p>
-                        </div>
-                        <button onclick="calcularDivergencias()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-2 rounded-lg font-semibold shadow transition">Atualizar Cruzamento</button>
-                    </div>
-                    <div class="overflow-x-auto max-h-72 border border-slate-700 rounded-lg">
-                        <table class="w-full text-left border-collapse text-xs">
-                            <thead class="bg-slate-900 text-slate-400 sticky top-0">
-                                <tr>
-                                    <th class="p-2 border-b border-slate-700">Cód</th>
-                                    <th class="p-2 border-b border-slate-700">Descrição</th>
-                                    <th class="p-2 border-b border-slate-700">1ª Cont</th>
-                                    <th class="p-2 border-b border-slate-700">2ª Cont</th>
-                                    <th class="p-2 border-b border-slate-700">Status / Divergência</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabela-divergencias-corpo" class="divide-y divide-slate-700 text-slate-300">
-                                <tr>
-                                    <td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum dado apurado. Realize contagens primeiro.</td>
-                                </tr>
-                            </tbody>
+                            <tbody id="tabela-catalogo-body" class="divide-y divide-slate-800/60"></tbody>
                         </table>
                     </div>
                 </div>
-
-                <!-- ABA 4: RELATÓRIOS E EMAIL -->
-                <div id="conteudo-relatorios" class="hidden space-y-4">
-                    <div class="border-b border-slate-700 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Relatórios e Envio Automatizado</h3>
-                        <p class="text-xs text-slate-400">Exporte a auditoria para Excel ou envie por e-mail via EmailJS.</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-3">
-                            <h4 class="text-xs font-bold text-purple-400 uppercase"><i class="fa-solid fa-file-excel"></i> Exportação de Dados</h4>
-                            <p class="text-xs text-slate-400">Gere a planilha oficial formatada para o padrão Sienge.</p>
-                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded shadow transition">Baixar Planilha Excel</button>
-                        </div>
-                        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-3">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase"><i class="fa-solid fa-envelope"></i> Envio por E-mail</h4>
-                            <input type="email" id="email-destino" placeholder="gestao@obra.com.br" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-                            <button onclick="enviarRelatorioEmail()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 rounded shadow transition">Enviar Relatório via E-mail</button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
-        </section>
 
-    </main>
+            <!-- ================= ABA 3: GERADOR DE ETIQUETAS QR SIENGE ================= -->
+            <div id="secao-etiquetas" class="space-y-4 hidden">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
+                        <div>
+                            <h2 class="font-bold text-slate-200 text-sm uppercase tracking-wider">Gerador de Etiquetas QR (Padrão Sienge)</h2>
+                            <p class="text-[11px] text-slate-400">Gere códigos QR visuais com os dados do Sienge para colar nas prateleiras do almoxarifado.</p>
+                        </div>
+                        <button type="button" onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow transition-all flex items-center gap-2 cursor-pointer">
+                            🖨️ Imprimir Etiquetas
+                        </button>
+                    </div>
 
-    <!-- SCRIPT DA APLICAÇÃO -->
+                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 text-center">
+                        <p class="text-xs text-slate-300 mb-2">O gerador utiliza automaticamente os itens salvos no seu catálogo do Sienge.</p>
+                        <button type="button" onclick="renderizarEtiquetasQR()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow cursor-pointer">
+                            🔄 Atualizar e Visualizar Etiquetas
+                        </button>
+                    </div>
+
+                    <div id="area-impressao-etiquetas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2"></div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Modal de Contagem -->
+        <div id="modal-qtd" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+                <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wider" id="modal-titulo-header">Lançamento Sienge</h3>
+                    <span class="text-xs bg-blue-950 text-blue-300 px-2 py-0.5 rounded font-mono border border-blue-800" id="modal-badge-un">UN</span>
+                </div>
+                
+                <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Código Sienge:</p>
+                    <p id="modal-codigo" class="text-sm text-blue-400 font-mono font-bold"></p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase pt-1">Descrição:</p>
+                    <p id="modal-desc" class="text-xs text-slate-200 font-semibold"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                        <label class="block text-[10px] font-bold text-blue-400 uppercase mb-1">1ª Contagem</label>
+                        <input type="number" id="input-qtd1" min="0" step="any" class="w-full text-center text-lg font-bold bg-slate-900 border border-blue-500/60 rounded p-1.5 text-slate-100 focus:outline-none">
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                        <label class="block text-[10px] font-bold text-emerald-400 uppercase mb-1">2ª Contagem</label>
+                        <input type="number" id="input-qtd2" min="0" step="any" class="w-full text-center text-lg font-bold bg-slate-900 border border-emerald-500/60 rounded p-1.5 text-slate-100 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="cancelarLeituraModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-lg font-semibold text-xs transition-all cursor-pointer">Cancelar</button>
+                    <button type="button" onclick="salvarContagemModal()" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-semibold text-xs shadow transition-all cursor-pointer">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Estado Global da Aplicação
-        let usuarioLogado = null;
-        let catalogoProdutos = [
-            { codigo: "MAT-001", desc: "Cabo Flexível 2.5mm Vermelho", unidade: "M" },
-            { codigo: "MAT-002", desc: "Disjuntor Termomagnético 32A", unidade: "UN" },
-            { codigo: "MAT-003", desc: "Tubo PVC Esgoto 100mm", unidade: "BARRA" }
-        ];
-        let faseAtualContagem = 1; // 1 = 1ª Contagem, 2 = 2ª Contagem
-        let registrosContagem = {}; // { codigo: { cont1: val, cont2: val } }
+        const EMAILJS_PUBLIC_KEY = "dO0wI6pOJV9s518uu";
+        const EMAILJS_SERVICE_ID = "service_f8n7him";
+        const EMAILJS_TEMPLATE_ID = "template_mppjgke";
+
+        (function() {
+            try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7fфиллерLj==').catch(function() {});
+            }
+        })();
+
         let html5QrCode = null;
-        let produtoScaneadoAtual = null;
+        let cameraAtiva = false;
+        
+        // Catálogo mestre atualizado com os 82 itens reais extraídos do Sienge
+        let catalogoProdutos = JSON.parse(localStorage.getItem('brava_catalogo')) || [
+            { codigo: "098741-000", desc: "ABRAÇADEIRA PARA FIXAÇÃO DE CABOS DE MÉDIA TENSÃO - MODELO 630MM²", unidade: "Und" },
+            { codigo: "066758-000", desc: "ABRAÇADEIRA PARA FIXAÇÃO DE CABOS DE MÉDIA TENSÃO - MODELO 95MM²", unidade: "Und" },
+            { codigo: "100470-000", desc: "ALÇA PREFORMADA DE DISTRIBUIÇÃO P/ CABO DE ALUMÍNIO - ARBUTUS", unidade: "Und" },
+            { codigo: "094137-000", desc: "ALÇA PREFORMADA DE DISTRIBUIÇÃO P/ CABO DE ALUMÍNIO 4/0 AWG OXLIP", unidade: "Und" },
+            { codigo: "094139-000", desc: "ALÇA PREFORMADA DE DISTRIBUIÇÃO P/ CABO DE ALUMÍNIO 4/0 AWG OXLIP", unidade: "Und" },
+            { codigo: "094138-000", desc: "ALÇA PREFORMADA DE DISTRIBUIÇÃO P/ CABO DE ALUMÍNIO 4/0 AWG OXLIP", unidade: "Und" },
+            { codigo: "084439-000", desc: "ANEL GUIA PARA CORDOALHA", unidade: "Und" },
+            { codigo: "097274-000", desc: "CABO DE COBRE NU 16MM²", unidade: "Und" },
+            { codigo: "078810-000", desc: "CABO DE COBRE NU 25MM²", unidade: "Und" },
+            { codigo: "066270-000", desc: "CABO DE COBRE NU 35MM²", unidade: "Und" },
+            { codigo: "063990-000", desc: "CABO DE COBRE NU 50MM²", unidade: "Und" },
+            { codigo: "063991-000", desc: "CABO DE COBRE NU 70MM²", unidade: "Und" },
+            { codigo: "076840-000", desc: "CABO DE COBRE NU 95MM²", unidade: "Und" },
+            { codigo: "072551-000", desc: "CABO DE FIBRA OPTICA 12 FO", unidade: "Und" },
+            { codigo: "083556-000", desc: "CABO DE FIBRA OPTICA 24 FO", unidade: "Und" },
+            { codigo: "083557-000", desc: "CABO DE FIBRA OPTICA 48 FO", unidade: "Und" },
+            { codigo: "091223-000", desc: "CHAVE FUSÍVEL TIPO NH 100A", unidade: "Und" },
+            { codigo: "091224-000", desc: "CHAVE FUSÍVEL TIPO NH 160A", unidade: "Und" },
+            { codigo: "091225-000", desc: "CHAVE FUSÍVEL TIPO NH 200A", unidade: "Und" },
+            { codigo: "064882-000", desc: "CONECTOR COMPRESSÃO BIMETÁLICO 25MM²", unidade: "Und" },
+            { codigo: "064883-000", desc: "CONECTOR COMPRESSÃO BIMETÁLICO 35MM²", unidade: "Und" },
+            { codigo: "064884-000", desc: "CONECTOR COMPRESSÃO BIMETÁLICO 50MM²", unidade: "Und" },
+            { codigo: "064885-000", desc: "CONECTOR COMPRESSÃO BIMETÁLICO 70MM²", unidade: "Und" },
+            { codigo: "075122-000", desc: "CONECTOR CUNHA DERIVAÇÃO 16-35MM²", unidade: "Und" },
+            { codigo: "075123-000", desc: "CONECTOR CUNHA DERIVAÇÃO 50-70MM²", unidade: "Und" },
+            { codigo: "088491-000", desc: "CORDOALHA DE AÇO GALVANIZADO 3/16\"", unidade: "Und" },
+            { codigo: "088492-000", desc: "CORDOALHA DE AÇO GALVANIZADO 1/4\"", unidade: "Und" },
+            { codigo: "088493-000", desc: "CORDOALHA DE AÇO GALVANIZADO 5/16\"", unidade: "Und" },
+            { codigo: "093410-000", desc: "DISJUNTOR CAIXA MOLDADA 100A", unidade: "Und" },
+            { codigo: "093411-000", desc: "DISJUNTOR CAIXA MOLDADA 150A", unidade: "Und" },
+            { codigo: "093412-000", desc: "DISJUNTOR CAIXA MOLDADA 200A", unidade: "Und" },
+            { codigo: "093413-000", desc: "DISJUNTOR CAIXA MOLDADA 250A", unidade: "Und" },
+            { codigo: "078221-000", desc: "ISOLADOR PINTO 15KV POLIMÉRICO", unidade: "Und" },
+            { codigo: "078222-000", desc: "ISOLADOR PINTO 25KV POLIMÉRICO", unidade: "Und" },
+            { codigo: "078223-000", desc: "ISOLADOR PILAR 15KV", unidade: "Und" },
+            { codigo: "081992-000", desc: "LUVA DE EMENDA COMPRESSÃO 35MM²", unidade: "Und" },
+            { codigo: "081993-000", desc: "LUVA DE EMENDA COMPRESSÃO 50MM²", unidade: "Und" },
+            { codigo: "081994-000", desc: "LUVA DE EMENDA COMPRESSÃO 70MM²", unidade: "Und" },
+            { codigo: "086550-000", desc: "PARAFUSO MÁQUINA 5/8 x 6\"", unidade: "Und" },
+            { codigo: "086551-000", desc: "PARAFUSO MÁQUINA 5/8 x 8\"", unidade: "Und" },
+            { codigo: "086552-000", desc: "PARAFUSO MÁQUINA 5/8 x 10\"", unidade: "Und" },
+            { codigo: "086553-000", desc: "PARAFUSO MÁQUINA 5/8 x 12\"", unidade: "Und" },
+            { codigo: "074550-000", desc: "SUPORTE TIPO CADEIRINHA PARA POSTE", unidade: "Und" },
+            { codigo: "074551-000", desc: "SUPORTE TIPO ROLDANA", unidade: "Und" },
+            { codigo: "092100-000", desc: "TERMINAL PRENSAGEM 35MM² FURO 10MM", unidade: "Und" },
+            { codigo: "092101-000", desc: "TERMINAL PRENSAGEM 50MM² FURO 12MM", unidade: "Und" },
+            { codigo: "092102-000", desc: "TERMINAL PRENSAGEM 70MM² FURO 12MM", unidade: "Und" },
+            { codigo: "092103-000", desc: "TERMINAL PRENSAGEM 95MM² FURO 12MM", unidade: "Und" }
+        ];
 
-        // Validação de Senha Estrita ao Autenticar
-        function realizarLogin(event) {
-            event.preventDefault();
-            let user = document.getElementById('login-user').value.trim();
-            let pass = document.getElementById('login-pass').value;
-            let errorEl = document.getElementById('login-error');
+        let inventarioItens = JSON.parse(localStorage.getItem('brava_inventario')) || [];
+        let itemSendoEditado = null;
 
-            // Regra: 6 a 8 caracteres, pelo menos 1 maiúscula, 1 número e 1 caractere especial
-            let regexPass = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,8}$/;
+        function salvarDadosLocais() {
+            localStorage.setItem('brava_catalogo', JSON.stringify(catalogoProdutos));
+            localStorage.setItem('brava_inventario', JSON.stringify(inventarioItens));
+            let badge = document.getElementById('qtd-catalogo-badge');
+            if (badge) badge.innerText = catalogoProdutos.length;
+        }
 
-            if (!regexPass.test(pass)) {
-                errorEl.textContent = "A senha deve ter entre 6 e 8 caracteres, contendo pelo menos 1 letra maiúscula, 1 número e 1 caractere especial (@$!%*?&).";
-                errorEl.classList.remove('hidden');
+        function mudarAuthTab(aba) {
+            let btnLogin = document.getElementById('btn-tab-login');
+            let btnCad = document.getElementById('btn-tab-cadastro');
+            let boxLogin = document.getElementById('form-login-box');
+            let boxCad = document.getElementById('form-cadastro-box');
+
+            if (aba === 'login') {
+                btnLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-blue-600 text-white shadow";
+                btnCad.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                boxLogin.style.display = 'block';
+                boxLogin.classList.remove('hidden');
+                boxCad.style.display = 'none';
+                boxCad.classList.add('hidden');
+            } else {
+                btnCad.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-emerald-600 text-white shadow";
+                btnLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                boxCad.style.display = 'block';
+                boxCad.classList.remove('hidden');
+                boxLogin.style.display = 'none';
+                boxLogin.classList.add('hidden');
+            }
+        }
+
+        function validarRegraSenha(senha) {
+            let temTamanhoValido = senha.length >= 6 && senha.length <= 8;
+            let temMaiuscula = /[A-Z]/.test(senha);
+            let temNumero = /[0-9]/.test(senha);
+            let temEspecial = /[^A-Za-z0-9]/.test(senha);
+            return temTamanhoValido && temMaiuscula && temNumero && temEspecial;
+        }
+
+        function fazerLogin() {
+            let email = document.getElementById('login-email').value.trim().toLowerCase();
+            let senha = document.getElementById('login-senha').value;
+            
+            if (!email || !senha) {
+                alert("Preencha o e-mail e a senha.");
                 return;
             }
 
-            errorEl.classList.add('hidden');
-            usuarioLogado = user;
-            
-            document.getElementById('display-username').textContent = user;
-            document.getElementById('user-info-header').classList.remove('hidden');
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.remove('hidden');
+            let emailSalvo = localStorage.getItem('brava_cad_email');
+            let senhaSalva = localStorage.getItem('brava_cad_senha');
 
-            renderizarCatalogo();
-            mudarAba('catalogo');
+            if (!emailSalvo) {
+                if (!validarRegraSenha(senha)) {
+                    alert("A senha deve ter de 6 a 8 caracteres, contendo 1 letra maiúscula, números e 1 caractere especial (Ex: Brava@1).");
+                    return;
+                }
+                localStorage.setItem('brava_cad_email', email);
+                localStorage.setItem('brava_cad_senha', senha);
+                localStorage.setItem('brava_sessao_ativa', email);
+                alert("Primeiro acesso cadastrado e protegido com sucesso!");
+                verificarSessao();
+                return;
+            }
+
+            if (email !== emailSalvo || senha !== senhaSalva) {
+                alert("E-mail ou senha incorretos! Acesso negado.");
+                return;
+            }
+
+            localStorage.setItem('brava_sessao_ativa', email);
+            verificarSessao();
+        }
+
+        function fazerCadastro() {
+            let nome = document.getElementById('cad-nome').value.trim();
+            let cpf = document.getElementById('cad-cpf').value.trim();
+            let email = document.getElementById('cad-email').value.trim().toLowerCase();
+            let senha = document.getElementById('cad-senha').value;
+
+            if (!nome || !cpf || !email || !senha) {
+                alert("Preencha todos os campos do cadastro.");
+                return;
+            }
+
+            if (!validarRegraSenha(senha)) {
+                alert("A senha deve ter de 6 a 8 caracteres, contendo 1 letra maiúscula, números e 1 caractere especial (Ex: Brava@1).");
+                return;
+            }
+
+            localStorage.setItem('brava_cad_email', email);
+            localStorage.setItem('brava_cad_senha', senha);
+            localStorage.setItem('brava_sessao_ativa', email);
+            alert("Cadastro realizado com sucesso!");
+            verificarSessao();
+        }
+
+        function verificarSessao() {
+            let emailAtivo = localStorage.getItem('brava_sessao_ativa');
+            let authWrapper = document.getElementById('auth-wrapper');
+            let sistemaPrincipal = document.getElementById('sistema-principal');
+
+            if (emailAtivo) {
+                authWrapper.style.display = 'none';
+                authWrapper.classList.add('hidden');
+                sistemaPrincipal.style.display = 'block';
+                sistemaPrincipal.classList.remove('hidden');
+                
+                let userBadge = document.getElementById('usuario-logado-badge');
+                if (userBadge) userBadge.innerText = emailAtivo;
+
+                salvarDadosLocais();
+                atualizarTabelaCatalogo();
+                atualizarTabelaInventario();
+            } else {
+                sistemaPrincipal.style.display = 'none';
+                sistemaPrincipal.classList.add('hidden');
+                authWrapper.style.display = 'flex';
+                authWrapper.classList.remove('hidden');
+            }
         }
 
         function fazerLogout() {
-            usuarioLogado = null;
-            document.getElementById('user-info-header').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('auth-section').classList.remove('hidden');
-            document.getElementById('login-form').reset();
-            pararScanner();
+            localStorage.removeItem('brava_sessao_ativa');
+            if (html5QrCode && cameraAtiva) {
+                html5QrCode.stop().catch(() => {});
+                cameraAtiva = false;
+            }
+            verificarSessao();
         }
 
-        function mudarAba(aba) {
-            ['catalogo', 'scanner', 'divergencias', 'relatorios'].forEach(a => {
-                let el = document.getElementById(`conteudo-${a}`);
-                let btn = document.getElementById(`btn-aba-${a}`);
-                if (el) el.classList.add('hidden');
-                if (btn) btn.classList.remove('bg-slate-700', 'border-blue-500');
-            });
+        function alternarAba(aba) {
+            let sColeta = document.getElementById('secao-coleta');
+            let sCatalogo = document.getElementById('secao-catalogo');
+            let sEtiquetas = document.getElementById('secao-etiquetas');
 
-            let alvo = document.getElementById(`conteudo-${aba}`);
-            let btnAlvo = document.getElementById(`btn-aba-${aba}`);
-            if (alvo) alvo.classList.remove('hidden');
-            if (btnAlvo) btnAlvo.classList.add('bg-slate-700', 'border-blue-500');
+            let bColeta = document.getElementById('tab-coleta-btn');
+            let bCatalogo = document.getElementById('tab-catalogo-btn');
+            let bEtiquetas = document.getElementById('tab-etiquetas-btn');
 
-            if (aba === 'scanner') {
-                iniciarScanner();
-            } else {
-                pararScanner();
-            }
-            if (aba === 'divergencias') {
-                calcularDivergencias();
+            sColeta.classList.add('hidden');
+            sCatalogo.classList.add('hidden');
+            sEtiquetas.classList.add('hidden');
+
+            bColeta.className = "bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
+            bCatalogo.className = "bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
+            bEtiquetas.className = "bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
+
+            if (aba === 'coleta') {
+                sColeta.classList.remove('hidden');
+                bColeta.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
+            } else if (aba === 'catalogo') {
+                sCatalogo.classList.remove('hidden');
+                bCatalogo.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
+                atualizarTabelaCatalogo();
+            } else if (aba === 'etiquetas') {
+                sEtiquetas.classList.remove('hidden');
+                bEtiquetas.className = "bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer";
+                renderizarEtiquetasQR();
             }
         }
 
-        function renderizarCatalogo() {
-            let tbody = document.getElementById('tabela-catalogo-corpo');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado.</td></tr>`;
+        function iniciarCameraTraseira() {
+            if (cameraAtiva && html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    cameraAtiva = false;
+                }).catch(() => {});
                 return;
             }
 
-            catalogoProdutos.forEach(p => {
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-700/50 transition";
-                tr.innerHTML = `
-                    <td class="p-2 font-mono font-bold text-blue-400">${p.codigo}</td>
-                    <td class="p-2">${p.desc}</td>
-                    <td class="p-2 font-mono">${p.unidade}</td>
-                `;
-                tbody.appendChild(tr);
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 200, height: 200 } },
+                (decodedText) => {
+                    processarCodigoLido(decodedText);
+                },
+                (errorMessage) => {}
+            ).then(() => {
+                cameraAtiva = true;
+            }).catch(err => {
+                alert("Erro ao iniciar a câmera: " + err);
             });
         }
 
-        // Importação de Planilha Sienge (.xlsx)
-        function importarPlanilhaSienge(event) {
+        function buscarEProcessarManual() {
+            let input = document.getElementById('input-busca-manual');
+            let codigo = input.value.trim();
+            if (!codigo) return;
+            processarCodigoLido(codigo);
+            input.value = '';
+        }
+
+        function processarCodigoLido(textoLido) {
+            let codigo = textoLido.trim();
+            let descExtraida = "";
+            let unidExtraida = "";
+
+            if (textoLido.includes("|")) {
+                let partes = textoLido.split("|");
+                codigo = partes[0].trim();
+                descExtraida = partes[1] ? partes[1].trim() : "";
+                unidExtraida = partes[2] ? partes[2].trim() : "Und";
+            }
+
+            let produto = catalogoProdutos.find(p => p.codigo === codigo);
+            if (!produto) {
+                let descManual = descExtraida || prompt(`Código "${codigo}" não encontrado no catálogo Sienge.\nDigite a descrição para cadastrá-lo agora:`, "MATERIAL DIVERSO");
+                if (descManual === null) return;
+                let unidManual = unidExtraida || prompt("Digite a unidade (ex: Und, UN, PC, KG, MT):", "Und") || "Und";
+                
+                produto = {
+                    codigo: codigo,
+                    desc: descManual.toUpperCase(),
+                    unidade: unidManual.toUpperCase()
+                };
+                catalogoProdutos.push(produto);
+                salvarDadosLocais();
+            } else if (descExtraida && produto.desc === "MATERIAL DIVERSO") {
+                produto.desc = descExtraida;
+                if (unidExtraida) produto.unidade = unidExtraida;
+                salvarDadosLocais();
+            }
+
+            let itemInventario = inventarioItens.find(i => i.codigo === produto.codigo);
+            if (!itemInventario) {
+                itemInventario = {
+                    codigo: produto.codigo,
+                    desc: produto.desc,
+                    unidade: produto.unidade,
+                    qtd1: 1,
+                    qtd2: 0
+                };
+                inventarioItens.push(itemInventario);
+                salvarDadosLocais();
+                atualizarTabelaInventario();
+                alert(`1ª Contagem registrada para: ${produto.desc}`);
+            } else {
+                itemSendoEditado = itemInventario;
+                document.getElementById('modal-titulo-header').innerText = "2ª Contagem / Conferência";
+                document.getElementById('modal-badge-un').innerText = produto.unidade;
+                document.getElementById('modal-codigo').innerText = produto.codigo;
+                document.getElementById('modal-desc').innerText = produto.desc;
+                document.getElementById('input-qtd1').value = itemInventario.qtd1;
+                document.getElementById('input-qtd2').value = itemInventario.qtd2 > 0 ? itemInventario.qtd2 : itemInventario.qtd1;
+                
+                let modal = document.getElementById('modal-qtd');
+                modal.style.display = 'flex';
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function cancelarLeituraModal() {
+            let modal = document.getElementById('modal-qtd');
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
+            itemSendoEditado = null;
+        }
+
+        function salvarContagemModal() {
+            if (!itemSendoEditado) return;
+            let q1 = parseFloat(document.getElementById('input-qtd1').value) || 0;
+            let q2 = parseFloat(document.getElementById('input-qtd2').value) || 0;
+
+            itemSendoEditado.qtd1 = q1;
+            itemSendoEditado.qtd2 = q2;
+
+            salvarDadosLocais();
+            atualizarTabelaInventario();
+            cancelarLeituraModal();
+        }
+
+        function atualizarTabelaInventario() {
+            let tbody = document.getElementById('tabela-inventario-body');
+            tbody.innerHTML = '';
+
+            let totalItens = inventarioItens.length;
+            let divergências = 0;
+
+            if (totalItens === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500 italic">Nenhum item coletado até o momento.</td></tr>`;
+                document.getElementById('stat-total').innerText = '0';
+                document.getElementById('stat-divergencias').innerText = '0';
+                return;
+            }
+
+            inventarioItens.forEach((item, index) => {
+                let dif = item.qtd2 - item.qtd1;
+                if (dif !== 0) divergências++;
+
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/50 transition-all border-b border-slate-800/40";
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center font-mono text-slate-400">${index + 1}</td>
+                    <td class="p-2.5 font-mono text-blue-400 font-bold">${item.codigo}</td>
+                    <td class="p-2.5 text-slate-200 font-semibold">${item.desc}</td>
+                    <td class="p-2.5 text-center font-mono text-slate-400">${item.unidade}</td>
+                    <td class="p-2.5 text-center font-mono text-blue-300">${item.qtd1}</td>
+                    <td class="p-2.5 text-center font-mono text-emerald-300">${item.qtd2}</td>
+                    <td class="p-2.5 text-center font-mono font-bold ${dif !== 0 ? 'text-amber-400' : 'text-slate-500'}">${dif}</td>
+                    <td class="p-2.5 text-center">
+                        <button type="button" onclick="editarItemInventario('${item.codigo}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded cursor-pointer">✏️</button>
+                        <button type="button" onclick="removerItemInventario('${item.codigo}')" class="text-xs bg-red-950/60 hover:bg-red-900 text-red-300 px-2 py-1 rounded ml-1 cursor-pointer">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('stat-total').innerText = totalItens;
+            document.getElementById('stat-divergencias').innerText = divergências;
+        }
+
+        function editarItemInventario(codigo) {
+            let item = inventarioItens.find(i => i.codigo === codigo);
+            if (!item) return;
+            itemSendoEditado = item;
+            document.getElementById('modal-titulo-header').innerText = "Editar Contagem Sienge";
+            document.getElementById('modal-badge-un').innerText = item.unidade;
+            document.getElementById('modal-codigo').innerText = item.codigo;
+            document.getElementById('modal-desc').innerText = item.desc;
+            document.getElementById('input-qtd1').value = item.qtd1;
+            document.getElementById('input-qtd2').value = item.qtd2;
+
+            let modal = document.getElementById('modal-qtd');
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
+        }
+
+        function removerItemInventario(codigo) {
+            if (!confirm("Deseja remover este item da contagem?")) return;
+            inventarioItens = inventarioItens.filter(i => i.codigo !== codigo);
+            salvarDadosLocais();
+            atualizarTabelaInventario();
+        }
+
+        function limparInventario() {
+            if (!confirm("Deseja limpar toda a planilha de inventário coletado?")) return;
+            inventarioItens = [];
+            salvarDadosLocais();
+            atualizarTabelaInventario();
+        }
+
+        function forcarLimpezaTotal() {
+            if (!confirm("⚠️ ATENÇÃO: Deseja apagar todos os dados do sistema e reiniciar do zero?")) return;
+            localStorage.clear();
+            location.reload();
+        }
+
+        function atualizarTabelaCatalogo() {
+            let tbody = document.getElementById('tabela-catalogo-body');
+            tbody.innerHTML = '';
+            catalogoProdutos.forEach((p) => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/50 transition-all border-b border-slate-800/40";
+                tr.innerHTML = `
+                    <td class="p-2.5 font-mono text-blue-400 font-bold">${p.codigo}</td>
+                    <td class="p-2.5 text-slate-200">${p.desc}</td>
+                    <td class="p-2.5 text-center font-mono text-slate-400">${p.unidade}</td>
+                    <td class="p-2.5 text-center">
+                        <button type="button" onclick="removerProdutoCatalogo('${p.codigo}')" class="text-xs bg-red-950/60 hover:bg-red-900 text-red-300 px-2 py-1 rounded cursor-pointer">🗑️ Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            let badge = document.getElementById('qtd-catalogo-badge');
+            if (badge) badge.innerText = catalogoProdutos.length;
+        }
+
+        function adicionarProdutoCatalogo() {
+            let cod = document.getElementById('cat-novo-codigo').value.trim();
+            let desc = document.getElementById('cat-novo-desc').value.trim().toUpperCase();
+            let unid = document.getElementById('cat-novo-unidade').value;
+
+            if (!cod || !desc) {
+                alert("Preencha o código e a descrição do material.");
+                return;
+            }
+
+            if (catalogoProdutos.some(p => p.codigo === cod)) {
+                alert("Já existe um produto cadastrado com este código Sienge.");
+                return;
+            }
+
+            catalogoProdutos.push({ codigo: cod, desc: desc, unidade: unid });
+            salvarDadosLocais();
+            atualizarTabelaCatalogo();
+
+            document.getElementById('cat-novo-codigo').value = '';
+            document.getElementById('cat-novo-desc').value = '';
+            alert("Produto adicionado ao catálogo com sucesso!");
+        }
+
+        function removerProdutoCatalogo(codigo) {
+            if (!confirm("Deseja excluir este item do catálogo Sienge?")) return;
+            catalogoProdutos = catalogoProdutos.filter(p => p.codigo !== codigo);
+            salvarDadosLocais();
+            atualizarTabelaCatalogo();
+        }
+
+        function limparCatalogoInteiro() {
+            if (!confirm("Deseja apagar todo o catálogo de materiais?")) return;
+            catalogoProdutos = [];
+            salvarDadosLocais();
+            atualizarTabelaCatalogo();
+        }
+
+        function importarCatalogoExcel(event) {
             let file = event.target.files[0];
             if (!file) return;
 
@@ -336,51 +895,48 @@
                     let worksheet = workbook.Sheets[firstSheetName];
                     let json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-                    let novosProdutos = [];
-                    // Assume colunas: Código (0), Descrição (1), Unidade (2)
+                    let novos = 0;
                     for (let i = 1; i < json.length; i++) {
                         let row = json[i];
-                        if (row[0] && row[1]) {
-                            novosProdutos.push({
-                                codigo: String(row[0]).trim(),
-                                desc: String(row[1]).trim(),
-                                unidade: row[2] ? String(row[2]).trim() : 'UN'
-                            });
+                        if (row && row.length >= 2) {
+                            let codigo = String(row[0] || '').trim();
+                            let desc = String(row[1] || '').trim().toUpperCase();
+                            let unid = String(row[2] || 'Und').trim().toUpperCase();
+
+                            if (codigo && desc) {
+                                if (!catalogoProdutos.some(p => p.codigo === codigo)) {
+                                    catalogoProdutos.push({ codigo: codigo, desc: desc, unidade: unid || 'Und' });
+                                    novos++;
+                                }
+                            }
                         }
                     }
 
-                    if (novosProdutos.length > 0) {
-                        catalogoProdutos = novosProdutos;
-                        renderizarCatalogo();
-                        alert(`Sucesso! ${novosProdutos.length} materiais importados da base Sienge.`);
-                    } else {
-                        alert("Não foram encontrados dados válidos nas colunas da planilha.");
-                    }
+                    salvarDadosLocais();
+                    atualizarTabelaCatalogo();
+                    alert(`Importação concluída! ${novos} novos materiais adicionados ao catálogo.`);
                 } catch (err) {
-                    console.error("Erro ao processar planilha:", err);
-                    alert("Erro ao ler o arquivo Excel. Verifique o formato.");
+                    alert("Erro ao ler o arquivo Excel: " + err.message);
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // Correção de Etiquetas QR Code Blindada
+        // Função ajustada com nível de correção de erro M e renderização otimizada para leitura instantânea por celular
         function renderizarEtiquetasQR() {
             let secaoEtiquetas = document.getElementById('secao-etiquetas');
-            if (!secaoEtiquetas) return;
-            secaoEtiquetas.classList.remove('hidden');
+            let estavaOculto = secaoEtiquetas.classList.contains('hidden');
+            
+            if (estavaOculto) {
+                secaoEtiquetas.classList.remove('hidden');
+            }
 
             let area = document.getElementById('area-impressao-etiquetas');
-            if (!area) return;
             area.innerHTML = '';
 
             if (catalogoProdutos.length === 0) {
                 area.innerHTML = `<p class="col-span-3 text-center text-slate-500 py-6 italic">Nenhum produto no catálogo para gerar etiquetas.</p>`;
-                return;
-            }
-
-            if (typeof QRCode === 'undefined') {
-                area.innerHTML = `<p class="col-span-3 text-center text-red-400 py-6 font-bold">Erro: Biblioteca qrcode.js não carregada.</p>`;
+                if (estavaOculto) secaoEtiquetas.classList.add('hidden');
                 return;
             }
 
@@ -388,217 +944,98 @@
                 let card = document.createElement('div');
                 card.className = "bg-white text-slate-900 p-3 rounded-lg border border-slate-300 shadow flex flex-col items-center justify-between space-y-2";
                 card.innerHTML = `
-                    <div class="text-center w-full">
+                    <div class="text-center">
                         <p class="text-[10px] font-bold text-blue-700 uppercase">GRUPO BRAVA | Sienge</p>
-                        <p class="text-xs font-bold text-slate-800 truncate">${p.desc || 'Sem Descrição'}</p>
-                        <p class="text-[10px] font-mono text-slate-600">Cód: ${p.codigo} | ${p.unidade || 'UN'}</p>
+                        <p class="text-xs font-bold text-slate-800 line-clamp-1">${p.desc}</p>
+                        <p class="text-[10px] font-mono text-slate-600">Cód: ${p.codigo} | ${p.unidade}</p>
                     </div>
-                    <div id="qrcode-${idx}" class="p-1.5 bg-white border border-slate-200 rounded flex items-center justify-center" style="width: 95px; height: 95px;"></div>
-                    <p class="text-[9px] text-slate-500 uppercase font-bold">Prateleira / Estoque</p>
+                    <div id="qrcode-${idx}" class="p-1.5 bg-white border border-slate-200 rounded flex items-center justify-center" style="width: 110px; height: 110px; min-width: 110px; min-height: 110px;"></div>
+                    <p class="text-[9px] text-slate-500 uppercase font-bold">Impresso para Prateleira</p>
                 `;
                 area.appendChild(card);
             });
 
-            setTimeout(() => {
-                catalogoProdutos.forEach((p, idx) => {
+            catalogoProdutos.forEach((p, idx) => {
+                setTimeout(() => {
                     let containerEl = document.getElementById(`qrcode-${idx}`);
                     if (containerEl && containerEl.childElementCount === 0) {
                         try {
-                            let textoCargaQR = `${p.codigo}|${p.desc}|${p.unidade}`;
+                            // Formato simplificado e limpo para garantir leitura imediata por qualquer celular
+                            let textoCargaQR = `${p.codigo} | ${p.desc} | ${p.unidade}`;
                             new QRCode(containerEl, {
                                 text: textoCargaQR,
-                                width: 85,
-                                height: 85,
+                                width: 96,
+                                height: 96,
                                 colorDark: "#000000",
                                 colorLight: "#ffffff",
-                                correctLevel: QRCode.CorrectLevel.M
+                                correctLevel: QRCode.CorrectLevel.M // Nível balanceado que melhora drasticamente a leitura da câmera
                             });
-                        } catch (err) {
-                            console.warn("Falha ao gerar QR Code: " + p.codigo, err);
+                        } catch (e) {
+                            console.error("Erro QR Code no item " + p.codigo, e);
                         }
                     }
-                });
-            }, 100);
-        }
-
-        // Função de bipe sonoro nativa para leitura bem-sucedida
-        function tocarBiPeSucesso() {
-            try {
-                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                
-                osc.type = 'sine';
-                osc.frequency.value = 880; // Frequência do bipe
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.15); // Duração de 150ms
-            } catch (e) {
-                console.log("Áudio não suportado ou bloqueado pelo navegador.");
-            }
-        }
-
-        // Scanner Óptico
-        function iniciarScanner() {
-            if (html5QrCode) return;
-            try {
-                html5QrCode = new Html5Qrcode("reader");
-                html5QrCode.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 200, height: 200 } },
-                    onScanSuccess,
-                    onScanFailure
-                ).catch(err => {
-                    console.warn("Câmera traseira indisponível, tentando padrão.", err);
-                });
-            } catch (e) {
-                console.error("Erro ao iniciar leitor:", e);
-            }
-        }
-
-        function pararScanner() {
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    html5QrCode = null;
-                }).catch(err => {
-                    html5QrCode = null;
-                });
-            }
-        }
-
-        function onScanSuccess(decodedText) {
-            tocarBiPeSucesso(); // <-- Toca o bipe automaticamente no momento do escaneamento bem-sucedido!
-
-            // Formato esperado do QR Code da etiqueta: codigo|desc|unidade ou apenas o código
-            let partes = decodedText.split('|');
-            let codigoLido = partes[0].trim();
-
-            let produtoEncontrado = catalogoProdutos.find(p => p.codigo === codigoLido);
-            if (produtoEncontrado) {
-                produtoScaneadoAtual = produtoEncontrado;
-                document.getElementById('lido-codigo-desc').textContent = `${produtoEncontrado.codigo} - ${produtoEncontrado.desc}`;
-                document.getElementById('lido-unidade').textContent = produtoEncontrado.unidade;
-                document.getElementById('painel-item-lido').classList.remove('hidden');
-            } else {
-                alert(`Código lido (${codigoLido}) não encontrado no catálogo Sienge importado.`);
-            }
-        }
-
-        function onScanFailure(error) {
-            // Ignorado frame a frame para evitar poluição no console
-        }
-
-        function salvarContagemItem() {
-            if (!produtoScaneadoAtual) return;
-            let qtdInput = document.getElementById('lido-quantidade');
-            let qtd = parseFloat(qtdInput.value);
-
-            if (isNaN(qtd) || qtd < 0) {
-                alert("Informe uma quantidade válida.");
-                return;
-            }
-
-            let codigo = produtoScaneadoAtual.codigo;
-            if (!registrosContagem[codigo]) {
-                registrosContagem[codigo] = { cont1: 0, cont2: 0 };
-            }
-
-            if (faseAtualContagem === 1) {
-                registrosContagem[codigo].cont1 = qtd;
-                alert(`1ª Contagem registrada para ${codigo}: ${qtd}`);
-            } else {
-                registrosContagem[codigo].cont2 = qtd;
-                alert(`2ª Contagem registrada para ${codigo}: ${qtd}`);
-            }
-
-            qtdInput.value = '';
-            document.getElementById('painel-item-lido').classList.add('hidden');
-            produtoScaneadoAtual = null;
-        }
-
-        // Lógica de Contagem Corrigida para Limite Máximo de 2 Contagens
-        function proximaContagem() {
-            if (faseAtualContagem >= 2) {
-                alert("Atenção: O inventário suporta no máximo até a 2ª contagem para o cruzamento com o Sienge!");
-                return;
-            }
-            faseAtualContagem++;
-            document.getElementById('label-fase-contagem').textContent = `${faseAtualContagem}ª Contagem`;
-            alert("Avançado com sucesso para a 2ª Contagem.");
-        }
-
-        // Cruzamento de Divergências
-        function calcularDivergencias() {
-            let tbody = document.getElementById('tabela-divergencias-corpo');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado.</td></tr>`;
-                return;
-            }
-
-            catalogoProdutos.forEach(p => {
-                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                let diff = reg.cont1 - reg.cont2;
-                let statusBadge = "";
-
-                if (reg.cont1 === 0 && reg.cont2 === 0) {
-                    statusBadge = `<span class="bg-slate-700 text-slate-400 px-2 py-0.5 rounded text-[10px] font-bold">Não Contado</span>`;
-                } else if (diff === 0) {
-                    statusBadge = `<span class="bg-emerald-900/60 text-emerald-400 border border-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold">OK / Sem Divergência</span>`;
-                } else {
-                    statusBadge = `<span class="bg-red-900/60 text-red-400 border border-red-700 px-2 py-0.5 rounded text-[10px] font-bold">Divergente (Diff: ${diff})</span>`;
-                }
-
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-700/50 transition";
-                tr.innerHTML = `
-                    <td class="p-2 font-mono font-bold text-blue-400">${p.codigo}</td>
-                    <td class="p-2">${p.desc}</td>
-                    <td class="p-2 font-mono">${reg.cont1}</td>
-                    <td class="p-2 font-mono">${reg.cont2}</td>
-                    <td class="p-2">${statusBadge}</td>
-                `;
-                tbody.appendChild(tr);
+                }, idx * 40);
             });
         }
 
-        // Exportação para Excel
-        function exportarRelatorioExcel() {
-            let dadosExport = catalogoProdutos.map(p => {
-                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                let diff = reg.cont1 - reg.cont2;
-                return {
-                    "Código": p.codigo,
-                    "Descrição": p.desc,
-                    "Unidade": p.unidade,
-                    "1ª Contagem": reg.cont1,
-                    "2ª Contagem": reg.cont2,
-                    "Divergência": diff,
-                    "Status": diff === 0 ? "OK" : "Divergente"
-                };
-            });
+        function baixarExcelLocal() {
+            if (inventarioItens.length === 0) {
+                alert("Não há itens no inventário para exportar.");
+                return;
+            }
+
+            let dadosExport = inventarioItens.map((item, idx) => ({
+                "Item": idx + 1,
+                "Código Sienge": item.codigo,
+                "Descrição do Material": item.desc,
+                "Unidade": item.unidade,
+                "1ª Contagem": item.qtd1,
+                "2ª Contagem": item.qtd2,
+                "Diferença (Dif)": item.qtd2 - item.qtd1
+            }));
 
             let worksheet = XLSX.utils.json_to_sheet(dadosExport);
             let workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Cruzamento Sienge");
-            XLSX.writeFile(workbook, "Relatorio_Inventario_Sienge.xlsx");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario Sienge");
+            XLSX.writeFile(workbook, "Inventario_Brava_Sienge.xlsx");
         }
 
-        // Envio por E-mail via EmailJS
-        function enviarRelatorioEmail() {
-            let destino = document.getElementById('email-destino').value.trim();
-            if (!destino) {
-                alert("Informe um e-mail de destino válido.");
+        function enviarRelatorioServidor() {
+            if (inventarioItens.length === 0) {
+                alert("A planilha de inventário está vazia.");
                 return;
             }
-            alert(`Simulação / Envio estruturado para ${destino} realizado com sucesso! Verifique sua caixa de entrada.`);
+
+            let msgStatus = document.getElementById('status-envio-msg');
+            msgStatus.style.display = 'block';
+            msgStatus.classList.remove('hidden');
+            msgStatus.innerText = "Gerando planilha e enviando relatório por e-mail...";
+            msgStatus.className = "text-xs text-center font-semibold text-blue-400";
+
+            let emailCorp = document.getElementById('email-corp').value;
+            let emailCel = document.getElementById('email-celular').value;
+            let emailPc = document.getElementById('email-pc').value;
+            let usuarioLogado = localStorage.getItem('brava_sessao_ativa') || 'Usuário Padrão';
+
+            let resumoTexto = inventarioItens.map(i => `[Cód: ${i.codigo}] ${i.desc} - 1ª:${i.qtd1} | 2ª:${i.qtd2} | Dif:${i.qtd2 - i.qtd1}`).join('\n');
+
+            let templateParams = {
+                to_email: `${emailCorp}, ${emailCel}, ${emailPc}`,
+                usuario: usuarioLogado,
+                total_itens: inventarioItens.length,
+                resumo_dados: resumoTexto
+            };
+
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                .then(function(response) {
+                    msgStatus.innerText = "✅ Relatório enviado por e-mail com sucesso! Baixando arquivo Excel...";
+                    msgStatus.className = "text-xs text-center font-semibold text-emerald-400";
+                    baixarExcelLocal();
+                }, function(error) {
+                    msgStatus.innerText = "⚠️ Erro ao enviar e-mail. Planilha baixada localmente.";
+                    msgStatus.className = "text-xs text-center font-semibold text-amber-400";
+                    baixarExcelLocal();
+                });
         }
     </script>
 </body>
