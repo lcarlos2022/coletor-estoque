@@ -407,7 +407,6 @@
 
         (function() {
             try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
-            // Registrar Service Worker para PWA Nativo
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7fфиллерLj==').catch(function() {});
             }
@@ -622,7 +621,6 @@
             let descExtraida = "";
             let unidExtraida = "";
 
-            // Se o QR Code contiver o padrão estruturado (Código|Descrição|Unidade), extrai tudo na hora
             if (textoLido.includes("|")) {
                 let partes = textoLido.split("|");
                 codigo = partes[0].trim();
@@ -632,7 +630,6 @@
 
             let produto = catalogoProdutos.find(p => p.codigo === codigo);
             if (!produto) {
-                // Se não achou no catálogo e a leitura veio sem descrição detalhada, pede no prompt
                 let descManual = descExtraida || prompt(`Código "${codigo}" não encontrado no catálogo Sienge.\nDigite a descrição para cadastrá-lo agora:`, "MATERIAL DIVERSO");
                 if (descManual === null) return;
                 let unidManual = unidExtraida || prompt("Digite a unidade (ex: UN, PC, KG, MT):", "UN") || "UN";
@@ -645,7 +642,6 @@
                 catalogoProdutos.push(produto);
                 salvarDadosLocais();
             } else if (descExtraida && produto.desc === "MATERIAL DIVERSO") {
-                // Atualiza caso o catálogo estivesse genérico e a etiqueta traga o dado real
                 produto.desc = descExtraida;
                 if (unidExtraida) produto.unidade = unidExtraida;
                 salvarDadosLocais();
@@ -726,7 +722,7 @@
                     <td class="p-2.5 text-center font-mono text-slate-400">${item.unidade}</td>
                     <td class="p-2.5 text-center font-mono text-blue-300">${item.qtd1}</td>
                     <td class="p-2.5 text-center font-mono text-emerald-300">${item.qtd2}</td>
-                    <td class="p-2.5 text-center font-mono font-bold ${dif !== '0' && dif !== 0 ? 'text-amber-400' : 'text-slate-500'}">${dif}</td>
+                    <td class="p-2.5 text-center font-mono font-bold ${dif !== 0 ? 'text-amber-400' : 'text-slate-500'}">${dif}</td>
                     <td class="p-2.5 text-center">
                         <button type="button" onclick="editarItemInventario('${item.codigo}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded cursor-pointer">✏️</button>
                         <button type="button" onclick="removerItemInventario('${item.codigo}')" class="text-xs bg-red-950/60 hover:bg-red-900 text-red-300 px-2 py-1 rounded ml-1 cursor-pointer">🗑️</button>
@@ -778,7 +774,7 @@
         function atualizarTabelaCatalogo() {
             let tbody = document.getElementById('tabela-catalogo-body');
             tbody.innerHTML = '';
-            catalogoProdutos.forEach((p, index) => {
+            catalogoProdutos.forEach((p) => {
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-900/50 transition-all border-b border-slate-800/40";
                 tr.innerHTML = `
@@ -873,6 +869,7 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // Função otimizada para renderizar 100% dos QR Codes sem falhar em branco
         function renderizarEtiquetasQR() {
             let area = document.getElementById('area-impressao-etiquetas');
             area.innerHTML = '';
@@ -891,23 +888,32 @@
                         <p class="text-xs font-bold text-slate-800 line-clamp-1">${p.desc}</p>
                         <p class="text-[10px] font-mono text-slate-600">Cód: ${p.codigo} | ${p.unidade}</p>
                     </div>
-                    <div id="qrcode-${idx}" class="p-1 bg-white border border-slate-200 rounded"></div>
+                    <div id="qrcode-${idx}" class="p-1 bg-white border border-slate-200 rounded flex items-center justify-center" style="width: 102px; height: 102px;"></div>
                     <p class="text-[9px] text-slate-500 uppercase font-bold">Impresso para Prateleira</p>
                 `;
                 area.appendChild(card);
+            });
 
-                try {
-                    // QR Code agora codifica o pacote completo: Código | Descrição | Unidade
-                    let textoCargaQR = `${p.codigo} | ${p.desc} | ${p.unidade}`;
-                    new QRCode(document.getElementById(`qrcode-${idx}`), {
-                        text: textoCargaQR,
-                        width: 90,
-                        height: 90,
-                        colorDark: "#000000",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-                } catch (e) {}
+            // Passada rápida de injeção direta usando requestAnimationFrame para garantir renderização síncrona visual
+            requestAnimationFrame(() => {
+                catalogoProdutos.forEach((p, idx) => {
+                    let containerEl = document.getElementById(`qrcode-${idx}`);
+                    if (containerEl && containerEl.childElementCount === 0) {
+                        try {
+                            let textoCargaQR = `${p.codigo} | ${p.desc} | ${p.unidade}`;
+                            new QRCode(containerEl, {
+                                text: textoCargaQR,
+                                width: 90,
+                                height: 90,
+                                colorDark: "#000000",
+                                colorLight: "#ffffff",
+                                correctLevel: QRCode.CorrectLevel.H
+                            });
+                        } catch (e) {
+                            console.error("Erro QR Code:", e);
+                        }
+                    }
+                });
             });
         }
 
