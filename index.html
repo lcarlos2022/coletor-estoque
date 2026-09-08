@@ -409,7 +409,7 @@
             try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
             // Registrar Service Worker para PWA Nativo
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7fSk=').catch(function() {});
+                navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7fфиллерLj==').catch(function() {});
             }
         })();
 
@@ -617,12 +617,25 @@
             input.value = '';
         }
 
-        function processarCodigoLido(codigo) {
+        function processarCodigoLido(textoLido) {
+            let codigo = textoLido.trim();
+            let descExtraida = "";
+            let unidExtraida = "";
+
+            // Se o QR Code contiver o padrão estruturado (Código|Descrição|Unidade), extrai tudo na hora
+            if (textoLido.includes("|")) {
+                let partes = textoLido.split("|");
+                codigo = partes[0].trim();
+                descExtraida = partes[1] ? partes[1].trim() : "";
+                unidExtraida = partes[2] ? partes[2].trim() : "UN";
+            }
+
             let produto = catalogoProdutos.find(p => p.codigo === codigo);
             if (!produto) {
-                let descManual = prompt(`Código "${codigo}" não encontrado no catálogo Sienge.\nDigite a descrição para cadastrá-lo agora:`, "MATERIAL DIVERSO");
+                // Se não achou no catálogo e a leitura veio sem descrição detalhada, pede no prompt
+                let descManual = descExtraida || prompt(`Código "${codigo}" não encontrado no catálogo Sienge.\nDigite a descrição para cadastrá-lo agora:`, "MATERIAL DIVERSO");
                 if (descManual === null) return;
-                let unidManual = prompt("Digite a unidade (ex: UN, PC, KG, MT):", "UN") || "UN";
+                let unidManual = unidExtraida || prompt("Digite a unidade (ex: UN, PC, KG, MT):", "UN") || "UN";
                 
                 produto = {
                     codigo: codigo,
@@ -630,6 +643,11 @@
                     unidade: unidManual.toUpperCase()
                 };
                 catalogoProdutos.push(produto);
+                salvarDadosLocais();
+            } else if (descExtraida && produto.desc === "MATERIAL DIVERSO") {
+                // Atualiza caso o catálogo estivesse genérico e a etiqueta traga o dado real
+                produto.desc = descExtraida;
+                if (unidExtraida) produto.unidade = unidExtraida;
                 salvarDadosLocais();
             }
 
@@ -879,8 +897,10 @@
                 area.appendChild(card);
 
                 try {
+                    // QR Code agora codifica o pacote completo: Código | Descrição | Unidade
+                    let textoCargaQR = `${p.codigo} | ${p.desc} | ${p.unidade}`;
                     new QRCode(document.getElementById(`qrcode-${idx}`), {
-                        text: p.codigo,
+                        text: textoCargaQR,
                         width: 90,
                         height: 90,
                         colorDark: "#000000",
