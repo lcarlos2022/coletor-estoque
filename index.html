@@ -869,17 +869,26 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Função corrigida com loop sequencial controlado para renderizar 100% dos QR Codes em lote
+        // Função robusta com forçamento de visibilidade e renderização em lote sequencial
         function renderizarEtiquetasQR() {
+            let secaoEtiquetas = document.getElementById('secao-etiquetas');
+            let estavaOculto = secaoEtiquetas.classList.contains('hidden');
+            
+            // Garante que a seção esteja visível no DOM para o qrcode.js calcular os pixels corretamente
+            if (estavaOculto) {
+                secaoEtiquetas.classList.remove('hidden');
+            }
+
             let area = document.getElementById('area-impressao-etiquetas');
             area.innerHTML = '';
 
             if (catalogoProdutos.length === 0) {
                 area.innerHTML = `<p class="col-span-3 text-center text-slate-500 py-6 italic">Nenhum produto no catálogo para gerar etiquetas.</p>`;
+                if (estavaOculto) secaoEtiquetas.classList.add('hidden');
                 return;
             }
 
-            // 1. Cria primeiro todos os elementos visuais das etiquetas na tela
+            // 1. Cria os elementos estruturais das etiquetas
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
                 card.className = "bg-white text-slate-900 p-3 rounded-lg border border-slate-300 shadow flex flex-col items-center justify-between space-y-2";
@@ -895,7 +904,7 @@
                 area.appendChild(card);
             });
 
-            // 2. Injeta os QR codes de forma escalonada para o navegador processar todos sem travar
+            // 2. Injeta os códigos QR sequencialmente com intervalo seguro
             catalogoProdutos.forEach((p, idx) => {
                 setTimeout(() => {
                     let containerEl = document.getElementById(`qrcode-${idx}`);
@@ -914,7 +923,7 @@
                             console.error("Erro QR Code no item " + p.codigo, e);
                         }
                     }
-                }, idx * 40); // Intervalo progressivo de segurança de 40ms por item
+                }, idx * 50); // 50ms de espaçamento por item para processamento fluido
             });
         }
 
