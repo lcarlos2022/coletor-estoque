@@ -247,7 +247,6 @@
             let pass = document.getElementById('login-pass').value;
             let errorEl = document.getElementById('login-error');
 
-            // Regra: 6 a 8 caracteres, pelo menos 1 maiúscula, 1 número e 1 caractere especial
             let regexPass = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,8}$/;
 
             if (!regexPass.test(pass)) {
@@ -337,7 +336,6 @@
                     let json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                     let novosProdutos = [];
-                    // Assume colunas: Código (0), Descrição (1), Unidade (2)
                     for (let i = 1; i < json.length; i++) {
                         let row = json[i];
                         if (row[0] && row[1]) {
@@ -421,6 +419,27 @@
             }, 100);
         }
 
+        // Função para emitir som de bipe sonoro ao escanear com sucesso
+        function tocarBiPeSucesso() {
+            try {
+                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.value = 880; // Frequência do bipe
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15); // Duração de 150ms
+            } catch (e) {
+                console.log("Áudio não suportado ou bloqueado pelo navegador.");
+            }
+        }
+
         // Scanner Óptico
         function iniciarScanner() {
             if (html5QrCode) return;
@@ -451,7 +470,8 @@
         }
 
         function onScanSuccess(decodedText) {
-            // Formato esperado do QR Code da etiqueta: codigo|desc|unidade ou apenas o código
+            tocarBiPeSucesso(); // Dispara o bipe sonoro imediatamente na leitura
+
             let partes = decodedText.split('|');
             let codigoLido = partes[0].trim();
 
@@ -467,7 +487,7 @@
         }
 
         function onScanFailure(error) {
-            // Ignorado frame a frame para evitar poluição no console
+            // Ignorado frame a frame
         }
 
         function salvarContagemItem() {
@@ -498,7 +518,7 @@
             produtoScaneadoAtual = null;
         }
 
-        // Lógica de Contagem Corrigida para Limite Máximo de 2 Contagens
+        // Lógica de Contagem Corrigida (Trava rígida após a 2ª contagem)
         function proximaContagem() {
             if (faseAtualContagem >= 2) {
                 alert("Atenção: O inventário suporta no máximo até a 2ª contagem para o cruzamento com o Sienge!");
