@@ -2,6 +2,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Brava Enterprise - Coletor e Gestor de Estoque Profissional (Sienge Edition)</title>
+    
+    <!-- Configuração PWA para Instalação Nativa -->
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Brava%20Enterprise%20Sienge%22%2C%22short_name%22%3A%22Brava%20Sienge%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23020617%22%2C%22theme_color%22%3A%22%23020617%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Butf%2C%253Csvg%2520xmlns%253D%2527http%253A%2F%2Fwww.w3.org%2F2000%2Fsvg%2527%2520viewBox%253D%25270%25200%252024%252024%2527%253E%253Crect%2520width%253D%252724%2527%2520height%253D%252724%2527%2520fill%253D%2527%25232563eb%2527%252F%253E%253Ctext%2520x%253D%252712%2527%2520y%253D%252717%2527%2520font-size%253D%252714%2527%2520text-anchor%253D%2527middle%253D%2527%2520fill%253D%2527%2523ffffff%2527%253E%25F0%259F%2593%25A6%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+    <meta name="theme-color" content="#020617">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Leitor QR Code / Barcode -->
@@ -402,6 +407,10 @@
 
         (function() {
             try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
+            // Registrar Service Worker para PWA Nativo
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7fSk=').catch(function() {});
+            }
         })();
 
         let html5QrCode = null;
@@ -445,7 +454,6 @@
         }
 
         function validarRegraSenha(senha) {
-            // 6 a 8 dígitos, pelo menos 1 maiúscula, números e 1 caractere especial
             let temTamanhoValido = senha.length >= 6 && senha.length <= 8;
             let temMaiuscula = /[A-Z]/.test(senha);
             let temNumero = /[0-9]/.test(senha);
@@ -465,7 +473,6 @@
             let emailSalvo = localStorage.getItem('brava_cad_email');
             let senhaSalva = localStorage.getItem('brava_cad_senha');
 
-            // Se ainda não houver cadastro prévio no navegador, permite o primeiro acesso e salva
             if (!emailSalvo) {
                 if (!validarRegraSenha(senha)) {
                     alert("A senha deve ter de 6 a 8 caracteres, contendo 1 letra maiúscula, números e 1 caractere especial (Ex: Brava@1).");
@@ -479,7 +486,6 @@
                 return;
             }
 
-            // Valida se o e-mail e a senha conferem rigorosamente com os cadastrados
             if (email !== emailSalvo || senha !== senhaSalva) {
                 alert("E-mail ou senha incorretos! Acesso negado.");
                 return;
