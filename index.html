@@ -247,6 +247,7 @@
             let pass = document.getElementById('login-pass').value;
             let errorEl = document.getElementById('login-error');
 
+            // Regra: 6 a 8 caracteres, pelo menos 1 maiúscula, 1 número e 1 caractere especial
             let regexPass = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,8}$/;
 
             if (!regexPass.test(pass)) {
@@ -336,6 +337,7 @@
                     let json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                     let novosProdutos = [];
+                    // Assume colunas: Código (0), Descrição (1), Unidade (2)
                     for (let i = 1; i < json.length; i++) {
                         let row = json[i];
                         if (row[0] && row[1]) {
@@ -419,7 +421,7 @@
             }, 100);
         }
 
-        // Função para emitir som de bipe sonoro ao escanear com sucesso
+        // Função de bipe sonoro nativa para leitura bem-sucedida
         function tocarBiPeSucesso() {
             try {
                 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -470,8 +472,9 @@
         }
 
         function onScanSuccess(decodedText) {
-            tocarBiPeSucesso(); // Dispara o bipe sonoro imediatamente na leitura
+            tocarBiPeSucesso(); // <-- Toca o bipe automaticamente no momento do escaneamento bem-sucedido!
 
+            // Formato esperado do QR Code da etiqueta: codigo|desc|unidade ou apenas o código
             let partes = decodedText.split('|');
             let codigoLido = partes[0].trim();
 
@@ -487,7 +490,7 @@
         }
 
         function onScanFailure(error) {
-            // Ignorado frame a frame
+            // Ignorado frame a frame para evitar poluição no console
         }
 
         function salvarContagemItem() {
@@ -518,7 +521,7 @@
             produtoScaneadoAtual = null;
         }
 
-        // Lógica de Contagem Corrigida (Trava rígida após a 2ª contagem)
+        // Lógica de Contagem Corrigida para Limite Máximo de 2 Contagens
         function proximaContagem() {
             if (faseAtualContagem >= 2) {
                 alert("Atenção: O inventário suporta no máximo até a 2ª contagem para o cruzamento com o Sienge!");
