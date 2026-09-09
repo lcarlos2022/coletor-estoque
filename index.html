@@ -384,7 +384,6 @@
             });
         }
 
-        // MOTOR DE VARREDURA INTELIGENTE (LOCALIZA CÓDIGO E DESCRIÇÃO EM QUALQUER COLUNA OU LINHA)
         function importarPlanilhaSienge(event) {
             let file = event.target.files[0];
             if (!file) return;
@@ -402,12 +401,10 @@
                         let row = json[i];
                         if (!row || row.length === 0) continue;
 
-                        // Filtra colunas vazias ou nulas da linha atual
                         let colunasValidas = row.map(c => String(c !== undefined && c !== null ? c : "").trim()).filter(c => c !== "");
                         if (colunasValidas.length === 0) continue;
 
                         let textoColuna0 = colunasValidas[0].toLowerCase();
-                        // Ignora cabeçalhos comuns automaticamente
                         if (textoColuna0.includes('código') || textoColuna0.includes('codigo') || textoColuna0.includes('descrição') || textoColuna0.includes('descricao') || textoColuna0.includes('item') || textoColuna0 === 'mat') {
                             continue;
                         }
@@ -417,16 +414,14 @@
                         let unidade = "UN";
 
                         if (colunasValidas.length >= 2) {
-                            // Se tiver 2 ou mais colunas preenchidas separadas
                             codigo = colunasValidas[0];
                             desc = colunasValidas[1];
                             if (colunasValidas.length >= 3) {
                                 unidade = colunasValidas[2];
                             }
                         } else if (colunasValidas.length === 1) {
-                            // Caso os dados estejam juntos na mesma célula (ex: "001 - Cabo Flexível" ou "001Cabo")
                             let textoUnico = colunasValidas[0];
-                            let partes = textoUnico.split(/[-–;|]/); // Tenta quebrar por hífen, barra ou pipe
+                            let partes = textoUnico.split(/[-–;|]/);
                             if (partes.length >= 2) {
                                 codigo = partes[0].trim();
                                 desc = partes.slice(1).join(' - ').trim();
@@ -445,9 +440,10 @@
                         catalogoProdutos = novosProdutos;
                         registrosContagem = {};
                         renderizarCatalogo();
+                        document.getElementById('secao-etiquetas').classList.add('hidden'); // Oculta painel de etiquetas antigo até gerar de novo
                         alert(`Sucesso! ${novosProdutos.length} materiais importados e carregados.`);
                     } else {
-                        alert("O arquivo foi lido, mas nenhuma linha com dados válidos de código e descrição foi identificada. Verifique se a planilha contém dados a partir da primeira linha.");
+                        alert("O arquivo foi lido, mas nenhuma linha com dados válidos de código e descrição foi identificada.");
                     }
                 } catch (err) { 
                     console.error(err);
@@ -468,6 +464,7 @@
             }
         }
 
+        // MOTOR DE RENDERIZAÇÃO ROBUSTA DE QR CODE COM DELAY SEGURO
         function renderizarEtiquetasQR() {
             if (catalogoProdutos.length === 0) {
                 alert("Não há materiais cadastrados/importados para gerar etiquetas.");
@@ -477,20 +474,43 @@
             secaoEtiquetas.classList.remove('hidden');
             let area = document.getElementById('area-impressao-etiquetas');
             area.innerHTML = '';
+
+            // Cria primeiro a estrutura HTML de todas as caixas de etiquetas
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
                 card.className = "bg-white text-slate-900 p-3 rounded-xl border border-slate-300 shadow flex flex-col items-center justify-between space-y-2";
-                card.innerHTML = `<div class="text-center w-full"><p class="text-[9px] font-bold text-amber-600 uppercase">Sienge</p><p class="text-xs font-bold truncate">${p.desc}</p><p class="text-[9px] font-mono text-slate-600">${p.codigo}</p></div><div id="qrcode-${idx}" style="width: 80px; height: 80px;"></div>`;
+                card.innerHTML = `
+                    <div class="text-center w-full">
+                        <p class="text-[9px] font-bold text-amber-600 uppercase">Sienge</p>
+                        <p class="text-xs font-bold truncate">${p.desc}</p>
+                        <p class="text-[9px] font-mono text-slate-600">${p.codigo}</p>
+                    </div>
+                    <div id="qrcode-${idx}" class="flex items-center justify-center" style="width: 80px; height: 80px;"></div>
+                `;
                 area.appendChild(card);
             });
+
+            // Aguarda o navegador exibir os elementos na tela para injetar os QR codes com precisão
             setTimeout(() => {
                 catalogoProdutos.forEach((p, idx) => {
                     let containerEl = document.getElementById(`qrcode-${idx}`);
-                    if (containerEl && containerEl.childElementCount === 0) {
-                        new QRCode(containerEl, { text: `${p.codigo}|${p.desc}|${p.unidade}`, width: 80, height: 80 });
+                    if (containerEl) {
+                        containerEl.innerHTML = ''; // Limpa qualquer quadrado anterior
+                        try {
+                            new QRCode(containerEl, {
+                                text: `${p.codigo}|${p.desc}|${p.unidade}`,
+                                width: 80,
+                                height: 80,
+                                colorDark: "#000000",
+                                colorLight: "#ffffff",
+                                correctLevel: QRCode.CorrectLevel.M
+                            });
+                        } catch (e) {
+                            console.error("Erro ao gerar QR Code para o item: " + p.codigo, e);
+                        }
                     }
                 });
-            }, 100);
+            }, 250);
         }
 
         function tocarBiPeSucesso() {
