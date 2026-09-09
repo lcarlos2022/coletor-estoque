@@ -52,7 +52,7 @@
                         <span>Instruções de Acesso:</span>
                     </p>
                     <p class="text-[11px] text-slate-300 leading-relaxed">
-                        Entre com seu e-mail corporativo. A senha padrão inicial é <b>123456</b>. No primeiro acesso, atualize sua senha utilizando <b>letra maiúscula, números e um caractere especial</b>.
+                        No primeiro acesso, entre com sua identificação e utilize a senha padrão <b>12345678</b>. O sistema exigirá a alteração imediata para uma nova senha segura.
                     </p>
                 </div>
             </div>
@@ -74,7 +74,7 @@
 
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Senha</label>
-                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha (ex: 123456)">
+                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha (ex: 12345678)">
                     </div>
 
                     <div class="flex items-center justify-between text-xs pt-1">
@@ -95,6 +95,43 @@
                         Dificuldades para acessar? <a href="#" onclick="alert('Fale com a equipe de suporte técnico.')" class="text-amber-400 hover:underline font-semibold">Fale com a equipe de suporte</a>
                     </p>
                 </div>
+            </div>
+        </section>
+
+        <!-- MODAL / SEÇÃO DE TROCA OBRIGATÓRIA DE SENHA -->
+        <section id="modal-troca-senha" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-5">
+                <div class="space-y-1 text-center">
+                    <div class="inline-block bg-amber-400 text-slate-950 p-3 rounded-2xl mb-1">
+                        <i class="fa-solid fa-key text-lg"></i>
+                    </div>
+                    <h3 class="text-lg font-black text-white">Alteração de Senha Obrigatória</h3>
+                    <p class="text-xs text-slate-400">Por segurança, como este é seu primeiro acesso, cadastre uma nova senha definitiva.</p>
+                </div>
+
+                <div class="bg-[#0b1329] p-3 rounded-xl border border-slate-800 text-[11px] text-slate-300 space-y-1">
+                    <p class="font-bold text-amber-400">Requisitos da nova senha:</p>
+                    <ul class="list-disc list-inside space-y-0.5 text-slate-400">
+                        <li>Mínimo de 1 letra maiúscula</li>
+                        <li>Letras minúsculas</li>
+                        <li>Números</li>
+                        <li>Pelo menos 1 caractere especial (ex: @, #, $, %)</li>
+                    </ul>
+                </div>
+
+                <form onsubmit="salvarNovaSenha(event)" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nova Senha</label>
+                        <input type="password" id="nova-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Digite a nova senha segura">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Confirme a Nova Senha</label>
+                        <input type="password" id="confirma-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Repita a nova senha">
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg transition">
+                        Salvar e Liberar Acesso
+                    </button>
+                </form>
             </div>
         </section>
 
@@ -246,14 +283,79 @@
         let html5QrCode = null;
         let produtoScaneadoAtual = null;
 
+        // Banco local simples de senhas salvas (limpa cadastros antigos)
+        let senhasUsuarios = JSON.parse(localStorage.getItem('senhasUsuarios') || '{}');
+
         function realizarLogin(event) {
             event.preventDefault();
             let user = document.getElementById('login-user').value.trim();
             let pass = document.getElementById('login-pass').value;
+
             if(!user || !pass) {
                 alert("Por favor, preencha o e-mail e a senha.");
                 return;
             }
+
+            // Verifica se o usuário já tem senha cadastrada personalizada
+            let senhaCadastrada = senhasUsuarios[user];
+
+            if (!senhaCadastrada) {
+                // Primeiro acesso: exige senha 12345678
+                if (pass === "12345678") {
+                    usuarioLogado = user;
+                    // Abre modal para trocar senha obrigatoriamente
+                    document.getElementById('modal-troca-senha').classList.remove('hidden');
+                } else {
+                    alert("Senha incorreta para o primeiro acesso. Utilize a senha padrão: 12345678");
+                }
+            } else {
+                // Acesso normal com senha já alterada anteriormente
+                if (pass === senhaCadastrada) {
+                    entrarNoSistema(user);
+                } else {
+                    alert("Senha incorreta.");
+                }
+            }
+        }
+
+        function salvarNovaSenha(event) {
+            event.preventDefault();
+            let novaPass = document.getElementById('nova-senha').value;
+            let confirmaPass = document.getElementById('confirma-senha').value;
+
+            if (novaPass !== confirmaPass) {
+                alert("As senhas não coincidem.");
+                return;
+            }
+
+            // Validação dos requisitos de segurança:
+            // - Mínimo 1 letra maiúscula
+            // - Letras minúsculas
+            // - Números
+            // - 1 caractere especial
+            let temMaiuscula = /[A-Z]/.test(novaPass);
+            let temMinuscula = /[a-z]/.test(novaPass);
+            let temNumero = /[0-9]/.test(novaPass);
+            let temEspecial = /[\W_]/.test(novaPass);
+
+            if (!temMaiuscula || !temMinuscula || !temNumero || !temEspecial) {
+                alert("A nova senha não atende aos requisitos de segurança.\nCertifique-se de incluir:\n- Letras maiúsculas e minúsculas\n- Números\n- Ao menos um caractere especial.");
+                return;
+            }
+
+            // Salva a nova senha e libera acesso
+            senhasUsuarios[usuarioLogado] = novaPass;
+            localStorage.setItem('senhasUsuarios', JSON.stringify(senhasUsuarios));
+
+            document.getElementById('modal-troca-senha').classList.add('hidden');
+            document.getElementById('nova-senha').value = '';
+            document.getElementById('confirma-senha').value = '';
+
+            alert("Senha alterada com sucesso! Acesso liberado.");
+            entrarNoSistema(usuarioLogado);
+        }
+
+        function entrarNoSistema(user) {
             usuarioLogado = user;
             document.getElementById('display-username').textContent = user;
             document.getElementById('user-info-header').classList.remove('hidden');
