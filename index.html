@@ -476,9 +476,10 @@
                         }
 
                         if (codigo && desc) {
-                            // Padroniza código para garantir correspondência (ex: 18 vira MAT-018 ou mantém se já tiver formato)
-                            if (/^\d+$/.test(codigo)) {
-                                codigo = "MAT-" + codigo.padStart(3, '0');
+                            // Padroniza flexivelmente códigos numéricos ou com prefixos diversos para o padrão de 3 dígitos (ex: 110, MAT-110, etc.)
+                            let codigoLimpo = codigo.replace(/^MAT[\s\-_]*/i, "").trim();
+                            if (/^\d+$/.test(codigoLimpo)) {
+                                codigo = "MAT-" + codigoLimpo.padStart(3, '0');
                             }
                             novosProdutos.push({ codigo, desc, unidade });
                         }
