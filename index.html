@@ -41,8 +41,8 @@
             
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2">
-                    Faça seu cadastro inicial ou entre com suas credenciais corporativas.
+                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">
+                    Carregando sistema...
                 </p>
                 
                 <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
@@ -50,8 +50,8 @@
                         <i class="fa-solid fa-circle-info"></i>
                         <span>Orientações:</span>
                     </p>
-                    <p class="text-[11px] text-slate-300 leading-relaxed">
-                        Se não possui cadastro, preencha os dados e utilize a senha padrão <b>12345678</b>. No primeiro acesso, o sistema exigirá a alteração por uma senha segura.
+                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">
+                        Aguarde...
                     </p>
                 </div>
             </div>
@@ -76,12 +76,12 @@
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Senha</label>
-                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha (ex: 12345678)">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest" id="label-senha-input">Senha</label>
+                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
                     </div>
 
                     <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
-                        <span>Entrar / Cadastrar</span>
+                        <span id="texto-botao-auth">Entrar / Cadastrar</span>
                     </button>
                 </form>
             </div>
@@ -260,10 +260,6 @@
     </footer>
 
     <script>
-        // Limpeza completa de qualquer registro anterior do navegador
-        localStorage.clear();
-
-        let usuarioLogado = null;
         let catalogoProdutos = [
             { codigo: "MAT-001", desc: "Cabo Flexível 2.5mm Vermelho", unidade: "M" },
             { codigo: "MAT-002", desc: "Disjuntor Termomagnético 32A", unidade: "UN" },
@@ -274,24 +270,73 @@
         let html5QrCode = null;
         let produtoScaneadoAtual = null;
 
+        // Ao carregar a página, verifica se já existe cadastro gravado
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarEstadoSistema();
+        });
+
+        function verificarEstadoSistema() {
+            let usuarioCadastrado = localStorage.getItem('sienge_usuario_cadastrado');
+            
+            if (!usuarioCadastrado) {
+                // PRIMEIRO ACESSO: Exige cadastro completo e senha padrão 12345678
+                document.getElementById('campo-nome-div').style.display = 'block';
+                document.getElementById('campo-cpf-div').style.display = 'block';
+                document.getElementById('cad-nome').required = true;
+                document.getElementById('cad-cpf').required = true;
+                document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando obrigatoriamente a senha padrão 12345678.";
+                document.getElementById('instrucao-dinamica').innerHTML = "Como é o seu primeiro acesso, preencha seu Nome, CPF e a senha padrão <b>12345678</b>. Em seguida o sistema exigirá a troca por uma senha segura.";
+                document.getElementById('titulo-form-auth').textContent = "Primeiro Cadastro Obrigatório";
+                document.getElementById('texto-botao-auth').textContent = "Cadastrar e Prosseguir";
+            } else {
+                // ACESSOS SEGUINTES: Oculta campos de cadastro, exigindo apenas CPF e a nova senha cadastrada
+                document.getElementById('campo-nome-div').style.display = 'none';
+                document.getElementById('cad-nome').required = false;
+                document.getElementById('descricao-auth-modo').textContent = "Entre com seu CPF e sua senha cadastrada.";
+                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e a senha definitiva que você configurou para acessar o sistema.";
+                document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
+                document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
+            }
+        }
+
         function processarAutenticacao(event) {
             event.preventDefault();
-            let nome = document.getElementById('cad-nome').value.trim();
-            let cpf = document.getElementById('cad-cpf').value.trim();
+            let usuarioCadastradoStr = localStorage.getItem('sienge_usuario_cadastrado');
             let pass = document.getElementById('login-pass').value;
 
-            if (!nome || !cpf || !pass) {
-                alert("Por favor, preencha o Nome Completo, o CPF e a Senha.");
-                return;
-            }
+            if (!usuarioCadastradoStr) {
+                // Fluxo de Primeiro Cadastro
+                let nome = document.getElementById('cad-nome').value.trim();
+                let cpf = document.getElementById('cad-cpf').value.trim();
 
-            // Exige a senha padrão 12345678 no primeiro cadastro/acesso
-            if (pass === "12345678") {
-                usuarioLogado = nome;
-                // Exibe imediatamente a exigência de troca de senha
-                document.getElementById('modal-troca-senha').classList.remove('hidden');
+                if (!nome || !cpf || !pass) {
+                    alert("Por favor, preencha todos os campos.");
+                    return;
+                }
+
+                if (pass === "12345678") {
+                    // Salva temporariamente os dados e abre o modal obrigatório de troca de senha
+                    let dadosTemporarios = { nome, cpf };
+                    localStorage.setItem('sienge_temp_user', JSON.stringify(dadosTemporarios));
+                    document.getElementById('modal-troca-senha').classList.remove('hidden');
+                } else {
+                    alert("No primeiro acesso, a senha padrão obrigatória deve ser exatamente: 12345678");
+                }
             } else {
-                alert("Senha incorreta para primeiro cadastro/acesso. Utilize a senha padrão exigida: 12345678");
+                // Fluxo de Login Normal (após o sistema já ter sido configurado antes)
+                let cpfDigitado = document.getElementById('cad-cpf').value.trim();
+                let usuarioSalvo = JSON.parse(usuarioCadastradoStr);
+
+                if (cpfDigitado !== usuarioSalvo.cpf) {
+                    alert("CPF não encontrado no sistema.");
+                    return;
+                }
+
+                if (pass === usuarioSalvo.senha) {
+                    entrarNoSistema(usuarioSalvo.nome);
+                } else {
+                    alert("Senha incorreta!");
+                }
             }
         }
 
@@ -306,10 +351,6 @@
             }
 
             // Validação rígida dos requisitos solicitados:
-            // - Mínimo 1 letra maiúscula
-            // - Letras minúsculas
-            // - Números
-            // - 1 caractere especial
             let temMaiuscula = /[A-Z]/.test(novaPass);
             let temMinuscula = /[a-z]/.test(novaPass);
             let temNumero = /[0-9]/.test(novaPass);
@@ -320,10 +361,21 @@
                 return;
             }
 
-            // Oculta modal de troca e libera o acesso total ao sistema
-            document.getElementById('modal-troca-senha').classList.add('hidden');
-            alert("Senha alterada com sucesso! Acesso liberado ao sistema.");
-            entrarNoSistema(usuarioLogado);
+            // Recupera dados temporários e grava permanentemente no localStorage
+            let dadosTemp = JSON.parse(localStorage.getItem('sienge_temp_user'));
+            if (dadosTemp) {
+                let usuarioFinal = {
+                    nome: dadosTemp.nome,
+                    cpf: dadosTemp.cpf,
+                    senha: novaPass
+                };
+                localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioFinal));
+                localStorage.removeItem('sienge_temp_user');
+
+                document.getElementById('modal-troca-senha').classList.add('hidden');
+                alert("Senha alterada com sucesso! Acesso liberado.");
+                entrarNoSistema(usuarioFinal.nome);
+            }
         }
 
         function entrarNoSistema(user) {
@@ -336,12 +388,13 @@
         }
 
         function fazerLogout() {
-            usuarioLogado = null;
+            // Apenas limpa a visualização, mantendo o cadastro salvo para o próximo acesso
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('login-form').reset();
             pararScanner();
+            verificarEstadoSistema();
         }
 
         function mudarAba(aba) {
