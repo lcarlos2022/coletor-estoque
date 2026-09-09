@@ -38,33 +38,25 @@
 
         <!-- TELA DE AUTENTICAÇÃO / CADASTRO -->
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
-            
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">
-                    Carregando sistema...
-                </p>
-                
+                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">Carregando sistema...</p>
                 <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
                     <p class="font-bold text-amber-400 flex items-center space-x-1.5">
                         <i class="fa-solid fa-circle-info"></i>
                         <span>Orientações:</span>
                     </p>
-                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">
-                        Aguarde...
-                    </p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">Aguarde...</p>
                 </div>
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
-                
                 <div class="space-y-1">
                     <h3 class="text-base font-bold text-white" id="titulo-form-auth">Identificação de Acesso</h3>
                     <p class="text-xs text-slate-400">Preencha os campos abaixo para prosseguir.</p>
                 </div>
 
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
-                    
                     <div class="space-y-1.5" id="campo-nome-div">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
                         <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Seu nome completo">
@@ -124,7 +116,7 @@
             </div>
         </section>
 
-        <!-- DASHBOARD DO APLICATIVO (OCULTO ATÉ LOGIN) -->
+        <!-- DASHBOARD DO APLICATIVO -->
         <section id="dashboard-section" class="hidden flex-1 flex flex-col space-y-4">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <button onclick="mudarAba('catalogo')" id="btn-aba-catalogo" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
@@ -162,7 +154,7 @@
                                 <i class="fa-solid fa-qrcode"></i>
                                 <span>Gerar Etiquetas</span>
                             </button>
-                            <!-- NOVO BOTÃO DE LIMPAR/EXCLUIR DADOS IMPORTADOS -->
+                            <!-- BOTÃO DE LIMPAR/EXCLUIR DADOS IMPORTADOS -->
                             <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Limpar dados importados">
                                 <i class="fa-solid fa-trash-can"></i>
                                 <span>Limpar Dados</span>
@@ -279,30 +271,26 @@
         let html5QrCode = null;
         let produtoScaneadoAtual = null;
 
-        // Ao carregar a página, verifica se já existe cadastro gravado
         window.addEventListener('DOMContentLoaded', () => {
             verificarEstadoSistema();
         });
 
         function verificarEstadoSistema() {
             let usuarioCadastrado = localStorage.getItem('sienge_usuario_cadastrado');
-            
             if (!usuarioCadastrado) {
-                // PRIMEIRO ACESSO: Exige cadastro completo e senha padrão 12345678
                 document.getElementById('campo-nome-div').style.display = 'block';
                 document.getElementById('campo-cpf-div').style.display = 'block';
                 document.getElementById('cad-nome').required = true;
                 document.getElementById('cad-cpf').required = true;
                 document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando obrigatoriamente a senha padrão 12345678.";
-                document.getElementById('instrucao-dinamica').innerHTML = "Como é o seu primeiro acesso, preencha seu Nome, CPF e a senha padrão <b>12345678</b>. Em seguida o sistema exigirá a troca por uma senha segura.";
+                document.getElementById('instrucao-dinamica').innerHTML = "Como é o seu primeiro acesso, preencha seu Nome, CPF e a senha padrão <b>12345678</b>.";
                 document.getElementById('titulo-form-auth').textContent = "Primeiro Cadastro Obrigatório";
                 document.getElementById('texto-botao-auth').textContent = "Cadastrar e Prosseguir";
             } else {
-                // ACESSOS SEGUINTES: Oculta campos de cadastro, exigindo apenas CPF e a nova senha cadastrada
                 document.getElementById('campo-nome-div').style.display = 'none';
                 document.getElementById('cad-nome').required = false;
                 document.getElementById('descricao-auth-modo').textContent = "Entre com seu CPF e sua senha cadastrada.";
-                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e a senha definitiva que você configurou para acessar o sistema.";
+                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e a senha definitiva configurada.";
                 document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
                 document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
             }
@@ -314,37 +302,20 @@
             let pass = document.getElementById('login-pass').value;
 
             if (!usuarioCadastradoStr) {
-                // Fluxo de Primeiro Cadastro
                 let nome = document.getElementById('cad-nome').value.trim();
                 let cpf = document.getElementById('cad-cpf').value.trim();
-
-                if (!nome || !cpf || !pass) {
-                    alert("Por favor, preencha todos os campos.");
-                    return;
-                }
-
+                if (!nome || !cpf || !pass) { alert("Preencha todos os campos."); return; }
                 if (pass === "12345678") {
-                    let dadosTemporarios = { nome, cpf };
-                    localStorage.setItem('sienge_temp_user', JSON.stringify(dadosTemporarios));
+                    localStorage.setItem('sienge_temp_user', JSON.stringify({ nome, cpf }));
                     document.getElementById('modal-troca-senha').classList.remove('hidden');
                 } else {
-                    alert("No primeiro acesso, a senha padrão obrigatória deve ser exatamente: 12345678");
+                    alert("A senha padrão obrigatória deve ser exatamente: 12345678");
                 }
             } else {
-                // Fluxo de Login Normal
                 let cpfDigitado = document.getElementById('cad-cpf').value.trim();
                 let usuarioSalvo = JSON.parse(usuarioCadastradoStr);
-
-                if (cpfDigitado !== usuarioSalvo.cpf) {
-                    alert("CPF não encontrado no sistema.");
-                    return;
-                }
-
-                if (pass === usuarioSalvo.senha) {
-                    entrarNoSistema(usuarioSalvo.nome);
-                } else {
-                    alert("Senha incorreta!");
-                }
+                if (cpfDigitado !== usuarioSalvo.cpf) { alert("CPF não encontrado."); return; }
+                if (pass === usuarioSalvo.senha) { entrarNoSistema(usuarioSalvo.nome); } else { alert("Senha incorreta!"); }
             }
         }
 
@@ -352,34 +323,14 @@
             event.preventDefault();
             let novaPass = document.getElementById('nova-senha').value;
             let confirmaPass = document.getElementById('confirma-senha').value;
-
-            if (novaPass !== confirmaPass) {
-                alert("As senhas não coincidem.");
-                return;
-            }
-
-            let temMaiuscula = /[A-Z]/.test(novaPass);
-            let temMinuscula = /[a-z]/.test(novaPass);
-            let temNumero = /[0-9]/.test(novaPass);
-            let temEspecial = /[\W_]/.test(novaPass);
-
-            if (!temMaiuscula || !temMinuscula || !temNumero || !temEspecial) {
-                alert("A nova senha não atende aos requisitos obrigatórios.\nCertifique-se de que contenha:\n- Pelo menos 1 letra maiúscula\n- Letras minúsculas\n- Números\n- Ao menos 1 caractere especial.");
-                return;
-            }
-
+            if (novaPass !== confirmaPass) { alert("As senhas não coincidem."); return; }
             let dadosTemp = JSON.parse(localStorage.getItem('sienge_temp_user'));
             if (dadosTemp) {
-                let usuarioFinal = {
-                    nome: dadosTemp.nome,
-                    cpf: dadosTemp.cpf,
-                    senha: novaPass
-                };
+                let usuarioFinal = { nome: dadosTemp.nome, cpf: dadosTemp.cpf, senha: novaPass };
                 localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioFinal));
                 localStorage.removeItem('sienge_temp_user');
-
                 document.getElementById('modal-troca-senha').classList.add('hidden');
-                alert("Senha alterada com sucesso! Acesso liberado.");
+                alert("Senha alterada com sucesso!");
                 entrarNoSistema(usuarioFinal.nome);
             }
         }
@@ -413,7 +364,6 @@
             let btnAlvo = document.getElementById(`btn-aba-${aba}`);
             if (alvo) alvo.classList.remove('hidden');
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
-
             if (aba === 'scanner') { iniciarScanner(); } else { pararScanner(); }
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
@@ -434,6 +384,7 @@
             });
         }
 
+        // FUNÇÃO DE IMPORTAÇÃO MELHORADA (LÊ CÓDIGO E DESCRIÇÃO MESMO COM FÓRMULAS OU COLUNAS AJUSTADAS)
         function importarPlanilhaSienge(event) {
             let file = event.target.files[0];
             if (!file) return;
@@ -441,31 +392,45 @@
             reader.onload = function(e) {
                 try {
                     let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, { type: 'array' });
+                    let workbook = XLSX.read(data, { type: 'array', cellFormula: false, cellText: false });
                     let worksheet = workbook.Sheets[workbook.SheetNames[0]];
                     let json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
                     let novosProdutos = [];
-                    for (let i = 1; i < json.length; i++) {
+                    for (let i = 0; i < json.length; i++) {
                         let row = json[i];
-                        if (row[0] && row[1]) {
-                            novosProdutos.push({ codigo: String(row[0]).trim(), desc: String(row[1]).trim(), unidade: row[2] ? String(row[2]).trim() : 'UN' });
+                        if (!row || row.length === 0) continue;
+
+                        let col0 = row[0] !== undefined ? String(row[0]).trim() : '';
+                        let col1 = row[1] !== undefined ? String(row[1]).trim() : '';
+                        let col2 = row[2] !== undefined ? String(row[2]).trim() : 'UN';
+
+                        // Ignora cabeçalhos comuns
+                        let col0Lower = col0.toLowerCase();
+                        if (col0Lower.includes('código') || col0Lower.includes('codigo') || col0Lower === 'mat') continue;
+
+                        if (col0 && col1) {
+                            novosProdutos.push({ codigo: col0, desc: col1, unidade: col2 });
                         }
                     }
+
                     if (novosProdutos.length > 0) {
                         catalogoProdutos = novosProdutos;
-                        registrosContagem = {}; // Reseta contagens anteriores ao importar nova base
+                        registrosContagem = {};
                         renderizarCatalogo();
                         alert(`${novosProdutos.length} materiais importados com sucesso.`);
                     } else {
-                        alert("Nenhum dado válido encontrado na planilha.");
+                        alert("Nenhum dado válido encontrado. Certifique-se de que a planilha possui as colunas de Código e Descrição preenchidas a partir da primeira ou segunda linha.");
                     }
-                } catch (err) { alert("Erro ao processar arquivo."); }
+                } catch (err) { 
+                    console.error(err);
+                    alert("Erro ao processar o arquivo. Verifique se o formato do Excel é válido."); 
+                }
             };
             reader.readAsArrayBuffer(file);
-            event.target.value = ''; // Permite reimportar o mesmo arquivo se necessário
+            event.target.value = '';
         }
 
-        // Função do novo botão para limpar/excluir os materiais importados sem afetar o sistema
         function limparDadosImportados() {
             if (confirm("Tem certeza que deseja limpar/excluir todos os dados de materiais importados?")) {
                 catalogoProdutos = [];
