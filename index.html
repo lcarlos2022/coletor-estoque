@@ -36,40 +36,43 @@
     <!-- CONTAINER PRINCIPAL -->
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-center">
 
-        <!-- TELA DE AUTENTICAÇÃO -->
+        <!-- TELA DE AUTENTICAÇÃO / CADASTRO -->
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             
             <div class="text-center space-y-2">
-                <h2 class="text-3xl font-black text-white tracking-tight">Bem-vindo<br>de volta!</h2>
+                <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
                 <p class="text-xs text-slate-400 leading-relaxed px-2">
-                    Acesse o sistema de controle de almoxarifado corporativo com suas credenciais.
+                    Faça seu cadastro inicial ou entre com suas credenciais corporativas.
                 </p>
                 
-                <!-- Instruções de login corporativo atualizadas -->
                 <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
                     <p class="font-bold text-amber-400 flex items-center space-x-1.5">
                         <i class="fa-solid fa-circle-info"></i>
-                        <span>Instruções de Acesso:</span>
+                        <span>Orientações:</span>
                     </p>
                     <p class="text-[11px] text-slate-300 leading-relaxed">
-                        No primeiro acesso, entre com sua identificação e utilize a senha padrão <b>12345678</b>. O sistema exigirá a alteração imediata para uma nova senha segura.
+                        Se não possui cadastro, preencha os dados e utilize a senha padrão <b>12345678</b>. No primeiro acesso, o sistema exigirá a alteração por uma senha segura.
                     </p>
                 </div>
             </div>
 
-            <!-- Caixa Azul Escuro do Login -->
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
                 
                 <div class="space-y-1">
-                    <h3 class="text-base font-bold text-white">Login Corporativo</h3>
-                    <p class="text-xs text-slate-400">Informe seus dados para acessar o sistema.</p>
+                    <h3 class="text-base font-bold text-white" id="titulo-form-auth">Identificação de Acesso</h3>
+                    <p class="text-xs text-slate-400">Preencha os campos abaixo para prosseguir.</p>
                 </div>
 
-                <form id="login-form" onsubmit="realizarLogin(event)" class="space-y-4">
+                <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
                     
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">E-mail ou Usuário</label>
-                        <input type="text" id="login-user" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="seuemail@exemplo.com">
+                    <div class="space-y-1.5" id="campo-nome-div">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
+                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Seu nome completo">
+                    </div>
+
+                    <div class="space-y-1.5" id="campo-cpf-div">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
+                        <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
                     </div>
 
                     <div class="space-y-1.5">
@@ -77,28 +80,14 @@
                         <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha (ex: 12345678)">
                     </div>
 
-                    <div class="flex items-center justify-between text-xs pt-1">
-                        <label class="flex items-center space-x-2 text-slate-400 cursor-pointer select-none">
-                            <input type="checkbox" class="rounded bg-[#0b1329] border-slate-700 text-amber-400 focus:ring-0">
-                            <span>Lembrar meu e-mail</span>
-                        </label>
-                        <a href="#" onclick="alert('Procure o administrador do sistema para redefinição de credenciais.')" class="text-amber-400 hover:underline font-medium">Esqueci a senha</a>
-                    </div>
-
-                    <button type="submit" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
-                        <span>Entrar</span>
+                    <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
+                        <span>Entrar / Cadastrar</span>
                     </button>
                 </form>
-
-                <div class="text-center pt-3 border-t border-slate-800/80">
-                    <p class="text-xs text-slate-400">
-                        Dificuldades para acessar? <a href="#" onclick="alert('Fale com a equipe de suporte técnico.')" class="text-amber-400 hover:underline font-semibold">Fale com a equipe de suporte</a>
-                    </p>
-                </div>
             </div>
         </section>
 
-        <!-- MODAL / SEÇÃO DE TROCA OBRIGATÓRIA DE SENHA -->
+        <!-- MODAL DE TROCA OBRIGATÓRIA DE SENHA -->
         <section id="modal-troca-senha" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-5">
                 <div class="space-y-1 text-center">
@@ -106,11 +95,11 @@
                         <i class="fa-solid fa-key text-lg"></i>
                     </div>
                     <h3 class="text-lg font-black text-white">Alteração de Senha Obrigatória</h3>
-                    <p class="text-xs text-slate-400">Por segurança, como este é seu primeiro acesso, cadastre uma nova senha definitiva.</p>
+                    <p class="text-xs text-slate-400">Por segurança, altere sua senha padrão para continuar.</p>
                 </div>
 
                 <div class="bg-[#0b1329] p-3 rounded-xl border border-slate-800 text-[11px] text-slate-300 space-y-1">
-                    <p class="font-bold text-amber-400">Requisitos da nova senha:</p>
+                    <p class="font-bold text-amber-400">Sua nova senha deve conter obrigatoriamente:</p>
                     <ul class="list-disc list-inside space-y-0.5 text-slate-400">
                         <li>Mínimo de 1 letra maiúscula</li>
                         <li>Letras minúsculas</li>
@@ -129,7 +118,7 @@
                         <input type="password" id="confirma-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Repita a nova senha">
                     </div>
                     <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg transition">
-                        Salvar e Liberar Acesso
+                        Salvar e Liberar Acesso ao Sistema
                     </button>
                 </form>
             </div>
@@ -157,7 +146,6 @@
             </div>
 
             <div class="flex-1 bg-[#111c38] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
-                <!-- CONTEÚDO DAS ABAS INTERNAS -->
                 <div id="conteudo-catalogo" class="space-y-4">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
@@ -272,6 +260,9 @@
     </footer>
 
     <script>
+        // Limpeza completa de qualquer registro anterior do navegador
+        localStorage.clear();
+
         let usuarioLogado = null;
         let catalogoProdutos = [
             { codigo: "MAT-001", desc: "Cabo Flexível 2.5mm Vermelho", unidade: "M" },
@@ -283,38 +274,24 @@
         let html5QrCode = null;
         let produtoScaneadoAtual = null;
 
-        // Banco local simples de senhas salvas (limpa cadastros antigos)
-        let senhasUsuarios = JSON.parse(localStorage.getItem('senhasUsuarios') || '{}');
-
-        function realizarLogin(event) {
+        function processarAutenticacao(event) {
             event.preventDefault();
-            let user = document.getElementById('login-user').value.trim();
+            let nome = document.getElementById('cad-nome').value.trim();
+            let cpf = document.getElementById('cad-cpf').value.trim();
             let pass = document.getElementById('login-pass').value;
 
-            if(!user || !pass) {
-                alert("Por favor, preencha o e-mail e a senha.");
+            if (!nome || !cpf || !pass) {
+                alert("Por favor, preencha o Nome Completo, o CPF e a Senha.");
                 return;
             }
 
-            // Verifica se o usuário já tem senha cadastrada personalizada
-            let senhaCadastrada = senhasUsuarios[user];
-
-            if (!senhaCadastrada) {
-                // Primeiro acesso: exige senha 12345678
-                if (pass === "12345678") {
-                    usuarioLogado = user;
-                    // Abre modal para trocar senha obrigatoriamente
-                    document.getElementById('modal-troca-senha').classList.remove('hidden');
-                } else {
-                    alert("Senha incorreta para o primeiro acesso. Utilize a senha padrão: 12345678");
-                }
+            // Exige a senha padrão 12345678 no primeiro cadastro/acesso
+            if (pass === "12345678") {
+                usuarioLogado = nome;
+                // Exibe imediatamente a exigência de troca de senha
+                document.getElementById('modal-troca-senha').classList.remove('hidden');
             } else {
-                // Acesso normal com senha já alterada anteriormente
-                if (pass === senhaCadastrada) {
-                    entrarNoSistema(user);
-                } else {
-                    alert("Senha incorreta.");
-                }
+                alert("Senha incorreta para primeiro cadastro/acesso. Utilize a senha padrão exigida: 12345678");
             }
         }
 
@@ -328,7 +305,7 @@
                 return;
             }
 
-            // Validação dos requisitos de segurança:
+            // Validação rígida dos requisitos solicitados:
             // - Mínimo 1 letra maiúscula
             // - Letras minúsculas
             // - Números
@@ -339,24 +316,17 @@
             let temEspecial = /[\W_]/.test(novaPass);
 
             if (!temMaiuscula || !temMinuscula || !temNumero || !temEspecial) {
-                alert("A nova senha não atende aos requisitos de segurança.\nCertifique-se de incluir:\n- Letras maiúsculas e minúsculas\n- Números\n- Ao menos um caractere especial.");
+                alert("A nova senha não atende aos requisitos obrigatórios.\nCertifique-se de que contenha:\n- Pelo menos 1 letra maiúscula\n- Letras minúsculas\n- Números\n- Ao menos 1 caractere especial.");
                 return;
             }
 
-            // Salva a nova senha e libera acesso
-            senhasUsuarios[usuarioLogado] = novaPass;
-            localStorage.setItem('senhasUsuarios', JSON.stringify(senhasUsuarios));
-
+            // Oculta modal de troca e libera o acesso total ao sistema
             document.getElementById('modal-troca-senha').classList.add('hidden');
-            document.getElementById('nova-senha').value = '';
-            document.getElementById('confirma-senha').value = '';
-
-            alert("Senha alterada com sucesso! Acesso liberado.");
+            alert("Senha alterada com sucesso! Acesso liberado ao sistema.");
             entrarNoSistema(usuarioLogado);
         }
 
         function entrarNoSistema(user) {
-            usuarioLogado = user;
             document.getElementById('display-username').textContent = user;
             document.getElementById('user-info-header').classList.remove('hidden');
             document.getElementById('auth-section').classList.add('hidden');
