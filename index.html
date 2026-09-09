@@ -53,18 +53,18 @@
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
-                padding: 14px !important;
+                padding: 12px !important;
                 border-radius: 8px !important;
             }
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
+<body class="bg-[#042011] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-emerald-400 selection:text-slate-950">
 
     <!-- HEADER -->
-    <header class="bg-slate-900 border-b border-slate-800 shadow-lg p-4 flex justify-between items-center z-20">
+    <header class="bg-[#062c18] border-b border-emerald-900/60 shadow-lg p-4 flex justify-between items-center z-20">
         <div class="flex items-center space-x-3">
-            <div class="bg-emerald-600 text-white p-2.5 rounded-xl font-bold shadow-md flex items-center justify-center">
+            <div class="bg-emerald-500 text-slate-950 p-2.5 rounded-xl font-bold shadow-md flex items-center justify-center">
                 <i class="fa-solid fa-boxes-stacked text-base"></i>
             </div>
             <div>
@@ -73,8 +73,8 @@
             </div>
         </div>
         <div id="user-info-header" class="hidden flex items-center space-x-3">
-            <span id="display-username" class="text-xs bg-slate-950 text-slate-300 px-3 py-1.5 rounded-full border border-slate-800 font-medium"></span>
-            <button onclick="fazerLogout()" class="text-red-400 hover:text-red-300 text-xs px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 transition"><i class="fa-solid fa-power-off"></i></button>
+            <span id="display-username" class="text-xs bg-[#042011] text-slate-300 px-3 py-1.5 rounded-full border border-emerald-800/60 font-medium"></span>
+            <button onclick="fazerLogout()" class="text-red-400 hover:text-red-300 text-xs px-2.5 py-1.5 rounded-lg bg-[#042011] border border-emerald-800/60 transition"><i class="fa-solid fa-power-off"></i></button>
         </div>
     </header>
 
@@ -85,39 +85,39 @@
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">Carregando sistema...</p>
-                <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
+                <p class="text-xs text-slate-300 leading-relaxed px-2" id="descricao-auth-modo">Carregando sistema...</p>
+                <div class="bg-[#062c18] border border-emerald-900/60 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
                     <p class="font-bold text-emerald-400 flex items-center space-x-1.5">
                         <i class="fa-solid fa-circle-info"></i>
                         <span>Orientações:</span>
                     </p>
-                    <p class="text-[11px] text-slate-400 leading-relaxed" id="instrucao-dinamica">Aguarde...</p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">Aguarde...</p>
                 </div>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
+            <div class="bg-[#062c18] border border-emerald-900/60 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
                 <div class="space-y-1">
                     <h3 class="text-base font-bold text-white" id="titulo-form-auth">Identificação de Acesso</h3>
-                    <p class="text-xs text-slate-400">Preencha os campos abaixo para prosseguir.</p>
+                    <p class="text-xs text-slate-300">Preencha os campos abaixo para prosseguir.</p>
                 </div>
 
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
                     <div class="space-y-1.5" id="campo-nome-div">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nome Completo</label>
-                        <input type="text" id="cad-nome" class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Seu nome completo">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
+                        <input type="text" id="cad-nome" class="w-full bg-[#042011] border border-emerald-900/80 focus:border-emerald-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-500 font-medium" placeholder="Seu nome completo">
                     </div>
 
                     <div class="space-y-1.5" id="campo-cpf-div">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">CPF</label>
-                        <input type="text" id="cad-cpf" class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
+                        <input type="text" id="cad-cpf" class="w-full bg-[#042011] border border-emerald-900/80 focus:border-emerald-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-500 font-medium" placeholder="000.000.000-00">
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest" id="label-senha-input">Senha</label>
-                        <input type="password" id="login-pass" required class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest" id="label-senha-input">Senha</label>
+                        <input type="password" id="login-pass" required class="w-full bg-[#042011] border border-emerald-900/80 focus:border-emerald-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-500" placeholder="Digite sua senha">
                     </div>
 
-                    <button type="submit" id="btn-submit-auth" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center space-x-2">
+                    <button type="submit" id="btn-submit-auth" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-emerald-500/10 transition flex items-center justify-center space-x-2">
                         <span id="texto-botao-auth">Entrar / Cadastrar</span>
                     </button>
                 </form>
@@ -126,18 +126,18 @@
 
         <!-- MODAL DE TROCA OBRIGATÓRIA DE SENHA -->
         <section id="modal-troca-senha" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-5">
+            <div class="bg-[#062c18] border border-emerald-900/60 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-5">
                 <div class="space-y-1 text-center">
-                    <div class="inline-block bg-emerald-600 text-white p-3 rounded-2xl mb-1">
+                    <div class="inline-block bg-emerald-500 text-slate-950 p-3 rounded-2xl mb-1">
                         <i class="fa-solid fa-key text-lg"></i>
                     </div>
                     <h3 class="text-lg font-black text-white">Alteração de Senha Obrigatória</h3>
-                    <p class="text-xs text-slate-400">Por segurança, altere sua senha padrão para continuar.</p>
+                    <p class="text-xs text-slate-300">Por segurança, altere sua senha padrão para continuar.</p>
                 </div>
 
-                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] text-slate-300 space-y-1">
+                <div class="bg-[#042011] p-3 rounded-xl border border-emerald-900/80 text-[11px] text-slate-300 space-y-1">
                     <p class="font-bold text-emerald-400">Sua nova senha deve conter obrigatoriamente:</p>
-                    <ul class="list-disc list-inside space-y-0.5 text-slate-400">
+                    <ul class="list-disc list-inside space-y-0.5 text-slate-300">
                         <li>Mínimo de 1 letra maiúscula</li>
                         <li>Letras minúsculas</li>
                         <li>Números</li>
@@ -147,12 +147,12 @@
 
                 <form onsubmit="salvarNovaSenha(event)" class="space-y-4">
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nova Senha</label>
-                        <input type="password" id="nova-senha" required class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Digite a nova senha segura">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nova Senha</label>
+                        <input type="password" id="nova-senha" required class="w-full bg-[#042011] border border-emerald-900/80 focus:border-emerald-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Digite a nova senha segura">
                     </div>
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confirme a Nova Senha</label>
-                        <input type="password" id="confirma-senha" required class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Repita a nova senha">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Confirme a Nova Senha</label>
+                        <input type="password" id="confirma-senha" required class="w-full bg-[#042011] border border-emerald-900/80 focus:border-emerald-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Repita a nova senha">
                     </div>
                     <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg transition">
                         Salvar e Liberar Acesso ao Sistema
@@ -164,38 +164,38 @@
         <!-- DASHBOARD DO APLICATIVO -->
         <section id="dashboard-section" class="hidden flex-1 flex flex-col space-y-4">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <button onclick="mudarAba('catalogo')" id="btn-aba-catalogo" class="bg-slate-900 border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
+                <button onclick="mudarAba('catalogo')" id="btn-aba-catalogo" class="bg-[#062c18] border border-emerald-900/60 hover:bg-[#08381f] p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
                     <i class="fa-solid fa-book text-emerald-400 text-base"></i>
                     <span>Catálogo Sienge</span>
                 </button>
-                <button onclick="mudarAba('scanner')" id="btn-aba-scanner" class="bg-slate-900 border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
-                    <i class="fa-solid fa-qrcode text-emerald-400 text-base"></i>
+                <button onclick="mudarAba('scanner')" id="btn-aba-scanner" class="bg-[#062c18] border border-emerald-900/60 hover:bg-[#08381f] p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
+                    <i class="fa-solid fa-qrcode text-emerald-300 text-base"></i>
                     <span>Leitor QR / Barras</span>
                 </button>
-                <button onclick="mudarAba('divergencias')" id="btn-aba-divergencias" class="bg-slate-900 border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
+                <button onclick="mudarAba('divergencias')" id="btn-aba-divergencias" class="bg-[#062c18] border border-emerald-900/60 hover:bg-[#08381f] p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
                     <i class="fa-solid fa-triangle-exclamation text-emerald-400 text-base"></i>
                     <span>Cruzamento</span>
                 </button>
-                <button onclick="mudarAba('relatorios')" id="btn-aba-relatorios" class="bg-slate-900 border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
+                <button onclick="mudarAba('relatorios')" id="btn-aba-relatorios" class="bg-[#062c18] border border-emerald-900/60 hover:bg-[#08381f] p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
                     <i class="fa-solid fa-file-excel text-emerald-400 text-base"></i>
                     <span>Relatórios / Email</span>
                 </button>
             </div>
 
-            <div class="flex-1 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
+            <div class="flex-1 bg-[#062c18] border border-emerald-900/60 rounded-2xl p-4 shadow-xl flex flex-col">
                 <div id="conteudo-catalogo" class="space-y-4">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-emerald-900/60 pb-3 gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-white uppercase">Base de Materiais (Sienge)</h3>
-                            <p class="text-xs text-slate-400">Gerencie os itens do estoque.</p>
+                            <p class="text-xs text-slate-300">Gerencie os itens do estoque.</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <label class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition flex items-center space-x-1.5">
+                            <label class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition flex items-center space-x-1.5">
                                 <i class="fa-solid fa-file-arrow-up"></i>
                                 <span>Importar Planilha</span>
                                 <input type="file" id="input-excel" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarPlanilhaSienge(event)">
                             </label>
-                            <button onclick="renderizarEtiquetasQR()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5 border border-slate-700">
+                            <button onclick="renderizarEtiquetasQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
                                 <i class="fa-solid fa-qrcode"></i>
                                 <span>Gerar Etiquetas</span>
                             </button>
@@ -205,20 +205,21 @@
                             </button>
                         </div>
                     </div>
-                    <div class="overflow-x-auto max-h-72 border border-slate-800 rounded-xl">
+                    <!-- TABELA AMPLIADA PARA CÓDIGO E DESCRIÇÃO -->
+                    <div class="overflow-x-auto max-h-72 border border-emerald-900/60 rounded-xl">
                         <table class="w-full text-left border-collapse text-xs md:text-sm">
-                            <thead class="bg-slate-950 text-emerald-400 sticky top-0 font-bold uppercase tracking-wider text-xs">
+                            <thead class="bg-[#042011] text-emerald-400 sticky top-0 font-bold uppercase tracking-wider text-xs">
                                 <tr>
-                                    <th class="p-3.5 border-b border-slate-800 w-36">Código</th>
-                                    <th class="p-3.5 border-b border-slate-800">Descrição do Material</th>
+                                    <th class="p-3.5 border-b border-emerald-900/60 w-36">Código</th>
+                                    <th class="p-3.5 border-b border-emerald-900/60">Descrição do Material</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabela-catalogo-corpo" class="divide-y divide-slate-800 text-slate-200">
-                                <tr><td colspan="2" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>
+                            <tbody id="tabela-catalogo-corpo" class="divide-y divide-emerald-900/40 text-slate-200">
+                                <tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>
                             </tbody>
                         </table>
                     </div>
-                    <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
+                    <div id="secao-etiquetas" class="hidden border-t border-emerald-900/60 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas (QR Code) - Formato A4 Vertical (Até 12 por página)</h4>
                             <div class="flex space-x-2">
@@ -226,21 +227,21 @@
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
                             </div>
                         </div>
-                        <div id="area-impressao-etiquetas" class="grid grid-cols-2 md:grid-cols-3 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800 max-h-64 overflow-y-auto"></div>
+                        <div id="area-impressao-etiquetas" class="grid grid-cols-2 md:grid-cols-3 gap-3 bg-[#042011] p-3 rounded-xl border border-emerald-900/60 max-h-64 overflow-y-auto"></div>
                     </div>
                 </div>
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <div class="flex justify-between items-center border-b border-emerald-900/60 pb-3">
                         <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico</h3>
-                        <div class="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-emerald-400">
+                        <div class="bg-[#042011] px-3 py-1.5 rounded-xl border border-emerald-900/60 text-xs font-bold text-emerald-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
-                    <div id="reader-container" class="relative bg-black rounded-xl overflow-hidden border border-slate-800 flex-1 flex items-center justify-center min-h-[220px]">
+                    <div id="reader-container" class="relative bg-black rounded-xl overflow-hidden border border-emerald-900/60 flex-1 flex items-center justify-center min-h-[220px]">
                         <div id="reader" class="w-full"></div>
                     </div>
-                    <div id="painel-item-lido" class="hidden bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                    <div id="painel-item-lido" class="hidden bg-[#042011] p-3.5 rounded-xl border border-emerald-900/60 space-y-2">
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[10px] text-emerald-400 font-bold uppercase">Item Identificado</p>
@@ -248,51 +249,51 @@
                             </div>
                         </div>
                         <div class="flex space-x-2 pt-1">
-                            <input type="number" id="lido-quantidade" step="any" placeholder="Quantidade" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-sm text-white focus:outline-none">
+                            <input type="number" id="lido-quantidade" step="any" placeholder="Quantidade" class="flex-1 bg-slate-900 border border-emerald-900/80 rounded-xl p-2.5 text-sm text-white focus:outline-none">
                             <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs">Salvar</button>
                         </div>
                     </div>
                     <div class="flex justify-between pt-2">
-                        <button onclick="proximaContagem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-3 py-2 rounded-xl">Avançar 2ª Contagem</button>
+                        <button onclick="proximaContagem()" class="bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs px-3 py-2 rounded-xl">Avançar 2ª Contagem</button>
                         <button onclick="pararScanner()" class="bg-slate-800 text-slate-300 text-xs px-3 py-2 rounded-xl">Reiniciar Câmera</button>
                     </div>
                 </div>
 
                 <div id="conteudo-divergencias" class="hidden space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <div class="flex justify-between items-center border-b border-emerald-900/60 pb-3">
                         <h3 class="text-sm font-bold text-white uppercase">Cruzamento Sienge</h3>
                         <button onclick="calcularDivergencias()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl">Atualizar</button>
                     </div>
-                    <div class="overflow-x-auto max-h-72 border border-slate-800 rounded-xl">
+                    <div class="overflow-x-auto max-h-72 border border-emerald-900/60 rounded-xl">
                         <table class="w-full text-left border-collapse text-xs">
-                            <thead class="bg-slate-950 text-emerald-400 sticky top-0">
+                            <thead class="bg-[#042011] text-emerald-400 sticky top-0">
                                 <tr>
-                                    <th class="p-2.5 border-b border-slate-800">Cód</th>
-                                    <th class="p-2.5 border-b border-slate-800">Descrição</th>
-                                    <th class="p-2.5 border-b border-slate-800">1ª Cont</th>
-                                    <th class="p-2.5 border-b border-slate-800">2ª Cont</th>
-                                    <th class="p-2.5 border-b border-slate-800">Status</th>
+                                    <th class="p-2.5 border-b border-emerald-900/60">Cód</th>
+                                    <th class="p-2.5 border-b border-emerald-900/60">Descrição</th>
+                                    <th class="p-2.5 border-b border-emerald-900/60">1ª Cont</th>
+                                    <th class="p-2.5 border-b border-emerald-900/60">2ª Cont</th>
+                                    <th class="p-2.5 border-b border-emerald-900/60">Status</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabela-divergencias-corpo" class="divide-y divide-slate-800 text-slate-300">
-                                <tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum dado apurado.</td></tr>
+                            <tbody id="tabela-divergencias-corpo" class="divide-y divide-emerald-900/40 text-slate-300">
+                                <tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Nenhum dado apurado.</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
                 <div id="conteudo-relatorios" class="hidden space-y-4">
-                    <div class="border-b border-slate-800 pb-3">
+                    <div class="border-b border-emerald-900/60 pb-3">
                         <h3 class="text-sm font-bold text-white uppercase">Relatórios e Envio</h3>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                        <div class="bg-[#042011] p-4 rounded-xl border border-emerald-900/60 space-y-3">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">Exportar Planilha</h4>
                             <button onclick="exportarRelatorioExcel()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 rounded-xl">Baixar Excel</button>
                         </div>
-                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                        <div class="bg-[#042011] p-4 rounded-xl border border-emerald-900/60 space-y-3">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">Enviar por E-mail</h4>
-                            <input type="email" id="email-destino" placeholder="gestao@obra.com.br" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-white">
+                            <input type="email" id="email-destino" placeholder="gestao@obra.com.br" class="w-full bg-slate-900 border border-emerald-900/80 rounded-xl p-2.5 text-xs text-white">
                             <button onclick="enviarRelatorioEmail()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 rounded-xl">Enviar E-mail</button>
                         </div>
                     </div>
@@ -301,7 +302,7 @@
         </section>
     </main>
 
-    <footer class="text-center py-3 text-[10px] text-slate-500 border-t border-slate-800/60 nao-imprimir">
+    <footer class="text-center py-3 text-[10px] text-slate-400 border-t border-emerald-900/60 nao-imprimir">
         Brava Enterprise &copy; 2026 - Todos os direitos reservados
     </footer>
 
@@ -400,12 +401,12 @@
                 let el = document.getElementById(`conteudo-${a}`);
                 let btn = document.getElementById(`btn-aba-${a}`);
                 if (el) el.classList.add('hidden');
-                if (btn) btn.classList.remove('bg-slate-800', 'border-emerald-500');
+                if (btn) btn.classList.remove('bg-[#08381f]', 'border-emerald-400');
             });
             let alvo = document.getElementById(`conteudo-${aba}`);
             let btnAlvo = document.getElementById(`btn-aba-${aba}`);
             if (alvo) alvo.classList.remove('hidden');
-            if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-emerald-500');
+            if (btnAlvo) btnAlvo.classList.add('bg-[#08381f]', 'border-emerald-400');
             if (aba === 'scanner') { iniciarScanner(); } else { pararScanner(); }
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
@@ -415,12 +416,12 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
                 return;
             }
             catalogoProdutos.forEach(p => {
                 let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-950/60 transition";
+                tr.className = "hover:bg-emerald-950/40 transition";
                 tr.innerHTML = `<td class="p-3.5 font-mono font-bold text-emerald-300 text-sm md:text-base">${p.codigo}</td><td class="p-3.5 text-sm md:text-base font-normal">${p.desc}</td>`;
                 tbody.appendChild(tr);
             });
@@ -524,14 +525,13 @@
 
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col items-center text-center space-y-2 relative";
+                card.className = "etiqueta-card bg-[#062c18] border border-emerald-900/80 p-3 rounded-xl flex flex-col items-center text-center space-y-2 relative";
                 
                 let qrId = `qrcode-${idx}`;
-                // CÓDIGO E DESCRIÇÃO AUMENTADOS NAS ETIQUETAS DE QR CODE
                 card.innerHTML = `
-                    <div class="w-full text-left space-y-1">
-                        <span class="text-sm font-mono font-bold bg-emerald-600 text-white px-2.5 py-1 rounded inline-block">${p.codigo}</span>
-                        <p class="text-base font-bold text-white mt-1.5 line-clamp-3 leading-snug">${p.desc}</p>
+                    <div class="w-full text-left">
+                        <span class="text-[10px] font-mono font-bold bg-emerald-500 text-slate-950 px-1.5 py-0.5 rounded">${p.codigo}</span>
+                        <p class="text-xs font-bold text-white mt-1 line-clamp-3">${p.desc}</p>
                     </div>
                     <div id="${qrId}" class="bg-white p-2 rounded-lg my-1 flex justify-center items-center"></div>
                     <span class="text-[9px] text-slate-400 font-mono">Brava Enterprise - Sienge</span>
@@ -641,13 +641,13 @@
             tbody.innerHTML = '';
 
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Nenhum produto cadastrado.</td></tr>`;
                 return;
             }
 
             catalogoProdutos.forEach(p => {
                 let reg = registrosContagem[p.codigo] || { c1: 0, c2: 0 };
-                let statusBadge = '<span class="text-slate-500">Não Contado</span>';
+                let statusBadge = '<span class="text-slate-400">Não Contado</span>';
                 
                 if (reg.c1 > 0 || reg.c2 > 0) {
                     if (reg.c1 === reg.c2) {
@@ -658,7 +658,7 @@
                 }
 
                 let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-950/60 transition";
+                tr.className = "hover:bg-emerald-950/40 transition";
                 tr.innerHTML = `
                     <td class="p-2.5 font-mono font-bold text-emerald-300">${p.codigo}</td>
                     <td class="p-2.5">${p.desc}</td>
