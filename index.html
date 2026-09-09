@@ -152,12 +152,21 @@
                             <h3 class="text-sm font-bold text-white uppercase">Base de Materiais (Sienge)</h3>
                             <p class="text-xs text-slate-400">Gerencie os itens do estoque.</p>
                         </div>
-                        <div class="flex space-x-2">
-                            <label class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition">
-                                <i class="fa-solid fa-file-arrow-up"></i> Importar Planilha
+                        <div class="flex flex-wrap gap-2">
+                            <label class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-file-arrow-up"></i>
+                                <span>Importar Planilha</span>
                                 <input type="file" id="input-excel" accept=".xlsx, .xls" class="hidden" onchange="importarPlanilhaSienge(event)">
                             </label>
-                            <button onclick="renderizarEtiquetasQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition">Gerar Etiquetas</button>
+                            <button onclick="renderizarEtiquetasQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-qrcode"></i>
+                                <span>Gerar Etiquetas</span>
+                            </button>
+                            <!-- NOVO BOTÃO DE LIMPAR/EXCLUIR DADOS IMPORTADOS -->
+                            <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Limpar dados importados">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Limpar Dados</span>
+                            </button>
                         </div>
                     </div>
                     <div class="overflow-x-auto max-h-64 border border-slate-800 rounded-xl">
@@ -315,7 +324,6 @@
                 }
 
                 if (pass === "12345678") {
-                    // Salva temporariamente os dados e abre o modal obrigatório de troca de senha
                     let dadosTemporarios = { nome, cpf };
                     localStorage.setItem('sienge_temp_user', JSON.stringify(dadosTemporarios));
                     document.getElementById('modal-troca-senha').classList.remove('hidden');
@@ -323,7 +331,7 @@
                     alert("No primeiro acesso, a senha padrão obrigatória deve ser exatamente: 12345678");
                 }
             } else {
-                // Fluxo de Login Normal (após o sistema já ter sido configurado antes)
+                // Fluxo de Login Normal
                 let cpfDigitado = document.getElementById('cad-cpf').value.trim();
                 let usuarioSalvo = JSON.parse(usuarioCadastradoStr);
 
@@ -350,7 +358,6 @@
                 return;
             }
 
-            // Validação rígida dos requisitos solicitados:
             let temMaiuscula = /[A-Z]/.test(novaPass);
             let temMinuscula = /[a-z]/.test(novaPass);
             let temNumero = /[0-9]/.test(novaPass);
@@ -361,7 +368,6 @@
                 return;
             }
 
-            // Recupera dados temporários e grava permanentemente no localStorage
             let dadosTemp = JSON.parse(localStorage.getItem('sienge_temp_user'));
             if (dadosTemp) {
                 let usuarioFinal = {
@@ -388,7 +394,6 @@
         }
 
         function fazerLogout() {
-            // Apenas limpa a visualização, mantendo o cadastro salvo para o próximo acesso
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
@@ -417,6 +422,10 @@
             let tbody = document.getElementById('tabela-catalogo-corpo');
             if (!tbody) return;
             tbody.innerHTML = '';
+            if (catalogoProdutos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado/importado.</td></tr>`;
+                return;
+            }
             catalogoProdutos.forEach(p => {
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/50 transition";
@@ -444,15 +453,34 @@
                     }
                     if (novosProdutos.length > 0) {
                         catalogoProdutos = novosProdutos;
+                        registrosContagem = {}; // Reseta contagens anteriores ao importar nova base
                         renderizarCatalogo();
                         alert(`${novosProdutos.length} materiais importados com sucesso.`);
+                    } else {
+                        alert("Nenhum dado válido encontrado na planilha.");
                     }
                 } catch (err) { alert("Erro ao processar arquivo."); }
             };
             reader.readAsArrayBuffer(file);
+            event.target.value = ''; // Permite reimportar o mesmo arquivo se necessário
+        }
+
+        // Função do novo botão para limpar/excluir os materiais importados sem afetar o sistema
+        function limparDadosImportados() {
+            if (confirm("Tem certeza que deseja limpar/excluir todos os dados de materiais importados?")) {
+                catalogoProdutos = [];
+                registrosContagem = {};
+                renderizarCatalogo();
+                document.getElementById('secao-etiquetas').classList.add('hidden');
+                alert("Dados importados limpos com sucesso. O sistema está pronto para receber uma nova planilha.");
+            }
         }
 
         function renderizarEtiquetasQR() {
+            if (catalogoProdutos.length === 0) {
+                alert("Não há materiais cadastrados/importados para gerar etiquetas.");
+                return;
+            }
             let secaoEtiquetas = document.getElementById('secao-etiquetas');
             secaoEtiquetas.classList.remove('hidden');
             let area = document.getElementById('area-impressao-etiquetas');
@@ -537,6 +565,10 @@
         function calcularDivergencias() {
             let tbody = document.getElementById('tabela-divergencias-corpo');
             tbody.innerHTML = '';
+            if (catalogoProdutos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto carregado para cruzamento.</td></tr>`;
+                return;
+            }
             catalogoProdutos.forEach(p => {
                 let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
                 let diff = reg.cont1 - reg.cont2;
@@ -549,6 +581,10 @@
         }
 
         function exportarRelatorioExcel() {
+            if (catalogoProdutos.length === 0) {
+                alert("Não há dados para exportar.");
+                return;
+            }
             let dados = catalogoProdutos.map(p => {
                 let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
                 return { "Código": p.codigo, "Descrição": p.desc, "1ª Cont": reg.cont1, "2ª Cont": reg.cont2 };
