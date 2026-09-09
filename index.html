@@ -154,7 +154,6 @@
                                 <i class="fa-solid fa-qrcode"></i>
                                 <span>Gerar Etiquetas</span>
                             </button>
-                            <!-- BOTÃO DE LIMPAR/EXCLUIR DADOS IMPORTADOS -->
                             <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Limpar dados importados">
                                 <i class="fa-solid fa-trash-can"></i>
                                 <span>Limpar Dados</span>
@@ -171,7 +170,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tabela-catalogo-corpo" class="divide-y divide-slate-800 text-slate-300">
-                                <tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado.</td></tr>
+                                <tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -261,13 +260,11 @@
     </footer>
 
     <script>
-        let catalogoProdutos = [
-            { codigo: "MAT-001", desc: "Cabo Flexível 2.5mm Vermelho", unidade: "M" },
-            { codigo: "MAT-002", desc: "Disjuntor Termomagnético 32A", unidade: "UN" },
-            { codigo: "MAT-003", desc: "Tubo PVC Esgoto 100mm", unidade: "BARRA" }
-        ];
+        // Carrega produtos salvos no navegador ou inicia lista vazia
+        let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos')) || [];
+        let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem')) || {};
+        
         let faseAtualContagem = 1;
-        let registrosContagem = {};
         let html5QrCode = null;
         let produtoScaneadoAtual = null;
 
@@ -373,7 +370,7 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado/importado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
                 return;
             }
             catalogoProdutos.forEach(p => {
@@ -439,9 +436,14 @@
                     if (novosProdutos.length > 0) {
                         catalogoProdutos = novosProdutos;
                         registrosContagem = {};
+                        
+                        // Salva permanentemente no navegador
+                        localStorage.setItem('sienge_catalogo_produtos', JSON.stringify(catalogoProdutos));
+                        localStorage.removeItem('sienge_registros_contagem');
+
                         renderizarCatalogo();
-                        document.getElementById('secao-etiquetas').classList.add('hidden'); // Oculta painel de etiquetas antigo até gerar de novo
-                        alert(`Sucesso! ${novosProdutos.length} materiais importados e carregados.`);
+                        document.getElementById('secao-etiquetas').classList.add('hidden');
+                        alert(`Sucesso! ${novosProdutos.length} materiais importados e salvos.`);
                     } else {
                         alert("O arquivo foi lido, mas nenhuma linha com dados válidos de código e descrição foi identificada.");
                     }
@@ -458,9 +460,11 @@
             if (confirm("Tem certeza que deseja limpar/excluir todos os dados de materiais importados?")) {
                 catalogoProdutos = [];
                 registrosContagem = {};
+                localStorage.removeItem('sienge_catalogo_produtos');
+                localStorage.removeItem('sienge_registros_contagem');
                 renderizarCatalogo();
                 document.getElementById('secao-etiquetas').classList.add('hidden');
-                alert("Dados importados limpos com sucesso. O sistema está pronto para receber uma nova planilha.");
+                alert("Dados limpos com sucesso.");
             }
         }
 
@@ -475,7 +479,6 @@
             let area = document.getElementById('area-impressao-etiquetas');
             area.innerHTML = '';
 
-            // Cria primeiro a estrutura HTML de todas as caixas de etiquetas
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
                 card.className = "bg-white text-slate-900 p-3 rounded-xl border border-slate-300 shadow flex flex-col items-center justify-between space-y-2";
@@ -490,12 +493,11 @@
                 area.appendChild(card);
             });
 
-            // Aguarda o navegador exibir os elementos na tela para injetar os QR codes com precisão
             setTimeout(() => {
                 catalogoProdutos.forEach((p, idx) => {
                     let containerEl = document.getElementById(`qrcode-${idx}`);
                     if (containerEl) {
-                        containerEl.innerHTML = ''; // Limpa qualquer quadrado anterior
+                        containerEl.innerHTML = '';
                         try {
                             new QRCode(containerEl, {
                                 text: `${p.codigo}|${p.desc}|${p.unidade}`,
@@ -561,6 +563,9 @@
             if (!registrosContagem[codigo]) registrosContagem[codigo] = { cont1: 0, cont2: 0 };
             if (faseAtualContagem === 1) registrosContagem[codigo].cont1 = qtd;
             else registrosContagem[codigo].cont2 = qtd;
+            
+            localStorage.setItem('sienge_registros_contagem', JSON.stringify(registrosContagem));
+            
             document.getElementById('lido-quantidade').value = '';
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
