@@ -64,8 +64,8 @@
                 padding: 2mm 3mm !important;
                 border-radius: 0px !important;
                 display: flex !important;
-                flex-direction: row !important;
-                align-items: center !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
                 justify-content: flex-start !important;
                 overflow: hidden !important;
                 box-sizing: border-box !important;
@@ -534,21 +534,23 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card border border-slate-700 bg-white text-slate-900 rounded p-2 flex items-center space-x-3";
+                card.className = "etiqueta-card border border-slate-700 bg-white text-slate-900 rounded p-1.5 flex flex-col justify-between";
                 card.innerHTML = `
-                    <div id="qrcode-${index}" class="w-16 h-16 flex-shrink-0"></div>
-                    <div class="overflow-hidden flex-1">
-                        <p class="text-[9px] font-bold text-slate-500 uppercase">Brava Enterprise</p>
-                        <h5 class="text-[11px] font-bold truncate">${p.codigo} - ${p.desc}</h5>
-                        <p class="text-[9px] text-slate-600 font-mono">Unidade: ${p.unidade}</p>
+                    <div class="text-[9px] font-bold text-slate-800 uppercase text-center border-b border-slate-200 pb-0.5 mb-1">Brava Construção e Incorporação</div>
+                    <div class="flex items-center space-x-2 flex-1">
+                        <div id="qrcode-${index}" class="w-14 h-14 flex-shrink-0"></div>
+                        <div class="overflow-hidden flex-1 leading-tight">
+                            <h5 class="text-[10px] font-bold text-slate-900 line-clamp-2">${p.codigo} - ${p.desc}</h5>
+                            <p class="text-[9px] text-slate-600 font-mono mt-0.5">Unidade: ${p.unidade}</p>
+                        </div>
                     </div>
                 `;
                 area.appendChild(card);
 
                 new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: p.codigo,
-                    width: 60,
-                    height: 60,
+                    width: 55,
+                    height: 55,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
