@@ -45,7 +45,7 @@
                 display: grid !important;
                 grid-template-columns: repeat(2, 101.6mm) !important;
                 grid-auto-rows: 35mm !important;
-                gap: 3mm 3mm !important; /* Espaçamento entre as etiquetas para facilitar o corte e plastificação */
+                gap: 3mm 3mm !important;
                 background: white !important;
                 border: none !important;
                 max-height: none !important;
@@ -56,8 +56,8 @@
             .etiqueta-card {
                 width: 101.6mm !important;
                 height: 33.9mm !important;
-                background: #ffffff !important; /* Fundo branco limpo para impressão */
-                border: 1.5px dashed #334155 !important; /* Moldura individual em cada etiqueta */
+                background: #ffffff !important;
+                border: 1.5px dashed #1e293b !important; /* Moldura nítida em cada etiqueta */
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -237,7 +237,7 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Com moldura individual para corte)</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Com moldura individual alinhada)</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
@@ -536,14 +536,14 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                // Alinhamento superior perfeito (items-start) e moldura individual pontilhada
+                // Alinhamento superior alinhado perfeitamente lado a lado com o QR Code, fonte otimizada e fundo branco limpo com moldura
                 card.className = "etiqueta-card border border-slate-300 bg-white text-slate-900 rounded p-1.5 flex flex-col justify-between";
                 card.innerHTML = `
                     <div class="text-[9px] font-bold text-slate-700 uppercase text-center border-b border-slate-200 pb-0.5 mb-1">Brava Construção e Incorporação</div>
-                    <div class="flex items-start space-x-2.5 flex-1">
+                    <div class="flex items-start space-x-2 flex-1">
                         <div id="qrcode-${index}" class="w-14 h-14 flex-shrink-0"></div>
-                        <div class="overflow-hidden flex-1 leading-tight flex flex-col justify-start pt-0.5">
-                            <h5 class="text-[11px] font-extrabold text-slate-900 line-clamp-2">${p.codigo} - ${p.desc}</h5>
+                        <div class="overflow-hidden flex-1 leading-tight flex flex-col justify-start pt-0">
+                            <h5 class="text-[11px] font-extrabold text-slate-900 line-clamp-3">${p.codigo} - ${p.desc}</h5>
                         </div>
                     </div>
                 `;
