@@ -554,7 +554,7 @@
                 card.innerHTML = `
                     <div id="${qrId}" class="bg-white p-1 rounded border border-slate-200 flex-shrink-0 flex justify-center items-center"></div>
                     <div class="flex-1 min-w-0 flex flex-col justify-center space-y-1">
-                        <p class="text-[15px] font-black text-slate-900 font-mono tracking-tight leading-snug">${p.codigo} - ${p.desc}</p>
+                        <p class="text-[17px] font-black text-slate-900 font-mono tracking-tight leading-tight">${p.codigo} - ${p.desc}</p>
                     </div>
                 `;
                 
@@ -562,8 +562,8 @@
 
                 new QRCode(document.getElementById(qrId), {
                     text: p.codigo,
-                    width: 95,
-                    height: 95,
+                    width: 110,
+                    height: 110,
                     colorDark: "#000000",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.M
