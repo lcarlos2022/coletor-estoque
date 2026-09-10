@@ -14,11 +14,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL A4 - ETIQUETAS 25,4 x 66,7 mm (3 colunas x 10 linhas) -->
+    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL - PADRÃO PIMACO 6182 (Tamanho Carta: 21,59 x 27,94 cm) -->
     <style>
         @page {
-            size: A4;
-            margin: 10mm 7.15mm;
+            size: letter;
+            margin: 12.7mm 7.9mm;
         }
         @media print {
             body * {
@@ -45,7 +45,7 @@
                 display: grid !important;
                 grid-template-columns: repeat(3, 66.7mm) !important;
                 grid-auto-rows: 25.4mm !important;
-                gap: 0mm 2.5mm !important;
+                gap: 0mm 3.175mm !important;
                 background: white !important;
                 border: none !important;
                 max-height: none !important;
@@ -56,13 +56,13 @@
             .etiqueta-card {
                 width: 66.7mm !important;
                 height: 25.4mm !important;
-                background: #f8fafc !important;
-                border: 1px dashed #cbd5e1 !important;
+                background: #ffffff !important;
+                border: none !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
                 padding: 2mm !important;
-                border-radius: 4px !important;
+                border-radius: 0px !important;
                 display: flex !important;
                 flex-direction: row !important;
                 align-items: center !important;
@@ -235,7 +235,7 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas (25,4 x 66,7 mm - 3 Colunas x 10 Linhas)</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Carta - 3 Colunas x 10 Linhas)</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
