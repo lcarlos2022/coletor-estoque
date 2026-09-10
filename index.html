@@ -48,8 +48,8 @@
                 padding: 10mm !important;
             }
             .etiqueta-card {
-                background: #bbf7d0 !important; /* Verde um pouco mais escuro na impressão */
-                border: 1px solid #4ade80 !important;
+                background: #86efac !important; /* Verde mais vivo na impressão */
+                border: 1px solid #22c55e !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -57,6 +57,11 @@
                 border-radius: 8px !important;
                 aspect-ratio: auto !important;
                 height: auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
             }
         }
     </style>
@@ -526,17 +531,17 @@
 
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
-                // Fundo verde um pouco mais escuro (#bbf7d0), centralizado e sem esticar
-                card.className = "etiqueta-card bg-[#bbf7d0] border border-[#4ade80] p-4 rounded-xl flex flex-col items-center justify-center text-center space-y-3 relative text-slate-900 shadow-sm";
+                // Fundo verde mais vivo (#86efac), totalmente centralizado para evitar quebras
+                card.className = "etiqueta-card bg-[#86efac] border border-[#22c55e] p-4 rounded-xl flex flex-col items-center justify-center text-center space-y-3 relative text-slate-900 shadow-sm";
                 
                 let qrId = `qrcode-${idx}`;
                 card.innerHTML = `
-                    <div class="w-full flex flex-col items-center text-center space-y-1">
-                        <span class="text-base font-mono font-black bg-slate-900 text-yellow-400 px-2.5 py-1 rounded inline-block">${p.codigo}</span>
-                        <p class="text-lg font-bold text-slate-900 mt-2 leading-tight">${p.desc}</p>
+                    <div class="w-full flex flex-col items-center justify-center text-center space-y-1">
+                        <span class="text-base font-mono font-black bg-slate-900 text-yellow-400 px-3 py-1 rounded inline-block shadow-sm">${p.codigo}</span>
+                        <p class="text-sm font-bold text-slate-900 mt-2 leading-snug px-1">${p.desc}</p>
                     </div>
-                    <div id="${qrId}" class="bg-white p-2 rounded-lg my-1 flex justify-center items-center"></div>
-                    <span class="text-[10px] text-slate-600 font-mono font-semibold">Brava Enterprise - Sienge</span>
+                    <div id="${qrId}" class="bg-white p-2 rounded-lg my-1 flex justify-center items-center shadow-sm"></div>
+                    <span class="text-[10px] text-slate-700 font-mono font-semibold">Brava Enterprise - Sienge</span>
                 `;
                 area.appendChild(card);
 
@@ -549,7 +554,7 @@
                     correctLevel: QRCode.CorrectLevel.M
                 });
             });
-            alert("Etiquetas geradas com sucesso! Fundo verde ajustado e conteúdo centralizado.");
+            alert("Etiquetas geradas com sucesso! Fundo verde mais vivo e conteúdo centralizado.");
         }
 
         function apagarEtiquetasGeradas() {
