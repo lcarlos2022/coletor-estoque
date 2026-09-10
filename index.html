@@ -492,9 +492,12 @@
                         }
 
                         if (codigo && desc) {
-                            let codigoLimpo = String(codigo).replace(/^MAT[\s\-_]*/i, "").trim();
+                            // Remove o prefixo "MT" (com ou sem espaços, hífens ou underlines logo após) do início do código
+                            let codigoLimpo = String(codigo).replace(/^MT[\s\-_]*/i, "").trim();
                             if (/^\d+$/.test(codigoLimpo)) {
-                                codigo = "MAT-" + codigoLimpo.padStart(3, '0');
+                                codigo = codigoLimpo.padStart(3, '0');
+                            } else {
+                                codigo = codigoLimpo;
                             }
                             novosProdutos.push({ codigo, desc, unidade });
                         }
