@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL - FUNDO VERDE, FONTE GRANDE/NEGRITO E ALINHAMENTO -->
+    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL - MOLDURAS PONTILHADAS E FUNDO VERDE -->
     <style>
         @page {
             size: letter;
@@ -56,8 +56,8 @@
             .etiqueta-card {
                 width: 101.6mm !important;
                 height: 33.9mm !important;
-                background: #dcfce7 !important; /* Fundo verde claro para impressão */
-                border: 1.5px dashed #166534 !important; /* Moldura pontilhada alinhada */
+                background: #dcfce7 !important; /* Fundo verde claro */
+                border: 1.5px dashed #166534 !important; /* Moldura pontilhada em toda a volta (esquerda, meio, direita e topo/fundo) */
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -237,7 +237,7 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Fundo Verde com Fontes Maiores e Negrito)</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Fundo Verde e Molduras Pontilhadas Alinhadas)</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
@@ -536,7 +536,7 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                // Fundo verde claro (#dcfce7), borda verde escura (#166534), texto maior e em negrito pesado (font-black)
+                // Fundo verde claro (#dcfce7), moldura pontilhada verde escura (#166534), texto maior e em negrito pesado
                 card.className = "etiqueta-card border border-emerald-700 bg-emerald-100 text-slate-950 rounded p-1.5 flex flex-col justify-between";
                 card.innerHTML = `
                     <div class="text-[10px] font-black text-emerald-900 uppercase text-center border-b border-emerald-300 pb-0.5 mb-1">Brava Construção e Incorporação</div>
