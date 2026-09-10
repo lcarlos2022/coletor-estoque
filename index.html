@@ -493,8 +493,6 @@
                             let codigoLimpo = String(codigo).replace(/^MAT[\s\-_]*/i, "").trim();
                             if (/^\d+$/.test(codigoLimpo)) {
                                 codigo = "MAT-" + codigoLimpo.padStart(3, '0');
-                            } else {
-                                codigo = "MAT-" + codigoLimpo;
                             }
                             novosProdutos.push({ codigo, desc, unidade });
                         }
@@ -502,15 +500,11 @@
 
                     if (novosProdutos.length > 0) {
                         catalogoProdutos = novosProdutos;
-                        registrosContagem = {};
-                        
                         localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
-                        localStorage.removeItem('sienge_registros_contagem_6182');
-
                         renderizarCatalogo();
-                        alert(`Planilha importada com sucesso! ${catalogoProdutos.length} materiais carregados.`);
+                        alert(`Importação concluída com sucesso! ${catalogoProdutos.length} materiais carregados.`);
                     } else {
-                        alert("Nenhum dado válido encontrado na planilha.");
+                        alert("Nenhum material válido foi encontrado na planilha.");
                     }
                 } catch (err) {
                     console.error(err);
@@ -521,69 +515,64 @@
         }
 
         function limparDadosImportados() {
-            if (confirm("Deseja realmente limpar todos os dados do catálogo e contagens?")) {
+            if (confirm("Deseja realmente limpar o catálogo de produtos?")) {
                 catalogoProdutos = [];
-                registrosContagem = {};
                 localStorage.removeItem('sienge_catalogo_produtos_6182');
-                localStorage.removeItem('sienge_registros_contagem_6182');
                 renderizarCatalogo();
-                apagarEtiquetasGeradas();
-                alert("Dados limpos com sucesso.");
+                document.getElementById('secao-etiquetas').classList.add('hidden');
             }
         }
 
         function renderizarEtiquetasQR() {
-            let secao = document.getElementById('secao-etiquetas');
-            let area = document.getElementById('area-impressao-etiquetas');
-            if (!secao || !area) return;
-
             if (catalogoProdutos.length === 0) {
-                alert("Importe o catálogo primeiro para gerar as etiquetas.");
+                alert("Não há produtos no catálogo para gerar etiquetas.");
                 return;
             }
-
-            secao.classList.remove('hidden');
+            let area = document.getElementById('area-impressao-etiquetas');
             area.innerHTML = '';
+            document.getElementById('secao-etiquetas').classList.remove('hidden');
 
-            catalogoProdutos.forEach((p, idx) => {
+            catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card bg-[#f8fafc] border border-slate-300 rounded p-2 flex flex-row items-center space-x-3 relative shadow-sm";
-                
-                let qrId = `qrcode-${idx}`;
-                
+                card.className = "etiqueta-card border border-slate-700 bg-white text-slate-900 rounded p-2 flex items-center space-x-3";
                 card.innerHTML = `
-                    <div id="${qrId}" class="bg-white p-1 rounded border border-slate-200 flex-shrink-0 flex justify-center items-center"></div>
-                    <div class="flex-1 min-w-0 flex flex-col justify-center space-y-1">
-                        <p class="text-[12px] font-black text-slate-900 font-mono tracking-tight leading-snug">${p.codigo} - ${p.desc}</p>
+                    <div id="qrcode-${index}" class="w-16 h-16 flex-shrink-0"></div>
+                    <div class="overflow-hidden flex-1">
+                        <p class="text-[9px] font-bold text-slate-500 uppercase">Brava Enterprise</p>
+                        <h5 class="text-[11px] font-bold truncate">${p.codigo} - ${p.desc}</h5>
+                        <p class="text-[9px] text-slate-600 font-mono">Unidade: ${p.unidade}</p>
                     </div>
                 `;
-                
                 area.appendChild(card);
 
-                new QRCode(document.getElementById(qrId), {
+                new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: p.codigo,
-                    width: 90,
-                    height: 90,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.M
+                    width: 60,
+                    height: 60,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
                 });
             });
         }
 
         function apagarEtiquetasGeradas() {
-            let secao = document.getElementById('secao-etiquetas');
-            let area = document.getElementById('area-impressao-etiquetas');
-            if (secao) secao.classList.add('hidden');
-            if (area) area.innerHTML = '';
+            document.getElementById('secao-etiquetas').classList.add('hidden');
+            document.getElementById('area-impressao-etiquetas').innerHTML = '';
         }
 
         function iniciarScanner() {
             if (html5QrCode) return;
             try {
                 html5QrCode = new Html5Qrcode("reader");
-                const config = { fps: 10, qrbox: { width: 200, height: 200 } };
-                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure).catch(err => {
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 200, height: 200 } },
+                    (decodedText) => {
+                        processarCodigoLido(decodedText);
+                    },
+                    (errorMessage) => {}
+                ).catch(err => {
                     console.error("Erro ao iniciar câmera", err);
                 });
             } catch (e) {
@@ -594,6 +583,7 @@
         function pararScanner() {
             if (html5QrCode) {
                 html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
                     html5QrCode = null;
                 }).catch(err => {
                     html5QrCode = null;
@@ -601,43 +591,38 @@
             }
         }
 
-        function onScanSuccess(decodedText, decodedResult) {
-            let codigoLido = decodedText.trim();
-            let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigoLido.toLowerCase());
-            
+        function processarCodigoLido(codigo) {
+            let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.trim().toLowerCase());
             if (produto) {
                 produtoScaneadoAtual = produto;
                 document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
                 document.getElementById('lido-unidade').textContent = produto.unidade;
-                document.getElementById('lido-quantidade').value = '';
                 document.getElementById('painel-item-lido').classList.remove('hidden');
+                document.getElementById('lido-quantidade').value = '';
+                document.getElementById('lido-quantidade').focus();
             } else {
-                console.warn("Código não encontrado no catálogo:", codigoLido);
+                alert(`Código lido não encontrado no catálogo Sienge: ${codigo}`);
             }
-        }
-
-        function onScanFailure(error) {
-            // Ignorar falhas de varredura quadro a quadro
         }
 
         function salvarContagemItem() {
             if (!produtoScaneadoAtual) return;
             let qtd = parseFloat(document.getElementById('lido-quantidade').value);
-            if (isNaN(qtd) || qtd < 0) { alert("Insira uma quantidade válida."); return; }
+            if (isNaN(qtd)) { alert("Digite uma quantidade válida."); return; }
 
             let codigo = produtoScaneadoAtual.codigo;
             if (!registrosContagem[codigo]) {
-                registrosContagem[codigo] = { c1: 0, c2: 0 };
+                registrosContagem[codigo] = { cont1: 0, cont2: 0 };
             }
 
             if (faseAtualContagem === 1) {
-                registrosContagem[codigo].c1 = qtd;
+                registrosContagem[codigo].cont1 = qtd;
             } else {
-                registrosContagem[codigo].c2 = qtd;
+                registrosContagem[codigo].cont2 = qtd;
             }
 
             localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
-            alert(`Contagem salva para ${codigo}!`);
+            alert("Contagem salva com sucesso!");
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
         }
@@ -656,32 +641,29 @@
             let tbody = document.getElementById('tabela-divergencias-corpo');
             if (!tbody) return;
             tbody.innerHTML = '';
-
             if (catalogoProdutos.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado.</td></tr>`;
                 return;
             }
 
             catalogoProdutos.forEach(p => {
-                let reg = registrosContagem[p.codigo] || { c1: 0, c2: 0 };
-                let statusBadge = '';
-
-                if (reg.c1 === 0 && reg.c2 === 0) {
-                    statusBadge = `<span class="bg-slate-800 text-slate-400 px-2 py-0.5 rounded text-[10px]">Não Contado</span>`;
-                } else if (reg.c1 === reg.c2) {
-                    statusBadge = `<span class="bg-emerald-900/60 text-emerald-400 border border-emerald-700/50 px-2 py-0.5 rounded text-[10px]">OK</span>`;
-                } else {
-                    statusBadge = `<span class="bg-red-900/60 text-red-400 border border-red-700/50 px-2 py-0.5 rounded text-[10px]">Divergente</span>`;
+                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
+                let statusHtml = '<span class="text-slate-400">Não contado</span>';
+                if (reg.cont1 > 0 || reg.cont2 > 0) {
+                    if (reg.cont1 === reg.cont2) {
+                        statusHtml = '<span class="text-emerald-400 font-bold">OK / Divergência Zero</span>';
+                    } else {
+                        statusHtml = '<span class="text-amber-400 font-bold">Divergência entre Contagens</span>';
+                    }
                 }
-
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/50 transition";
                 tr.innerHTML = `
                     <td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td>
                     <td class="p-2.5">${p.desc}</td>
-                    <td class="p-2.5 font-mono">${reg.c1}</td>
-                    <td class="p-2.5 font-mono">${reg.c2}</td>
-                    <td class="p-2.5">${statusBadge}</td>
+                    <td class="p-2.5 font-mono">${reg.cont1}</td>
+                    <td class="p-2.5 font-mono">${reg.cont2}</td>
+                    <td class="p-2.5">${statusHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -690,28 +672,31 @@
         function exportarRelatorioExcel() {
             if (catalogoProdutos.length === 0) { alert("Sem dados para exportar."); return; }
             let dadosExport = catalogoProdutos.map(p => {
-                let reg = registrosContagem[p.codigo] || { c1: 0, c2: 0 };
-                let status = (reg.c1 === reg.c2 && reg.c1 > 0) ? "OK" : (reg.c1 === 0 && reg.c2 === 0 ? "Não Contado" : "Divergente");
+                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
+                let status = "Não contado";
+                if (reg.cont1 > 0 || reg.cont2 > 0) {
+                    status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
+                }
                 return {
                     "Código": p.codigo,
                     "Descrição": p.desc,
                     "Unidade": p.unidade,
-                    "1ª Contagem": reg.c1,
-                    "2ª Contagem": reg.c2,
+                    "1ª Contagem": reg.cont1,
+                    "2ª Contagem": reg.cont2,
                     "Status": status
                 };
             });
 
             let worksheet = XLSX.utils.json_to_sheet(dadosExport);
             let workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventário Sienge");
             XLSX.writeFile(workbook, "Relatorio_Inventario_Sienge.xlsx");
         }
 
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
-            if (!email) { alert("Digite um e-mail de destino válido."); return; }
-            alert(`Relatório simulado enviado com sucesso para: ${email}`);
+            if (!email) { alert("Digite o e-mail de destino."); return; }
+            alert(`Relatório simulado enviado com sucesso para ${email}!`);
         }
     </script>
 </body>
