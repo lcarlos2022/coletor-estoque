@@ -23,11 +23,6 @@
             #secao-etiquetas, #secao-etiquetas * {
                 visibility: visible;
             }
-            body, html {
-                background: white !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
             #secao-etiquetas {
                 position: absolute;
                 left: 0;
@@ -43,37 +38,30 @@
                 display: none !important;
             }
             #area-impressao-etiquetas {
-                display: block !important;
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 10mm !important;
                 background: white !important;
                 border: none !important;
                 max-height: none !important;
                 overflow: visible !important;
                 padding: 10mm !important;
-                margin: 0 !important;
             }
             .etiqueta-card {
-                background: #86efac !important;
-                border: 2px solid #22c55e !important;
+                background: #86efac !important; /* Verde mais vivo na impressão */
+                border: 1px solid #22c55e !important;
                 box-shadow: none !important;
-                padding: 20px !important;
-                border-radius: 12px !important;
-                width: 100% !important;
-                height: 125mm !important; /* Altura calculada para ocupar exatamente meia página A4 */
-                box-sizing: border-box !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                padding: 14px !important;
+                border-radius: 8px !important;
+                aspect-ratio: auto !important;
+                height: auto !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
                 justify-content: center !important;
                 text-align: center !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                page-break-after: always !important;
-                break-after: page !important;
-                margin-bottom: 0 !important;
-            }
-            .etiqueta-card:last-child {
-                page-break-after: avoid !important;
-                break-after: avoid !important;
             }
         }
     </style>
@@ -239,13 +227,13 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-yellow-500 uppercase">Etiquetas (QR Code) - 2 por Página A4</h4>
+                            <h4 class="text-xs font-bold text-yellow-500 uppercase">Etiquetas (QR Code) - Formato A4 Vertical (Até 12 por página)</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
                             </div>
                         </div>
-                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 gap-4 bg-slate-950 p-3 rounded-xl border border-slate-800 max-h-96 overflow-y-auto"></div>
+                        <div id="area-impressao-etiquetas" class="grid grid-cols-2 md:grid-cols-3 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800 max-h-64 overflow-y-auto"></div>
                     </div>
                 </div>
 
@@ -543,30 +531,30 @@
 
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
-                // Fundo verde mais vivo (#86efac), totalmente centralizado e estruturado para 2 por página
-                card.className = "etiqueta-card bg-[#86efac] border border-[#22c55e] p-6 rounded-xl flex flex-col items-center justify-center text-center space-y-4 relative text-slate-900 shadow-sm mb-4";
+                // Fundo verde mais vivo (#86efac), totalmente centralizado para evitar quebras
+                card.className = "etiqueta-card bg-[#86efac] border border-[#22c55e] p-4 rounded-xl flex flex-col items-center justify-center text-center space-y-3 relative text-slate-900 shadow-sm";
                 
                 let qrId = `qrcode-${idx}`;
                 card.innerHTML = `
-                    <div class="w-full flex flex-col items-center justify-center text-center space-y-2">
-                        <span class="text-lg font-mono font-black bg-slate-900 text-yellow-400 px-4 py-1.5 rounded-lg inline-block shadow-sm">${p.codigo}</span>
-                        <p class="text-base md:text-lg font-bold text-slate-900 mt-2 leading-snug px-2">${p.desc}</p>
+                    <div class="w-full flex flex-col items-center justify-center text-center space-y-1">
+                        <span class="text-base font-mono font-black bg-slate-900 text-yellow-400 px-3 py-1 rounded inline-block shadow-sm">${p.codigo}</span>
+                        <p class="text-sm font-bold text-slate-900 mt-2 leading-snug px-1">${p.desc}</p>
                     </div>
-                    <div id="${qrId}" class="bg-white p-3 rounded-xl my-2 flex justify-center items-center shadow-sm"></div>
-                    <span class="text-xs text-slate-700 font-mono font-semibold">Brava Enterprise - Sienge</span>
+                    <div id="${qrId}" class="bg-white p-2 rounded-lg my-1 flex justify-center items-center shadow-sm"></div>
+                    <span class="text-[10px] text-slate-700 font-mono font-semibold">Brava Enterprise - Sienge</span>
                 `;
                 area.appendChild(card);
 
                 new QRCode(document.getElementById(qrId), {
                     text: p.codigo,
-                    width: 120,
-                    height: 120,
+                    width: 90,
+                    height: 90,
                     colorDark: "#000000",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.M
                 });
             });
-            alert("Etiquetas geradas com sucesso! Ajustado para exatamente 2 etiquetas por página na impressão.");
+            alert("Etiquetas geradas com sucesso! Fundo verde mais vivo e conteúdo centralizado.");
         }
 
         function apagarEtiquetasGeradas() {
