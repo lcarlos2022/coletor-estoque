@@ -48,8 +48,8 @@
                 padding: 10mm !important;
             }
             .etiqueta-card {
-                background: white !important;
-                border: 1px solid #cbd5e1 !important;
+                background: #dcfce7 !important; /* Verde claro na impressão */
+                border: 1px solid #86efac !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -524,8 +524,8 @@
 
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
-                // Fundo branco, letras maiores e sem unidade de medida na etiqueta
-                card.className = "etiqueta-card bg-white border border-slate-300 p-4 rounded-xl flex flex-col items-center text-center space-y-3 relative text-slate-900 shadow-sm";
+                // Fundo verde claro (#dcfce7) na etiqueta, letras maiores e sem unidade de medida
+                card.className = "etiqueta-card bg-[#dcfce7] border border-[#86efac] p-4 rounded-xl flex flex-col items-center text-center space-y-3 relative text-slate-900 shadow-sm";
                 
                 let qrId = `qrcode-${idx}`;
                 card.innerHTML = `
@@ -534,7 +534,7 @@
                         <p class="text-lg font-bold text-slate-900 mt-2 leading-tight">${p.desc}</p>
                     </div>
                     <div id="${qrId}" class="bg-white p-2 rounded-lg my-1 flex justify-center items-center"></div>
-                    <span class="text-[10px] text-slate-500 font-mono font-semibold">Brava Enterprise - Sienge</span>
+                    <span class="text-[10px] text-slate-600 font-mono font-semibold">Brava Enterprise - Sienge</span>
                 `;
                 area.appendChild(card);
 
@@ -547,7 +547,7 @@
                     correctLevel: QRCode.CorrectLevel.M
                 });
             });
-            alert("Etiquetas geradas com sucesso! Role para baixo na aba Catálogo ou clique em 'Imprimir Etiquetas'.");
+            alert("Etiquetas geradas com sucesso com fundo verde claro! Role para baixo na aba Catálogo ou clique em 'Imprimir Etiquetas'.");
         }
 
         function apagarEtiquetasGeradas() {
