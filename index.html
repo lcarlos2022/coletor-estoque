@@ -14,11 +14,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL - PADRÃO PIMACO 6182 (Tamanho Carta: 21,59 x 27,94 cm | Altura: 33,9mm, Largura: 101,6mm, 2 colunas x 7 linhas = 14 etiquetas por folha) -->
+    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL - COM ESPAÇAMENTO E MOLDURA PARA CORTE E PLASTIFICAÇÃO -->
     <style>
         @page {
             size: letter;
-            margin: 19.5mm 7.9mm;
+            margin: 15mm 7.9mm;
         }
         @media print {
             body * {
@@ -44,8 +44,8 @@
             #area-impressao-etiquetas {
                 display: grid !important;
                 grid-template-columns: repeat(2, 101.6mm) !important;
-                grid-auto-rows: 33.9mm !important;
-                gap: 0mm 3.175mm !important;
+                grid-auto-rows: 35mm !important;
+                gap: 3mm 3mm !important; /* Espaçamento entre as etiquetas para facilitar o corte */
                 background: white !important;
                 border: none !important;
                 max-height: none !important;
@@ -56,13 +56,13 @@
             .etiqueta-card {
                 width: 101.6mm !important;
                 height: 33.9mm !important;
-                background: #dcfce7 !important; /* Verde claro para impressão */
-                border: none !important;
+                background: #dcfce7 !important; /* Fundo verde */
+                border: 1px dashed #166534 !important; /* Moldura para guiar o corte */
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
                 padding: 2mm 3mm !important;
-                border-radius: 0px !important;
+                border-radius: 4px !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
@@ -237,13 +237,13 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Carta - 101,6 x 33,9 mm - 14 por folha)</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Com moldura para corte e plastificação)</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
                             </div>
                         </div>
-                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-[#0b1329] p-3 rounded-xl border border-slate-800 max-h-80 overflow-y-auto"></div>
+                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-[#0b1329] p-3 rounded-xl border border-slate-800 max-h-80 overflow-y-auto"></div>
                     </div>
                 </div>
 
@@ -536,13 +536,13 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card border border-emerald-300 bg-emerald-50 text-slate-900 rounded p-1.5 flex flex-col justify-between";
+                card.className = "etiqueta-card border border-emerald-400 bg-emerald-50 text-slate-900 rounded p-1.5 flex flex-col justify-between";
                 card.innerHTML = `
-                    <div class="text-[9px] font-bold text-slate-800 uppercase text-center border-b border-emerald-200 pb-0.5 mb-1">Brava Construção e Incorporação</div>
-                    <div class="flex items-center space-x-2 flex-1">
+                    <div class="text-[9px] font-bold text-slate-800 uppercase text-center border-b border-emerald-300 pb-0.5 mb-1">Brava Construção e Incorporação</div>
+                    <div class="flex items-center space-x-2.5 flex-1">
                         <div id="qrcode-${index}" class="w-14 h-14 flex-shrink-0"></div>
-                        <div class="overflow-hidden flex-1 leading-tight">
-                            <h5 class="text-[10px] font-bold text-slate-900 line-clamp-2">${p.codigo} - ${p.desc}</h5>
+                        <div class="overflow-hidden flex-1 leading-tight flex flex-col justify-center">
+                            <h5 class="text-[11px] font-extrabold text-slate-900 line-clamp-2">${p.codigo} - ${p.desc}</h5>
                         </div>
                     </div>
                 `;
