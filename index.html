@@ -48,13 +48,15 @@
                 padding: 10mm !important;
             }
             .etiqueta-card {
-                background: #dcfce7 !important; /* Verde claro na impressão */
-                border: 1px solid #86efac !important;
+                background: #bbf7d0 !important; /* Verde um pouco mais escuro na impressão */
+                border: 1px solid #4ade80 !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
                 padding: 14px !important;
                 border-radius: 8px !important;
+                aspect-ratio: auto !important;
+                height: auto !important;
             }
         }
     </style>
@@ -524,12 +526,12 @@
 
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
-                // Fundo verde claro (#dcfce7) na etiqueta, letras maiores e sem unidade de medida
-                card.className = "etiqueta-card bg-[#dcfce7] border border-[#86efac] p-4 rounded-xl flex flex-col items-center text-center space-y-3 relative text-slate-900 shadow-sm";
+                // Fundo verde um pouco mais escuro (#bbf7d0), centralizado e sem esticar
+                card.className = "etiqueta-card bg-[#bbf7d0] border border-[#4ade80] p-4 rounded-xl flex flex-col items-center justify-center text-center space-y-3 relative text-slate-900 shadow-sm";
                 
                 let qrId = `qrcode-${idx}`;
                 card.innerHTML = `
-                    <div class="w-full text-left space-y-1">
+                    <div class="w-full flex flex-col items-center text-center space-y-1">
                         <span class="text-base font-mono font-black bg-slate-900 text-yellow-400 px-2.5 py-1 rounded inline-block">${p.codigo}</span>
                         <p class="text-lg font-bold text-slate-900 mt-2 leading-tight">${p.desc}</p>
                     </div>
@@ -547,7 +549,7 @@
                     correctLevel: QRCode.CorrectLevel.M
                 });
             });
-            alert("Etiquetas geradas com sucesso com fundo verde claro! Role para baixo na aba Catálogo ou clique em 'Imprimir Etiquetas'.");
+            alert("Etiquetas geradas com sucesso! Fundo verde ajustado e conteúdo centralizado.");
         }
 
         function apagarEtiquetasGeradas() {
