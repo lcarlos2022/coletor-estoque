@@ -249,14 +249,31 @@
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera Nativa Autofocus)</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
-                    <div id="reader-container" class="relative bg-black rounded-xl overflow-hidden border border-slate-800 flex-1 flex items-center justify-center min-h-[220px]">
-                        <div id="reader" class="w-full"></div>
+                    
+                    <!-- NOVO: Leitor de Alta Performance via Câmera Nativa do Celular (Garante Foco Automático Perfeito) -->
+                    <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-6 text-center space-y-4">
+                        <div class="inline-flex bg-emerald-500/10 text-emerald-400 p-4 rounded-full text-2xl border border-emerald-500/20">
+                            <i class="fa-solid fa-camera-rotate"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-bold text-white">Leitura por Câmera Nativa com Foco Automático</h4>
+                            <p class="text-xs text-slate-400">Clique abaixo para abrir a câmera do seu celular, focar na etiqueta e ler instantaneamente.</p>
+                        </div>
+                        
+                        <!-- Input nativo oculto acionado por botão com capture environment -->
+                        <input type="file" id="qr-input-file" accept="image/*" capture="environment" class="hidden" onchange="processarFotoEtiqueta(event)">
+                        
+                        <button onclick="document.getElementById('qr-input-file').click()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Abrir Câmera para Ler Etiqueta</span>
+                        </button>
                     </div>
+
                     <div id="painel-item-lido" class="hidden bg-[#0b1329] p-3.5 rounded-xl border border-slate-800 space-y-2">
                         <div class="flex justify-between items-start">
                             <div>
@@ -272,7 +289,6 @@
                     </div>
                     <div class="flex justify-between pt-2">
                         <button onclick="proximaContagem()" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs px-3 py-2 rounded-xl">Avançar 2ª Contagem</button>
-                        <button onclick="pararScanner()" class="bg-slate-800 text-slate-300 text-xs px-3 py-2 rounded-xl">Reiniciar Câmera</button>
                     </div>
                 </div>
 
@@ -328,7 +344,6 @@
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
         
         let faseAtualContagem = 1;
-        let html5QrCode = null;
         let produtoScaneadoAtual = null;
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -409,7 +424,6 @@
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('login-form').reset();
-            pararScanner();
             verificarEstadoSistema();
         }
 
@@ -424,7 +438,6 @@
             let btnAlvo = document.getElementById(`btn-aba-${aba}`);
             if (alvo) alvo.classList.remove('hidden');
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
-            if (aba === 'scanner') { iniciarScanner(); } else { pararScanner(); }
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
 
@@ -566,55 +579,30 @@
             document.getElementById('area-impressao-etiquetas').innerHTML = '';
         }
 
-        function iniciarScanner() {
-            if (html5QrCode) return;
-            try {
-                html5QrCode = new Html5Qrcode("reader");
-                
-                // Configuração avançada de constraints para melhorar o foco automático e leitura em celulares
-                let configCamera = {
-                    fps: 15,
-                    qrbox: { width: 220, height: 220 },
-                    aspectRatio: 1.0
-                };
+        // NOVO: Processamento otimizado da foto tirada com foco automático nativo do celular
+        function processarFotoEtiqueta(event) {
+            let file = event.target.files[0];
+            if (!file) return;
 
-                let constraints = {
-                    facingMode: "environment",
-                    advanced: [{ focusMode: "continuous" }]
-                };
-
-                html5QrCode.start(
-                    constraints,
-                    configCamera,
-                    (decodedText) => {
-                        processarCodigoLido(decodedText);
-                    },
-                    (errorMessage) => {}
-                ).catch(err => {
-                    // Fallback caso o navegador rejeite advanced constraints customizadas
-                    html5QrCode.start(
-                        { facingMode: "environment" },
-                        configCamera,
-                        (decodedText) => {
+            let html5QrCode = new Html5Qrcode("reader-hidden-div" || document.createElement("div"));
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    processarCodigoLido(decodedText);
+                    event.target.value = '';
+                })
+                .catch(err => {
+                    // Fallback usando outra instância se necessário
+                    const readerTemp = new Html5Qrcode("temp-scanner");
+                    readerTemp.scanFile(file, true)
+                        .then(decodedText => {
                             processarCodigoLido(decodedText);
-                        },
-                        (errorMessage) => {}
-                    ).catch(e2 => console.error("Erro ao iniciar câmera", e2));
+                            event.target.value = '';
+                        })
+                        .catch(e => {
+                            alert("Não foi possível detectar o QR Code na foto. Aproxime a câmera e certifique-se de que a etiqueta está bem iluminada e focada.");
+                            event.target.value = '';
+                        });
                 });
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function pararScanner() {
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    html5QrCode = null;
-                }).catch(err => {
-                    html5QrCode = null;
-                });
-            }
         }
 
         function processarCodigoLido(codigo) {
