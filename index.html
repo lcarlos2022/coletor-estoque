@@ -1,7 +1,9 @@
-<!DOCTYPE html><html lang="pt-BR"><head>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brava Construções e Incorporação - Sienge Edition (Pimaco 6182)</title>
+    <title>Brava Enterprise - Sienge Edition (Pimaco 6182)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Biblioteca HTML5 QR Code Scanner -->
@@ -12,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE ETIQUETAS E IMPRESSÃO -->
+    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL - ALTURA REDUZIDA EM MAIS 2.5mm (22.5mm) -->
     <style>
         @page {
             size: letter;
@@ -51,29 +53,29 @@
                 padding: 0 !important;
                 justify-content: start !important;
             }
+            .etiqueta-card {
+                width: 101.6mm !important;
+                height: 22.5mm !important; /* Altura reduzida em mais 2.5mm (Total: 22.5mm) */
+                background: #22c55e !important; /* Verde mais claro e suave (#22c55e) */
+                border: 1.5px dashed #15803d !important; /* Moldura pontilhada alinhada */
+                box-shadow: none !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                padding: 1mm 1.5mm !important;
+                border-radius: 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                justify-content: flex-start !important;
+                overflow: hidden !important;
+                box-sizing: border-box !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
-
-        /* ESTILO VISUAL DA ETIQUETA: Fundo verde intermediário, borda de corte, texto em preto/negrito e topo amarelo vivo */
-        .etiqueta-card {
-            width: 101.6mm !important;
-            height: 22.5mm !important;
-            background: #22c55e !important; /* Verde intermediário (nem muito escuro, nem muito claro) */
-            border: 1.5px dashed #15803d !important; /* Linha de corte pontilhada para plastificação */
-            box-shadow: none !important;
-            break-inside: avoid;
-            page-break-inside: avoid;
-            padding: 1.2mm 2mm !important;
-            border-radius: 4px !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: stretch !important;
-            justify-content: flex-start !important;
-            overflow: hidden !important;
-            box-sizing: border-box !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-    </style></head><body class="bg-[#0b1329] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
+    </style>
+</head>
+<body class="bg-[#0b1329] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
 
     <!-- HEADER -->
     <header class="bg-[#111c38] border-b border-slate-800 shadow-lg p-4 flex justify-between items-center z-20">
@@ -82,8 +84,8 @@
                 <i class="fa-solid fa-boxes-stacked text-base"></i>
             </div>
             <div>
-                <h1 class="text-xs font-black text-white tracking-widest uppercase">Brava Construções</h1>
-                <p class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Incorporação & Sienge</p>
+                <h1 class="text-xs font-black text-white tracking-widest uppercase">Brava Enterprise</h1>
+                <p class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Gestor Sienge Edition</p>
             </div>
         </div>
         <div id="user-info-header" class="hidden flex items-center space-x-3">
@@ -201,7 +203,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-white uppercase">Base de Materiais (Sienge)</h3>
-                            <p class="text-xs text-slate-400">Gerencie os itens do estoque e acumule múltiplos relatórios.</p>
+                            <p class="text-xs text-slate-400">Gerencie os itens do estoque.</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <label class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition flex items-center space-x-1.5">
@@ -235,7 +237,7 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Fundo Verde, Brava Amarelo Vivo, Preto Negrito e QR à Esquerda)</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Altura 22.5mm, QR Code Ampliado)</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
@@ -318,12 +320,12 @@
     </main>
 
     <footer class="text-center py-3 text-[10px] text-slate-500 border-t border-slate-800 nao-imprimir">
-        Brava Construções e Incorporação &copy; 2026 - Todos os direitos reservados
+        Brava Enterprise &copy; 2026 - Todos os direitos reservados
     </footer>
 
     <script>
-        let catalogoProdutos = JSON.parse(localStorage.getItem('brava_catalogo_produtos_6182')) || [];
-        let registrosContagem = JSON.parse(localStorage.getItem('brava_registros_contagem_6182')) || {};
+        let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos_6182')) || [];
+        let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
         
         let faseAtualContagem = 1;
         let html5QrCode = null;
@@ -334,7 +336,7 @@
         });
 
         function verificarEstadoSistema() {
-            let usuarioCadastrado = localStorage.getItem('brava_usuario_cadastrado');
+            let usuarioCadastrado = localStorage.getItem('sienge_usuario_cadastrado');
             if (!usuarioCadastrado) {
                 document.getElementById('campo-nome-div').style.display = 'block';
                 document.getElementById('campo-cpf-div').style.display = 'block';
@@ -356,7 +358,7 @@
 
         function processarAutenticacao(event) {
             event.preventDefault();
-            let usuarioCadastradoStr = localStorage.getItem('brava_usuario_cadastrado');
+            let usuarioCadastradoStr = localStorage.getItem('sienge_usuario_cadastrado');
             let pass = document.getElementById('login-pass').value;
 
             if (!usuarioCadastradoStr) {
@@ -364,7 +366,7 @@
                 let cpf = document.getElementById('cad-cpf').value.trim();
                 if (!nome || !cpf || !pass) { alert("Preencha todos os campos."); return; }
                 if (pass === "12345678") {
-                    localStorage.setItem('brava_temp_user', JSON.stringify({ nome, cpf }));
+                    localStorage.setItem('sienge_temp_user', JSON.stringify({ nome, cpf }));
                     document.getElementById('modal-troca-senha').classList.remove('hidden');
                 } else {
                     alert("A senha padrão obrigatória deve ser exatamente: 12345678");
@@ -382,11 +384,11 @@
             let novaPass = document.getElementById('nova-senha').value;
             let confirmaPass = document.getElementById('confirma-senha').value;
             if (novaPass !== confirmaPass) { alert("As senhas não coincidem."); return; }
-            let dadosTemp = JSON.parse(localStorage.getItem('brava_temp_user'));
+            let dadosTemp = JSON.parse(localStorage.getItem('sienge_temp_user'));
             if (dadosTemp) {
                 let usuarioFinal = { nome: dadosTemp.nome, cpf: dadosTemp.cpf, senha: novaPass };
-                localStorage.setItem('brava_usuario_cadastrado', JSON.stringify(usuarioFinal));
-                localStorage.removeItem('brava_temp_user');
+                localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioFinal));
+                localStorage.removeItem('sienge_temp_user');
                 document.getElementById('modal-troca-senha').classList.add('hidden');
                 alert("Senha alterada com sucesso!");
                 entrarNoSistema(usuarioFinal.nome);
@@ -492,61 +494,40 @@
                         if (codigo && desc) {
                             let codigoLimpo = String(codigo).replace(/^MAT[\s\-_]*/i, "").trim();
                             if (/^\d+$/.test(codigoLimpo)) {
-                                codigo = "MAT" + codigoLimpo.padStart(4, '0');
-                            } else {
-                                codigo = codigoLimpo;
+                                codigo = "MAT-" + codigoLimpo.padStart(3, '0');
                             }
-                            novosProdutos.push({ codigo, desc, unidade: unidade || "UN" });
+                            novosProdutos.push({ codigo, desc, unidade });
                         }
                     }
 
                     if (novosProdutos.length > 0) {
-                        let mapaExistentes = new Map(catalogoProdutos.map(p => [p.codigo.toLowerCase(), p]));
-                        let adicionadosCount = 0;
-
-                        novosProdutos.forEach(np => {
-                            let chave = np.codigo.toLowerCase();
-                            if (!mapaExistentes.has(chave)) {
-                                catalogoProdutos.push(np);
-                                mapaExistentes.set(chave, np);
-                                adicionadosCount++;
-                            } else {
-                                let existente = mapaExistentes.get(chave);
-                                existente.desc = np.desc;
-                                existente.unidade = np.unidade;
-                            }
-                        });
-
-                        localStorage.setItem('brava_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
+                        catalogoProdutos = novosProdutos;
+                        localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
                         renderizarCatalogo();
-                        alert(`Importação concluída! ${adicionadosCount} novos materiais adicionados e base acumulada com sucesso.`);
+                        alert(`Importação concluída com sucesso! ${catalogoProdutos.length} materiais carregados.`);
                     } else {
-                        alert("Nenhum material válido encontrado na planilha.");
+                        alert("Nenhum material válido foi encontrado na planilha.");
                     }
                 } catch (err) {
                     console.error(err);
-                    alert("Erro ao processar a planilha. Verifique o formato do arquivo.");
+                    alert("Erro ao ler o arquivo Excel.");
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
         function limparDadosImportados() {
-            if (confirm("Deseja realmente limpar todos os produtos e etiquetas geradas?")) {
+            if (confirm("Deseja realmente limpar o catálogo de produtos?")) {
                 catalogoProdutos = [];
-                registrosContagem = {};
-                localStorage.removeItem('brava_catalogo_produtos_6182');
-                localStorage.removeItem('brava_registros_contagem_6182');
+                localStorage.removeItem('sienge_catalogo_produtos_6182');
                 renderizarCatalogo();
-                document.getElementById('area-impressao-etiquetas').innerHTML = '';
                 document.getElementById('secao-etiquetas').classList.add('hidden');
-                alert("Dados limpos com sucesso!");
             }
         }
 
         function renderizarEtiquetasQR() {
             if (catalogoProdutos.length === 0) {
-                alert("Cadastre ou importe produtos no Catálogo Sienge primeiro.");
+                alert("Não há produtos no catálogo para gerar etiquetas.");
                 return;
             }
             let area = document.getElementById('area-impressao-etiquetas');
@@ -555,15 +536,13 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card";
+                card.className = "etiqueta-card border border-emerald-500 bg-[#4ade80] text-black rounded p-1 flex flex-col justify-between";
                 card.innerHTML = `
-                    <div style="font-size: 7px; font-weight: 900; color: #fde047; text-transform: uppercase; text-align: center; margin-bottom: 0.6mm; letter-spacing: 0.3px; line-height: 1;">Brava Construções e Incorporação</div>
-                    <div style="display: flex; gap: 2mm; align-items: center; width: 100%; height: 100%;">
-                        <div id="qrcode-${index}" style="width: 17mm; height: 17mm; background: white; padding: 0.5mm; border-radius: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;"></div>
-                        <div style="display: flex; flex-direction: column; justify-content: center; flex: 1; overflow: hidden; min-width: 0;">
-                            <div style="font-size: 9.5px; font-weight: 900; color: #000000; font-family: monospace; line-height: 1.1; margin-bottom: 0.6mm;">${p.codigo}</div>
-                            <div style="font-size: 8px; font-weight: 800; color: #000000; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">${p.desc}</div>
-                            <div style="font-size: 7.5px; font-weight: 800; color: #000000; margin-top: 0.6mm;">UN: ${p.unidade}</div>
+                    <div class="text-[8px] font-black text-[#facc15] uppercase text-center border-b border-emerald-400 pb-0.5 mb-0.5">Brava Construções e Incorporação</div>
+                    <div class="flex items-center space-x-2 flex-1">
+                        <div id="qrcode-${index}" class="w-14 h-14 flex-shrink-0 bg-white p-0.5 rounded border border-emerald-600"></div>
+                        <div class="overflow-hidden flex-1 leading-tight flex flex-col justify-center">
+                            <h5 class="text-[13px] font-black text-black line-clamp-2">${p.codigo} - ${p.desc}</h5>
                         </div>
                     </div>
                 `;
@@ -571,34 +550,33 @@
 
                 new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: p.codigo,
-                    width: 64,
-                    height: 64,
+                    width: 55,
+                    height: 55,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.M
+                    correctLevel : QRCode.CorrectLevel.H
                 });
             });
         }
 
         function apagarEtiquetasGeradas() {
-            document.getElementById('area-impressao-etiquetas').innerHTML = '';
             document.getElementById('secao-etiquetas').classList.add('hidden');
+            document.getElementById('area-impressao-etiquetas').innerHTML = '';
         }
 
         function iniciarScanner() {
             if (html5QrCode) return;
             try {
                 html5QrCode = new Html5Qrcode("reader");
-                const config = { fps: 10, qrbox: { width: 220, height: 140 } };
                 html5QrCode.start(
-                    { facingMode: "environment" }, 
-                    config, 
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 200, height: 200 } },
                     (decodedText) => {
                         processarCodigoLido(decodedText);
                     },
                     (errorMessage) => {}
                 ).catch(err => {
-                    console.error("Erro ao iniciar câmera:", err);
+                    console.error("Erro ao iniciar câmera", err);
                 });
             } catch (e) {
                 console.error(e);
@@ -611,48 +589,43 @@
                     html5QrCode.clear();
                     html5QrCode = null;
                 }).catch(err => {
-                    console.error("Erro ao parar scanner:", err);
                     html5QrCode = null;
                 });
             }
         }
 
         function processarCodigoLido(codigo) {
-            let item = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.toLowerCase() || p.codigo.replace(/^MAT0*/i, "") === codigo.replace(/^MAT0*/i, ""));
-            if (!item) {
-                item = catalogoProdutos.find(p => p.desc.toLowerCase().includes(codigo.toLowerCase()));
-            }
-            if (item) {
-                produtoScaneadoAtual = item;
-                document.getElementById('lido-codigo-desc').textContent = `${item.codigo} - ${item.desc}`;
-                document.getElementById('lido-unidade').textContent = item.unidade;
+            let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.trim().toLowerCase());
+            if (produto) {
+                produtoScaneadoAtual = produto;
+                document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
+                document.getElementById('lido-unidade').textContent = produto.unidade;
                 document.getElementById('painel-item-lido').classList.remove('hidden');
                 document.getElementById('lido-quantidade').value = '';
                 document.getElementById('lido-quantidade').focus();
+            } else {
+                alert(`Código lido não encontrado no catálogo Sienge: ${codigo}`);
             }
         }
 
         function salvarContagemItem() {
             if (!produtoScaneadoAtual) return;
             let qtd = parseFloat(document.getElementById('lido-quantidade').value);
-            if (isNaN(qtd) || qtd < 0) {
-                alert("Digite uma quantidade válida.");
-                return;
-            }
+            if (isNaN(qtd)) { alert("Digite uma quantidade válida."); return; }
 
             let codigo = produtoScaneadoAtual.codigo;
             if (!registrosContagem[codigo]) {
-                registrosContagem[codigo] = { c1: 0, c2: 0 };
+                registrosContagem[codigo] = { cont1: 0, cont2: 0 };
             }
 
             if (faseAtualContagem === 1) {
-                registrosContagem[codigo].c1 = qtd;
+                registrosContagem[codigo].cont1 = qtd;
             } else {
-                registrosContagem[codigo].c2 = qtd;
+                registrosContagem[codigo].cont2 = qtd;
             }
 
-            localStorage.setItem('brava_registros_contagem_6182', JSON.stringify(registrosContagem));
-            alert(`Contagem salva para ${codigo} (Fase ${faseAtualContagem}): ${qtd}`);
+            localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
+            alert("Contagem salva com sucesso!");
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
         }
@@ -663,9 +636,7 @@
                 document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
                 alert("Avançado para a 2ª Contagem.");
             } else {
-                faseAtualContagem = 1;
-                document.getElementById('label-fase-contagem').textContent = "1ª Contagem";
-                alert("Retornado para a 1ª Contagem.");
+                alert("Você já está na 2ª contagem.");
             }
         }
 
@@ -673,72 +644,62 @@
             let tbody = document.getElementById('tabela-divergencias-corpo');
             if (!tbody) return;
             tbody.innerHTML = '';
-
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto no catálogo.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado.</td></tr>`;
                 return;
             }
 
             catalogoProdutos.forEach(p => {
-                let reg = registrosContagem[p.codigo] || { c1: 0, c2: 0 };
-                let status = "OK";
-                let corStatus = "text-emerald-400";
-
-                if (reg.c1 === 0 && reg.c2 === 0) {
-                    status = "Não Contado";
-                    corStatus = "text-slate-500";
-                } else if (reg.c1 !== reg.c2) {
-                    status = "Divergente";
-                    corStatus = "text-amber-400 font-bold";
-                } else {
-                    status = "Conferido";
-                    corStatus = "text-emerald-400 font-bold";
+                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
+                let statusHtml = '<span class="text-slate-400">Não contado</span>';
+                if (reg.cont1 > 0 || reg.cont2 > 0) {
+                    if (reg.cont1 === reg.cont2) {
+                        statusHtml = '<span class="text-emerald-400 font-bold">OK / Divergência Zero</span>';
+                    } else {
+                        statusHtml = '<span class="text-amber-400 font-bold">Divergência entre Contagens</span>';
+                    }
                 }
-
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/50 transition";
                 tr.innerHTML = `
                     <td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td>
                     <td class="p-2.5">${p.desc}</td>
-                    <td class="p-2.5 font-mono">${reg.c1}</td>
-                    <td class="p-2.5 font-mono">${reg.c2}</td>
-                    <td class="p-2.5 ${corStatus}">${status}</td>
+                    <td class="p-2.5 font-mono">${reg.cont1}</td>
+                    <td class="p-2.5 font-mono">${reg.cont2}</td>
+                    <td class="p-2.5">${statusHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
         function exportarRelatorioExcel() {
-            if (catalogoProdutos.length === 0) {
-                alert("Não há dados para exportar.");
-                return;
-            }
+            if (catalogoProdutos.length === 0) { alert("Sem dados para exportar."); return; }
             let dadosExport = catalogoProdutos.map(p => {
-                let reg = registrosContagem[p.codigo] || { c1: 0, c2: 0 };
-                let status = (reg.c1 === 0 && reg.c2 === 0) ? "Não Contado" : (reg.c1 !== reg.c2 ? "Divergente" : "Conferido");
+                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
+                let status = "Não contado";
+                if (reg.cont1 > 0 || reg.cont2 > 0) {
+                    status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
+                }
                 return {
                     "Código": p.codigo,
                     "Descrição": p.desc,
                     "Unidade": p.unidade,
-                    "1ª Contagem": reg.c1,
-                    "2ª Contagem": reg.c2,
+                    "1ª Contagem": reg.cont1,
+                    "2ª Contagem": reg.cont2,
                     "Status": status
                 };
             });
 
             let worksheet = XLSX.utils.json_to_sheet(dadosExport);
             let workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Contagem Sienge");
-            XLSX.writeFile(workbook, "Relatorio_Contagem_Brava.xlsx");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventário Sienge");
+            XLSX.writeFile(workbook, "Relatorio_Inventario_Sienge.xlsx");
         }
 
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
-            if (!email) {
-                alert("Digite um e-mail de destino válido.");
-                return;
-            }
-            alert(`Relatório enviado com sucesso para ${email}! (Simulação)`);
+            if (!email) { alert("Digite o e-mail de destino."); return; }
+            alert(`Relatório simulado enviado com sucesso para ${email}!`);
         }
     </script>
 </body>
