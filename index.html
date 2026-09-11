@@ -539,7 +539,6 @@
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
                 card.className = "etiqueta-card border border-emerald-500 bg-[#4ade80] text-black rounded p-1 flex flex-col justify-between";
-                // Nome da empresa alterado para amarelo vivo (text-amber-300)
                 card.innerHTML = `
                     <div class="text-[7.5px] font-black text-amber-300 uppercase text-center border-b border-emerald-400 pb-0.5 mb-0.5">Brava Construções e Incorporação</div>
                     <div class="flex items-center space-x-2 flex-1">
@@ -571,15 +570,36 @@
             if (html5QrCode) return;
             try {
                 html5QrCode = new Html5Qrcode("reader");
+                
+                // Configuração avançada de constraints para melhorar o foco automático e leitura em celulares
+                let configCamera = {
+                    fps: 15,
+                    qrbox: { width: 220, height: 220 },
+                    aspectRatio: 1.0
+                };
+
+                let constraints = {
+                    facingMode: "environment",
+                    advanced: [{ focusMode: "continuous" }]
+                };
+
                 html5QrCode.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 200, height: 200 } },
+                    constraints,
+                    configCamera,
                     (decodedText) => {
                         processarCodigoLido(decodedText);
                     },
                     (errorMessage) => {}
                 ).catch(err => {
-                    console.error("Erro ao iniciar câmera", err);
+                    // Fallback caso o navegador rejeite advanced constraints customizadas
+                    html5QrCode.start(
+                        { facingMode: "environment" },
+                        configCamera,
+                        (decodedText) => {
+                            processarCodigoLido(decodedText);
+                        },
+                        (errorMessage) => {}
+                    ).catch(e2 => console.error("Erro ao iniciar câmera", e2));
                 });
             } catch (e) {
                 console.error(e);
