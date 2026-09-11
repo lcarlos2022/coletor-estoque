@@ -249,7 +249,14 @@
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico</h3>
+                        <div class="flex items-center space-x-2">
+                            <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico</h3>
+                            <!-- Botão seletor manual rápido de fase de contagem caso o operador pule ou precise alternar -->
+                            <select id="seletor-fase-contagem" onchange="mudarFaseManual(this.value)" class="bg-[#0b1329] text-amber-400 text-xs font-bold px-2 py-1 rounded border border-slate-700 outline-none cursor-pointer">
+                                <option value="1">1ª Contagem</option>
+                                <option value="2">2ª Contagem</option>
+                            </select>
+                        </div>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
@@ -260,7 +267,7 @@
                     <div id="painel-item-lido" class="hidden bg-[#0b1329] p-3.5 rounded-xl border border-slate-800 space-y-2">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-[10px] text-amber-400 font-bold uppercase">Item Identificado</p>
+                                <p class="text-[10px] text-amber-400 font-bold uppercase" id="titulo-painel-item">Item Identificado</p>
                                 <h4 id="lido-codigo-desc" class="text-sm font-bold text-white">--</h4>
                             </div>
                             <span id="lido-unidade" class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded font-mono">UN</span>
@@ -334,6 +341,24 @@
         window.addEventListener('DOMContentLoaded', () => {
             verificarEstadoSistema();
         });
+
+        // Função para emitir bipe sonoro (BiBip) ao escanear
+        function tocarBip() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Frequência aguda clara (Nota A5)
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.12); // Duração curta de 120ms
+            } catch (e) {
+                console.log("Áudio bloqueado pelo navegador até interação do usuário.", e);
+            }
+        }
 
         function verificarEstadoSistema() {
             let usuarioCadastrado = localStorage.getItem('sienge_usuario_cadastrado');
@@ -492,7 +517,6 @@
                         }
 
                         if (codigo && desc) {
-                            // Remove o prefixo "MT" (com ou sem espaços, hífens ou underlines logo após) do início do código
                             let codigoLimpo = String(codigo).replace(/^MT[\s\-_]*/i, "").trim();
                             if (/^\d+$/.test(codigoLimpo)) {
                                 codigo = codigoLimpo.padStart(3, '0');
@@ -597,14 +621,36 @@
             }
         }
 
+        function mudarFaseManual(valorFase) {
+            faseAtualContagem = parseInt(valorFase);
+            document.getElementById('label-fase-contagem').textContent = `${faseAtualContagem}ª Contagem`;
+            document.getElementById('seletor-fase-contagem').value = faseAtualContagem;
+            document.getElementById('painel-item-lido').classList.add('hidden');
+            produtoScaneadoAtual = null;
+        }
+
         function processarCodigoLido(codigo) {
             let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.trim().toLowerCase());
             if (produto) {
+                // Toca o bipe sonoro imediatamente ao identificar o produto com sucesso
+                tocarBip();
+
+                let codigoItem = produto.codigo;
+                let reg = registrosContagem[codigoItem] || { cont1: 0, cont2: 0 };
+                
+                // Validação rigorosa para evitar esquecimentos ou duplicidades indesejadas
+                if (faseAtualContagem === 1 && reg.cont1 > 0) {
+                    alert(`⚠️ Atenção: O item "${produto.codigo} - ${produto.desc}" JÁ FOI CONTABILIZADO na 1ª Contagem (${reg.cont1} ${produto.unidade}). Verifique se deseja ajustar.`);
+                } else if (faseAtualContagem === 2 && reg.cont2 > 0) {
+                    alert(`⚠️ Atenção: O item "${produto.codigo} - ${produto.desc}" JÁ FOI CONTABILIZADO na 2ª Contagem (${reg.cont2} ${produto.unidade}). Verifique se deseja ajustar.`);
+                }
+
                 produtoScaneadoAtual = produto;
                 document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
                 document.getElementById('lido-unidade').textContent = produto.unidade;
+                document.getElementById('titulo-painel-item').textContent = `Item Identificado (${faseAtualContagem}ª Contagem)`;
                 document.getElementById('painel-item-lido').classList.remove('hidden');
-                document.getElementById('lido-quantidade').value = '';
+                document.getElementById('lido-quantidade').value = (faseAtualContagem === 1 ? reg.cont1 : reg.cont2) || '';
                 document.getElementById('lido-quantidade').focus();
             } else {
                 alert(`Código lido não encontrado no catálogo Sienge: ${codigo}`);
@@ -628,7 +674,7 @@
             }
 
             localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
-            alert("Contagem salva com sucesso!");
+            alert(`Contagem da ${faseAtualContagem}ª etapa salva com sucesso!`);
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
         }
@@ -637,6 +683,7 @@
             if (faseAtualContagem === 1) {
                 faseAtualContagem = 2;
                 document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
+                document.getElementById('seletor-fase-contagem').value = "2";
                 alert("Avançado para a 2ª Contagem.");
             } else {
                 alert("Você já está na 2ª contagem.");
