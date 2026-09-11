@@ -748,8 +748,34 @@
 
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
-            if (!email) { alert("Digite o e-mail de destino."); return; }
-            alert(`Relatório simulado enviado com sucesso para ${email}!`);
+            if (!email) { 
+                alert("Digite o e-mail de destino."); 
+                return; 
+            }
+            if (catalogoProdutos.length === 0) {
+                alert("Não há dados de inventário para enviar.");
+                return;
+            }
+
+            // Montagem completa do corpo do relatório em texto para envio direto via cliente de e-mail do dispositivo
+            let corpo = "RELATÓRIO DE INVENTÁRIO - SIENGE\n\n";
+            catalogoProdutos.forEach(p => {
+                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
+                let status = "Não contado";
+                if (reg.cont1 > 0 || reg.cont2 > 0) {
+                    status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
+                }
+                corpo += `[Cód: ${p.codigo}] ${p.desc}\n`;
+                corpo += ` - 1ª Contagem: ${reg.cont1} ${p.unidade}\n`;
+                corpo += ` - 2ª Contagem: ${reg.cont2} ${p.unidade}\n`;
+                corpo += ` - Status: ${status}\n\n`;
+            });
+
+            let assunto = encodeURIComponent("Relatório de Inventário - Brava Enterprise / Sienge");
+            let textoFormatado = encodeURIComponent(corpo);
+
+            // Aciona o cliente de e-mail nativo com o destinatário e o relatório completo preenchidos
+            window.location.href = `mailto:${email}?subject=${assunto}&body=${textoFormatado}`;
         }
     </script>
 </body>
