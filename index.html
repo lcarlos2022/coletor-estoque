@@ -12,11 +12,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Biblioteca QRCode.js para geração de etiquetas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- EmailJS para envio real de e-mails via SMTP pelo navegador -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL - ALTURA REDUZIDA EM MAIS 2.5mm (22.5mm) -->
+    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL -->
     <style>
         @page {
             size: letter;
@@ -153,16 +151,6 @@
                     <p class="text-xs text-slate-400">Por segurança, altere sua senha padrão para continuar.</p>
                 </div>
 
-                <div class="bg-[#0b1329] p-3 rounded-xl border border-slate-800 text-[11px] text-slate-300 space-y-1">
-                    <p class="font-bold text-amber-400">Sua nova senha deve conter obrigatoriamente:</p>
-                    <ul class="list-disc list-inside space-y-0.5 text-slate-400">
-                        <li>Mínimo de 1 letra maiúscula</li>
-                        <li>Letras minúsculas</li>
-                        <li>Números</li>
-                        <li>Pelo menos 1 caractere especial (ex: @, #, $, %)</li>
-                    </ul>
-                </div>
-
                 <form onsubmit="salvarNovaSenha(event)" class="space-y-4">
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nova Senha</label>
@@ -201,7 +189,7 @@
             </div>
 
             <div class="flex-1 bg-[#111c38] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
-                <div id="conteudo-catalogo" class="space-y-4">
+                <div id="conteudo-catalogo" class="hidden space-y-4">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-white uppercase">Base de Materiais (Sienge)</h3>
@@ -217,7 +205,7 @@
                                 <i class="fa-solid fa-qrcode"></i>
                                 <span>Gerar Etiquetas</span>
                             </button>
-                            <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Limpar dados importados">
+                            <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
                                 <i class="fa-solid fa-trash-can"></i>
                                 <span>Limpar Dados</span>
                             </button>
@@ -239,7 +227,7 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Altura 22.5mm, QR Code Ampliado)</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
@@ -309,11 +297,10 @@
 
                 <div id="conteudo-relatorios" class="hidden space-y-4">
                     <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-white uppercase">Relatórios e Configuração de E-mail</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Relatórios e Envio de E-mail</h3>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <!-- Painel de Exportação -->
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
                             <div>
                                 <h4 class="text-xs font-bold text-purple-400 uppercase mb-1">Exportar Planilha</h4>
@@ -325,44 +312,15 @@
                             </button>
                         </div>
 
-                        <!-- Painel de Configuração de E-mail -->
-                        <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
+                        <!-- Envio Direto para o seu e-mail -->
+                        <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
                             <div>
-                                <h4 class="text-xs font-bold text-emerald-400 uppercase mb-1">Configuração de Servidor de E-mail</h4>
-                                <p class="text-[11px] text-slate-400">Configure suas credenciais SMTP para envio automático.</p>
+                                <h4 class="text-xs font-bold text-emerald-400 uppercase mb-1">Envio Direto para o seu E-mail</h4>
+                                <p class="text-[11px] text-slate-400">O relatório será disparado diretamente para <b>ocluiz@hotmail.com</b>.</p>
                             </div>
-                            <div class="space-y-2">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-300 uppercase">Servidor SMTP</label>
-                                    <input type="text" id="smtp-servidor" placeholder="smtp.gmail.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-300 uppercase">Porta SMTP</label>
-                                        <input type="text" id="smtp-porta" placeholder="587" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-300 uppercase">E-mail Remetente</label>
-                                        <input type="email" id="smtp-email" placeholder="seu-email@dominio.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-300 uppercase">Senha / Token de App</label>
-                                    <input type="password" id="smtp-senha" placeholder="Senha do e-mail" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
-                                </div>
-                                <button onclick="salvarConfiguracaoEmail()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-lg transition">Salvar Configurações de E-mail</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Envio Rápido -->
-                    <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
-                        <h4 class="text-xs font-bold text-amber-400 uppercase">Disparar Relatório de Inventário por E-mail</h4>
-                        <div class="flex flex-col md:flex-row gap-2">
-                            <input type="email" id="email-destino" placeholder="Digite o e-mail de destino do relatório..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
-                            <button onclick="enviarRelatorioEmail()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition flex items-center justify-center space-x-2">
+                            <button onclick="enviarRelatorioEmail()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center space-x-2">
                                 <i class="fa-solid fa-paper-plane"></i>
-                                <span>Enviar Relatório Agora</span>
+                                <span>Enviar Relatório para ocluiz@hotmail.com</span>
                             </button>
                         </div>
                     </div>
@@ -385,7 +343,6 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarEstadoSistema();
-            carregarConfiguracaoEmailSalva();
         });
 
         function tocarBip() {
@@ -400,9 +357,7 @@
                 gainNode.connect(audioCtx.destination);
                 oscillator.start();
                 oscillator.stop(audioCtx.currentTime + 0.12);
-            } catch (e) {
-                console.log("Áudio bloqueado pelo navegador.", e);
-            }
+            } catch (e) {}
         }
 
         function verificarEstadoSistema() {
@@ -412,15 +367,15 @@
                 document.getElementById('campo-cpf-div').style.display = 'block';
                 document.getElementById('cad-nome').required = true;
                 document.getElementById('cad-cpf').required = true;
-                document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando obrigatoriamente a senha padrão 12345678.";
-                document.getElementById('instrucao-dinamica').innerHTML = "Como é o seu primeiro acesso, preencha seu Nome, CPF e a senha padrão <b>12345678</b>.";
+                document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando a senha padrão 12345678.";
+                document.getElementById('instrucao-dinamica').innerHTML = "Primeiro acesso: preencha seu Nome, CPF e a senha padrão <b>12345678</b>.";
                 document.getElementById('titulo-form-auth').textContent = "Primeiro Cadastro Obrigatório";
                 document.getElementById('texto-botao-auth').textContent = "Cadastrar e Prosseguir";
             } else {
                 document.getElementById('campo-nome-div').style.display = 'none';
                 document.getElementById('cad-nome').required = false;
                 document.getElementById('descricao-auth-modo').textContent = "Entre com seu CPF e sua senha cadastrada.";
-                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e a senha definitiva configurada.";
+                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e sua senha.";
                 document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
                 document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
             }
@@ -521,53 +476,25 @@
             reader.onload = function(e) {
                 try {
                     let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, { type: 'array', cellFormula: false, cellText: false, cellStyles: true });
+                    let workbook = XLSX.read(data, { type: 'array' });
                     let worksheet = workbook.Sheets[workbook.SheetNames[0]];
                     let json = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: "" });
                     
                     let novosProdutos = [];
-                    
                     for (let i = 0; i < json.length; i++) {
                         let row = json[i];
                         if (!row || row.length === 0) continue;
-
-                        let colunasValidas = row.map(c => String(c !== undefined && c !== null ? c : "").trim()).filter(c => c !== "");
+                        let colunasValidas = row.map(c => String(c !== undefined ? c : "").trim()).filter(c => c !== "");
                         if (colunasValidas.length === 0) continue;
 
                         let textoColuna0 = colunasValidas[0].toLowerCase();
-                        if (textoColuna0.includes('código') || textoColuna0.includes('codigo') || textoColuna0.includes('descrição') || textoColuna0.includes('descricao') || textoColuna0.includes('item') || textoColuna0 === 'mat') {
-                            continue;
-                        }
+                        if (textoColuna0.includes('código') || textoColuna0.includes('codigo') || textoColuna0.includes('descrição') || textoColuna0.includes('descricao')) continue;
 
-                        let codigo = "";
-                        let desc = "";
-                        let unidade = "UN";
-
-                        if (colunasValidas.length >= 2) {
-                            codigo = colunasValidas[0];
-                            desc = colunasValidas[1];
-                            if (colunasValidas.length >= 3) {
-                                unidade = colunasValidas[2];
-                            }
-                        } else if (colunasValidas.length === 1) {
-                            let textoUnico = colunasValidas[0];
-                            let partes = textoUnico.split(/[-–;|]/);
-                            if (partes.length >= 2) {
-                                codigo = partes[0].trim();
-                                desc = partes.slice(1).join(' - ').trim();
-                            } else {
-                                codigo = "ITEM-" + (novosProdutos.length + 1);
-                                desc = textoUnico;
-                            }
-                        }
+                        let codigo = colunasValidas[0];
+                        let desc = colunasValidas[1] || "";
+                        let unidade = colunasValidas[2] || "UN";
 
                         if (codigo && desc) {
-                            let codigoLimpo = String(codigo).replace(/^MT[\s\-_]*/i, "").trim();
-                            if (/^\d+$/.test(codigoLimpo)) {
-                                codigo = codigoLimpo.padStart(3, '0');
-                            } else {
-                                codigo = codigoLimpo;
-                            }
                             novosProdutos.push({ codigo, desc, unidade });
                         }
                     }
@@ -576,12 +503,11 @@
                         catalogoProdutos = novosProdutos;
                         localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
                         renderizarCatalogo();
-                        alert(`Importação concluída com sucesso! ${catalogoProdutos.length} materiais carregados.`);
+                        alert(`Importação concluída! ${catalogoProdutos.length} materiais carregados.`);
                     } else {
-                        alert("Nenhum material válido foi encontrado na planilha.");
+                        alert("Nenhum material válido encontrado.");
                     }
                 } catch (err) {
-                    console.error(err);
                     alert("Erro ao ler o arquivo Excel.");
                 }
             };
@@ -589,19 +515,15 @@
         }
 
         function limparDadosImportados() {
-            if (confirm("Deseja realmente limpar o catálogo de produtos?")) {
+            if (confirm("Deseja realmente limpar o catálogo?")) {
                 catalogoProdutos = [];
                 localStorage.removeItem('sienge_catalogo_produtos_6182');
                 renderizarCatalogo();
-                document.getElementById('secao-etiquetas').classList.add('hidden');
             }
         }
 
         function renderizarEtiquetasQR() {
-            if (catalogoProdutos.length === 0) {
-                alert("Não há produtos no catálogo para gerar etiquetas.");
-                return;
-            }
+            if (catalogoProdutos.length === 0) { alert("Sem produtos."); return; }
             let area = document.getElementById('area-impressao-etiquetas');
             area.innerHTML = '';
             document.getElementById('secao-etiquetas').classList.remove('hidden');
@@ -619,15 +541,7 @@
                     </div>
                 `;
                 area.appendChild(card);
-
-                new QRCode(document.getElementById(`qrcode-${index}`), {
-                    text: p.codigo,
-                    width: 55,
-                    height: 55,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
+                new QRCode(document.getElementById(`qrcode-${index}`), { text: p.codigo, width: 55, height: 55, colorDark : "#000000", colorLight : "#ffffff" });
             });
         }
 
@@ -643,26 +557,15 @@
                 html5QrCode.start(
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 200, height: 200 } },
-                    (decodedText) => {
-                        processarCodigoLido(decodedText);
-                    },
+                    (decodedText) => { processarCodigoLido(decodedText); },
                     (errorMessage) => {}
-                ).catch(err => {
-                    console.error("Erro ao iniciar câmera", err);
-                });
-            } catch (e) {
-                console.error(e);
-            }
+                ).catch(err => {});
+            } catch (e) {}
         }
 
         function pararScanner() {
             if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    html5QrCode = null;
-                }).catch(err => {
-                    html5QrCode = null;
-                });
+                html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode = null; }).catch(err => { html5QrCode = null; });
             }
         }
 
@@ -678,16 +581,8 @@
             let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.trim().toLowerCase());
             if (produto) {
                 tocarBip();
-                let codigoItem = produto.codigo;
-                let reg = registrosContagem[codigoItem] || { cont1: 0, cont2: 0 };
-                
-                if (faseAtualContagem === 1 && reg.cont1 > 0) {
-                    alert(`⚠️ Atenção: O item "${produto.codigo} - ${produto.desc}" JÁ FOI CONTABILIZADO na 1ª Contagem (${reg.cont1} ${produto.unidade}).`);
-                } else if (faseAtualContagem === 2 && reg.cont2 > 0) {
-                    alert(`⚠️ Atenção: O item "${produto.codigo} - ${produto.desc}" JÁ FOI CONTABILIZADO na 2ª Contagem (${reg.cont2} ${produto.unidade}).`);
-                }
-
                 produtoScaneadoAtual = produto;
+                let reg = registrosContagem[produto.codigo] || { cont1: 0, cont2: 0 };
                 document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
                 document.getElementById('lido-unidade').textContent = produto.unidade;
                 document.getElementById('titulo-painel-item').textContent = `Item Identificado (${faseAtualContagem}ª Contagem)`;
@@ -695,7 +590,7 @@
                 document.getElementById('lido-quantidade').value = (faseAtualContagem === 1 ? reg.cont1 : reg.cont2) || '';
                 document.getElementById('lido-quantidade').focus();
             } else {
-                alert(`Código lido não encontrado no catálogo Sienge: ${codigo}`);
+                alert(`Código não encontrado: ${codigo}`);
             }
         }
 
@@ -705,18 +600,13 @@
             if (isNaN(qtd)) { alert("Digite uma quantidade válida."); return; }
 
             let codigo = produtoScaneadoAtual.codigo;
-            if (!registrosContagem[codigo]) {
-                registrosContagem[codigo] = { cont1: 0, cont2: 0 };
-            }
+            if (!registrosContagem[codigo]) registrosContagem[codigo] = { cont1: 0, cont2: 0 };
 
-            if (faseAtualContagem === 1) {
-                registrosContagem[codigo].cont1 = qtd;
-            } else {
-                registrosContagem[codigo].cont2 = qtd;
-            }
+            if (faseAtualContagem === 1) registrosContagem[codigo].cont1 = qtd;
+            else registrosContagem[codigo].cont2 = qtd;
 
             localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
-            alert(`Contagem da ${faseAtualContagem}ª etapa salva com sucesso!`);
+            alert("Contagem salva!");
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
         }
@@ -727,8 +617,6 @@
                 document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
                 document.getElementById('seletor-fase-contagem').value = "2";
                 alert("Avançado para a 2ª Contagem.");
-            } else {
-                alert("Você já está na 2ª contagem.");
             }
         }
 
@@ -745,21 +633,11 @@
                 let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
                 let statusHtml = '<span class="text-slate-400">Não contado</span>';
                 if (reg.cont1 > 0 || reg.cont2 > 0) {
-                    if (reg.cont1 === reg.cont2) {
-                        statusHtml = '<span class="text-emerald-400 font-bold">OK / Divergência Zero</span>';
-                    } else {
-                        statusHtml = '<span class="text-amber-400 font-bold">Divergência entre Contagens</span>';
-                    }
+                    statusHtml = (reg.cont1 === reg.cont2) ? '<span class="text-emerald-400 font-bold">OK</span>' : '<span class="text-amber-400 font-bold">Divergente</span>';
                 }
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/50 transition";
-                tr.innerHTML = `
-                    <td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td>
-                    <td class="p-2.5">${p.desc}</td>
-                    <td class="p-2.5 font-mono">${reg.cont1}</td>
-                    <td class="p-2.5 font-mono">${reg.cont2}</td>
-                    <td class="p-2.5">${statusHtml}</td>
-                `;
+                tr.innerHTML = `<td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td><td class="p-2.5">${p.desc}</td><td class="p-2.5 font-mono">${reg.cont1}</td><td class="p-2.5 font-mono">${reg.cont2}</td><td class="p-2.5">${statusHtml}</td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -769,88 +647,36 @@
             let dadosExport = catalogoProdutos.map(p => {
                 let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
                 let status = "Não contado";
-                if (reg.cont1 > 0 || reg.cont2 > 0) {
-                    status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
-                }
-                return {
-                    "Código": p.codigo,
-                    "Descrição": p.desc,
-                    "Unidade": p.unidade,
-                    "1ª Contagem": reg.cont1,
-                    "2ª Contagem": reg.cont2,
-                    "Status": status
-                };
+                if (reg.cont1 > 0 || reg.cont2 > 0) status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
+                return { "Código": p.codigo, "Descrição": p.desc, "Unidade": p.unidade, "1ª Contagem": reg.cont1, "2ª Contagem": reg.cont2, "Status": status };
             });
-
             let worksheet = XLSX.utils.json_to_sheet(dadosExport);
             let workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Inventário Sienge");
             XLSX.writeFile(workbook, "Relatorio_Inventario_Sienge.xlsx");
         }
 
-        // Funções de Gerenciamento e Disparo Real de E-mail
-        function salvarConfiguracaoEmail() {
-            let config = {
-                servidor: document.getElementById('smtp-servidor').value.trim(),
-                porta: document.getElementById('smtp-porta').value.trim(),
-                email: document.getElementById('smtp-email').value.trim(),
-                senha: document.getElementById('smtp-senha').value.trim()
-            };
-            localStorage.setItem('sienge_config_smtp', JSON.stringify(config));
-            alert("Configurações de e-mail salvas com sucesso no sistema!");
-        }
-
-        function carregarConfiguracaoEmailSalva() {
-            let configStr = localStorage.getItem('sienge_config_smtp');
-            if (configStr) {
-                let config = JSON.parse(configStr);
-                document.getElementById('smtp-servidor').value = config.servidor || '';
-                document.getElementById('smtp-porta').value = config.porta || '';
-                document.getElementById('smtp-email').value = config.email || '';
-                document.getElementById('smtp-senha').value = config.senha || '';
-            }
-        }
-
+        // Envio automático direto para ocluiz@hotmail.com
         function enviarRelatorioEmail() {
-            let emailDestino = document.getElementById('email-destino').value.trim();
-            if (!emailDestino) {
-                alert("Digite o e-mail de destino do relatório.");
-                return;
-            }
+            let emailDestino = "ocluiz@hotmail.com";
             if (catalogoProdutos.length === 0) {
                 alert("Não há dados de inventário para enviar.");
                 return;
             }
 
-            let configStr = localStorage.getItem('sienge_config_smtp');
-            let config = configStr ? JSON.parse(configStr) : null;
-
-            // Montagem do corpo resumido do relatório
             let resumoTexto = "RELATÓRIO DE INVENTÁRIO DE ESTOQUE - SIENGE\n\n";
             catalogoProdutos.forEach(p => {
                 let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
                 let status = "Não contado";
-                if (reg.cont1 > 0 || reg.cont2 > 0) {
-                    status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
-                }
+                if (reg.cont1 > 0 || reg.cont2 > 0) status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
                 resumoTexto += `Item: ${p.codigo} - ${p.desc}\n`;
                 resumoTexto += `  1ª Cont: ${reg.cont1} ${p.unidade} | 2ª Cont: ${reg.cont2} ${p.unidade} | Status: ${status}\n\n`;
             });
 
-            // Se o usuário preencheu as credenciais SMTP no painel, enviamos ou abrimos o cliente configurado com fallback seguro
-            if (config && config.email) {
-                // Utiliza protocolo mailto inteligente com o corpo pré-preenchido utilizando o e-mail remetente e destino configurados
-                let assunto = encodeURIComponent("Relatório de Inventário Sienge - Brava Enterprise");
-                let corpo = encodeURIComponent(`De: ${config.email}\nPara: ${emailDestino}\nServidor: ${config.servidor || 'SMTP Padrão'}\n\n` + resumoTexto);
-                window.location.href = `mailto:${emailDestino}?subject=${assunto}&body=${corpo}`;
-                alert(`Cliente de e-mail aberto para envio de ${config.email} para ${emailDestino}!`);
-            } else {
-                // Fallback padrão direto via mailto
-                let assunto = encodeURIComponent("Relatório de Inventário Sienge - Brava Enterprise");
-                let corpo = encodeURIComponent(resumoTexto);
-                window.location.href = `mailto:${emailDestino}?subject=${assunto}&body=${corpo}`;
-                alert("E-mail de destino configurado! Seu aplicativo de e-mail padrão foi aberto com o relatório pronto para envio.");
-            }
+            let assunto = encodeURIComponent("Relatório de Inventário Sienge - Brava Enterprise");
+            let corpo = encodeURIComponent(resumoTexto);
+            window.location.href = `mailto:${emailDestino}?subject=${assunto}&body=${corpo}`;
+            alert("Aplicativo de e-mail aberto com o relatório pronto para envio a ocluiz@hotmail.com!");
         }
     </script>
 </body>
