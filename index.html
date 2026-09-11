@@ -56,8 +56,8 @@
             .etiqueta-card {
                 width: 101.6mm !important;
                 height: 22.5mm !important;
-                background: #22c55e !important;
-                border: 1.5px dashed #15803d !important;
+                background: #ffffff !important;
+                border: 1.5px dashed #64748b !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -312,7 +312,6 @@
                             </button>
                         </div>
 
-                        <!-- Cópia Direta para o seu e-mail ocluiz@hotmail.com sem abrir Outlook -->
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
                             <div>
                                 <h4 class="text-xs font-bold text-emerald-400 uppercase mb-1">Enviar para ocluiz@hotmail.com</h4>
@@ -494,7 +493,7 @@
                         let desc = colunasValidas[1] || "";
                         let unidade = colunasValidas[2] || "UN";
 
-                        if (codigo && desc) {
+                        if (codigo) {
                             novosProdutos.push({ codigo, desc, unidade });
                         }
                     }
@@ -503,45 +502,60 @@
                         catalogoProdutos = novosProdutos;
                         localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
                         renderizarCatalogo();
-                        alert(`Importação concluída! ${catalogoProdutos.length} materiais carregados.`);
+                        alert(`${novosProdutos.length} materiais importados com sucesso!`);
                     } else {
-                        alert("Nenhum material válido encontrado.");
+                        alert("Nenhum produto válido encontrado na planilha.");
                     }
                 } catch (err) {
-                    alert("Erro ao ler o arquivo Excel.");
+                    alert("Erro ao ler o arquivo Excel: " + err.message);
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
         function limparDadosImportados() {
-            if (confirm("Deseja realmente limpar o catálogo?")) {
+            if (confirm("Deseja apagar todos os produtos do catálogo?")) {
                 catalogoProdutos = [];
                 localStorage.removeItem('sienge_catalogo_produtos_6182');
                 renderizarCatalogo();
+                document.getElementById('secao-etiquetas').classList.add('hidden');
             }
         }
 
         function renderizarEtiquetasQR() {
-            if (catalogoProdutos.length === 0) { alert("Sem produtos."); return; }
+            if (catalogoProdutos.length === 0) {
+                alert("Importe o catálogo antes de gerar as etiquetas.");
+                return;
+            }
+            let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
             area.innerHTML = '';
-            document.getElementById('secao-etiquetas').classList.remove('hidden');
+            secao.classList.remove('hidden');
 
-            catalogoProdutos.forEach((p, index) => {
+            catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card border border-emerald-500 bg-[#4ade80] text-black rounded p-1 flex flex-col justify-between";
+                card.className = "etiqueta-card";
                 card.innerHTML = `
-                    <div class="text-[8px] font-black text-[#facc15] uppercase text-center border-b border-emerald-400 pb-0.5 mb-0.5">Brava Construções e Incorporação</div>
-                    <div class="flex items-center space-x-2 flex-1">
-                        <div id="qrcode-${index}" class="w-14 h-14 flex-shrink-0 bg-white p-0.5 rounded border border-emerald-600"></div>
-                        <div class="overflow-hidden flex-1 leading-tight flex flex-col justify-center">
-                            <h5 class="text-[13px] font-black text-black line-clamp-2">${p.codigo} - ${p.desc}</h5>
+                    <div style="font-size: 8px; font-weight: bold; text-transform: uppercase; color: #1e293b; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Brava Enterprise - Sienge</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex: 1;">
+                        <div style="flex: 1; padding-right: 4px; overflow: hidden;">
+                            <div style="font-size: 9px; font-weight: bold; font-family: monospace; color: #0f172a;">CÓD: ${p.codigo}</div>
+                            <div style="font-size: 8px; color: #334155; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.1; margin-top: 1px;">${p.desc}</div>
+                            <div style="font-size: 8px; font-weight: bold; color: #475569; margin-top: 1px;">UN: ${p.unidade}</div>
                         </div>
+                        <div id="qrcode-${idx}" style="width: 55px; height: 55px; flex-shrink: 0;"></div>
                     </div>
                 `;
                 area.appendChild(card);
-                new QRCode(document.getElementById(`qrcode-${index}`), { text: p.codigo, width: 55, height: 55, colorDark : "#000000", colorLight : "#ffffff" });
+
+                new QRCode(document.getElementById(`qrcode-${idx}`), {
+                    text: p.codigo,
+                    width: 55,
+                    height: 55,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
             });
         }
 
@@ -557,67 +571,80 @@
                 html5QrCode.start(
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 200, height: 200 } },
-                    (decodedText) => { processarCodigoLido(decodedText); },
-                    (errorMessage) => {}
-                ).catch(err => {});
-            } catch (e) {}
+                    (decodedText) => {
+                        tocarBip();
+                        processarCodigoLido(decodedText);
+                    },
+                    (error) => {}
+                ).catch(err => {
+                    console.error("Erro ao iniciar câmera:", err);
+                });
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         function pararScanner() {
             if (html5QrCode) {
-                html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode = null; }).catch(err => { html5QrCode = null; });
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                }).catch(err => {
+                    html5QrCode = null;
+                });
             }
         }
 
-        function mudarFaseManual(valorFase) {
-            faseAtualContagem = parseInt(valorFase);
+        function mudarFaseManual(fase) {
+            faseAtualContagem = parseInt(fase);
             document.getElementById('label-fase-contagem').textContent = `${faseAtualContagem}ª Contagem`;
             document.getElementById('seletor-fase-contagem').value = faseAtualContagem;
-            document.getElementById('painel-item-lido').classList.add('hidden');
-            produtoScaneadoAtual = null;
+        }
+
+        function proximaContagem() {
+            faseAtualContagem = faseAtualContagem === 1 ? 2 : 1;
+            document.getElementById('label-fase-contagem').textContent = `${faseAtualContagem}ª Contagem`;
+            document.getElementById('seletor-fase-contagem').value = faseAtualContagem;
+            alert(`Alternado para a ${faseAtualContagem}ª Contagem.`);
         }
 
         function processarCodigoLido(codigo) {
-            let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.trim().toLowerCase());
-            if (produto) {
-                tocarBip();
-                produtoScaneadoAtual = produto;
-                let reg = registrosContagem[produto.codigo] || { cont1: 0, cont2: 0 };
-                document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
-                document.getElementById('lido-unidade').textContent = produto.unidade;
-                document.getElementById('titulo-painel-item').textContent = `Item Identificado (${faseAtualContagem}ª Contagem)`;
-                document.getElementById('painel-item-lido').classList.remove('hidden');
-                document.getElementById('lido-quantidade').value = (faseAtualContagem === 1 ? reg.cont1 : reg.cont2) || '';
-                document.getElementById('lido-quantidade').focus();
-            } else {
-                alert(`Código não encontrado: ${codigo}`);
+            let produto = catalogoProdutos.find(p => p.codigo === codigo || p.desc.toLowerCase().includes(codigo.toLowerCase()));
+            if (!produto) {
+                alert(`Código "${codigo}" não encontrado no catálogo.`);
+                return;
             }
+            produtoScaneadoAtual = produto;
+            document.getElementById('lido-codigo-desc',).textContent = `${produto.codigo} - ${produto.desc}`;
+            document.getElementById('lido-unidade').textContent = produto.unidade;
+            document.getElementById('lido-quantidade').value = '';
+            document.getElementById('painel-item-lido').classList.remove('hidden');
+            document.getElementById('lido-quantidade').focus();
         }
 
         function salvarContagemItem() {
             if (!produtoScaneadoAtual) return;
             let qtd = parseFloat(document.getElementById('lido-quantidade').value);
-            if (isNaN(qtd)) { alert("Digite uma quantidade válida."); return; }
+            if (isNaN(qtd)) {
+                alert("Informe uma quantidade válida.");
+                return;
+            }
 
-            let codigo = produtoScaneadoAtual.codigo;
-            if (!registrosContagem[codigo]) registrosContagem[codigo] = { cont1: 0, cont2: 0 };
+            let cod = produtoScaneadoAtual.codigo;
+            if (!registrosContagem[cod]) {
+                registrosContagem[cod] = { cont1: 0, cont2: 0 };
+            }
 
-            if (faseAtualContagem === 1) registrosContagem[codigo].cont1 = qtd;
-            else registrosContagem[codigo].cont2 = qtd;
+            if (faseAtualContagem === 1) {
+                registrosContagem[cod].cont1 = qtd;
+            } else {
+                registrosContagem[cod].cont2 = qtd;
+            }
 
             localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
-            alert("Contagem salva!");
+            alert(`Contagem salva com sucesso para ${cod}!`);
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
-        }
-
-        function proximaContagem() {
-            if (faseAtualContagem === 1) {
-                faseAtualContagem = 2;
-                document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
-                document.getElementById('seletor-fase-contagem').value = "2";
-                alert("Avançado para a 2ª Contagem.");
-            }
         }
 
         function calcularDivergencias() {
@@ -625,66 +652,76 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto no catálogo.</td></tr>`;
                 return;
             }
 
             catalogoProdutos.forEach(p => {
                 let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                let statusHtml = '<span class="text-slate-400">Não contado</span>';
-                if (reg.cont1 > 0 || reg.cont2 > 0) {
-                    statusHtml = (reg.cont1 === reg.cont2) ? '<span class="text-emerald-400 font-bold">OK</span>' : '<span class="text-amber-400 font-bold">Divergente</span>';
+                let statusBadge = '';
+                if (reg.cont1 === 0 && reg.cont2 === 0) {
+                    statusBadge = '<span class="text-slate-500">Não Contado</span>';
+                } else if (reg.cont1 === reg.cont2) {
+                    statusBadge = '<span class="text-emerald-400 font-bold">OK (Igual)</span>';
+                } else {
+                    statusBadge = '<span class="text-amber-400 font-bold">Divergente</span>';
                 }
+
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/50 transition";
-                tr.innerHTML = `<td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td><td class="p-2.5">${p.desc}</td><td class="p-2.5 font-mono">${reg.cont1}</td><td class="p-2.5 font-mono">${reg.cont2}</td><td class="p-2.5">${statusHtml}</td>`;
+                tr.innerHTML = `
+                    <td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td>
+                    <td class="p-2.5">${p.desc}</td>
+                    <td class="p-2.5 font-mono">${reg.cont1}</td>
+                    <td class="p-2.5 font-mono">${reg.cont2}</td>
+                    <td class="p-2.5">${statusBadge}</td>
+                `;
                 tbody.appendChild(tr);
             });
         }
 
         function exportarRelatorioExcel() {
-            if (catalogoProdutos.length === 0) { alert("Sem dados para exportar."); return; }
+            if (catalogoProdutos.length === 0) {
+                alert("Nenhum dado para exportar.");
+                return;
+            }
             let dadosExport = catalogoProdutos.map(p => {
                 let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                let status = "Não contado";
-                if (reg.cont1 > 0 || reg.cont2 > 0) status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
-                return { "Código": p.codigo, "Descrição": p.desc, "Unidade": p.unidade, "1ª Contagem": reg.cont1, "2ª Contagem": reg.cont2, "Status": status };
+                let status = "Não Contado";
+                if (reg.cont1 !== 0 || reg.cont2 !== 0) {
+                    status = reg.cont1 === reg.cont2 ? "OK" : "Divergente";
+                }
+                return {
+                    "Código": p.codigo,
+                    "Descrição": p.desc,
+                    "Unidade": p.unidade,
+                    "1ª Contagem": reg.cont1,
+                    "2ª Contagem": reg.cont2,
+                    "Status": status
+                };
             });
+
             let worksheet = XLSX.utils.json_to_sheet(dadosExport);
             let workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Inventário Sienge");
             XLSX.writeFile(workbook, "Relatorio_Inventario_Sienge.xlsx");
         }
 
-        // Cópia segura direto para ocluiz@hotmail.com sem abrir Outlook antigo
         function enviarRelatorioEmail() {
-            let emailDestino = "ocluiz@hotmail.com";
             if (catalogoProdutos.length === 0) {
-                alert("Não há dados de inventário para enviar.");
+                alert("Nenhum dado apurado para enviar.");
                 return;
             }
-
-            let resumoTexto = `DESTINATÁRIO: ${emailDestino}\n`;
-            resumoTexto += "RELATÓRIO DE INVENTÁRIO DE ESTOQUE - SIENGE\n\n";
+            let textoRelatorio = "RELATÓRIO DE INVENTÁRIO - BRAVA ENTERPRISE (SIENGE)\n\n";
             catalogoProdutos.forEach(p => {
                 let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                let status = "Não contado";
-                if (reg.cont1 > 0 || reg.cont2 > 0) status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
-                resumoTexto += `Item: ${p.codigo} - ${p.desc}\n`;
-                resumoTexto += `  1ª Cont: ${reg.cont1} ${p.unidade} | 2ª Cont: ${reg.cont2} ${p.unidade} | Status: ${status}\n\n`;
+                textoRelatorio += `Cód: ${p.codigo} | ${p.desc} | 1ª Cont: ${reg.cont1} | 2ª Cont: ${reg.cont2}\n`;
             });
 
-            navigator.clipboard.writeText(resumoTexto).then(() => {
-                alert(`Relatório copiado com sucesso!\n\nDestinatário: ${emailDestino}\n\nBasta colar (Ctrl+V ou toque longo) no seu Hotmail web, WhatsApp ou aplicativo de preferência.`);
+            navigator.clipboard.writeText(textoRelatorio).then(() => {
+                alert("Relatório copiado para a área de transferência! Cole no seu e-mail para ocluiz@hotmail.com ou no WhatsApp.");
             }).catch(err => {
-                // Fallback caso o navegador bloqueie o clipboard
-                let textarea = document.createElement("textarea");
-                textarea.value = resumoTexto;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand("copy");
-                document.body.removeChild(textarea);
-                alert(`Relatório copiado para o e-mail ${emailDestino}! Cole na plataforma desejada.`);
+                alert("Erro ao copiar relatório.");
             });
         }
     </script>
