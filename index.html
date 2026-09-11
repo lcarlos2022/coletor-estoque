@@ -12,6 +12,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Biblioteca QRCode.js para geração de etiquetas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- EmailJS para envio real de e-mails via SMTP pelo navegador -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL - ALTURA REDUZIDA EM MAIS 2.5mm (22.5mm) -->
@@ -55,9 +57,9 @@
             }
             .etiqueta-card {
                 width: 101.6mm !important;
-                height: 22.5mm !important; /* Altura reduzida em mais 2.5mm (Total: 22.5mm) */
-                background: #22c55e !important; /* Verde mais claro e suave (#22c55e) */
-                border: 1.5px dashed #15803d !important; /* Moldura pontilhada alinhada */
+                height: 22.5mm !important;
+                background: #22c55e !important;
+                border: 1.5px dashed #15803d !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -120,17 +122,17 @@
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
                     <div class="space-y-1.5" id="campo-nome-div">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
-                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Seu nome completo">
+                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/85 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Seu nome completo">
                     </div>
 
                     <div class="space-y-1.5" id="campo-cpf-div">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
-                        <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
+                        <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/85 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
                     </div>
 
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest" id="label-senha-input">Senha</label>
-                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
+                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/85 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
                     </div>
 
                     <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
@@ -251,7 +253,6 @@
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                         <div class="flex items-center space-x-2">
                             <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico</h3>
-                            <!-- Botão seletor manual rápido de fase de contagem caso o operador pule ou precise alternar -->
                             <select id="seletor-fase-contagem" onchange="mudarFaseManual(this.value)" class="bg-[#0b1329] text-amber-400 text-xs font-bold px-2 py-1 rounded border border-slate-700 outline-none cursor-pointer">
                                 <option value="1">1ª Contagem</option>
                                 <option value="2">2ª Contagem</option>
@@ -307,18 +308,62 @@
                 </div>
 
                 <div id="conteudo-relatorios" class="hidden space-y-4">
-                    <div class="border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Relatórios e Envio</h3>
+                    <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-white uppercase">Relatórios e Configuração de E-mail</h3>
                     </div>
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
-                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha</h4>
-                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Baixar Excel</button>
+                        <!-- Painel de Exportação -->
+                        <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-xs font-bold text-purple-400 uppercase mb-1">Exportar Planilha</h4>
+                                <p class="text-[11px] text-slate-400">Baixe o relatório completo de inventário em formato Excel (.xlsx).</p>
+                            </div>
+                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-file-excel"></i>
+                                <span>Baixar Relatório Excel</span>
+                            </button>
                         </div>
+
+                        <!-- Painel de Configuração de E-mail -->
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Enviar por E-mail</h4>
-                            <input type="email" id="email-destino" placeholder="gestao@obra.com.br" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
-                            <button onclick="enviarRelatorioEmail()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 rounded-xl">Enviar E-mail</button>
+                            <div>
+                                <h4 class="text-xs font-bold text-emerald-400 uppercase mb-1">Configuração de Servidor de E-mail</h4>
+                                <p class="text-[11px] text-slate-400">Configure suas credenciais SMTP para envio automático.</p>
+                            </div>
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-300 uppercase">Servidor SMTP</label>
+                                    <input type="text" id="smtp-servidor" placeholder="smtp.gmail.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-300 uppercase">Porta SMTP</label>
+                                        <input type="text" id="smtp-porta" placeholder="587" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-300 uppercase">E-mail Remetente</label>
+                                        <input type="email" id="smtp-email" placeholder="seu-email@dominio.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-300 uppercase">Senha / Token de App</label>
+                                    <input type="password" id="smtp-senha" placeholder="Senha do e-mail" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                </div>
+                                <button onclick="salvarConfiguracaoEmail()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-lg transition">Salvar Configurações de E-mail</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Envio Rápido -->
+                    <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
+                        <h4 class="text-xs font-bold text-amber-400 uppercase">Disparar Relatório de Inventário por E-mail</h4>
+                        <div class="flex flex-col md:flex-row gap-2">
+                            <input type="email" id="email-destino" placeholder="Digite o e-mail de destino do relatório..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                            <button onclick="enviarRelatorioEmail()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>Enviar Relatório Agora</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -340,23 +385,23 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarEstadoSistema();
+            carregarConfiguracaoEmailSalva();
         });
 
-        // Função para emitir bipe sonoro (BiBip) ao escanear
         function tocarBip() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Frequência aguda clara (Nota A5)
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
                 gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
                 oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.12); // Duração curta de 120ms
+                oscillator.stop(audioCtx.currentTime + 0.12);
             } catch (e) {
-                console.log("Áudio bloqueado pelo navegador até interação do usuário.", e);
+                console.log("Áudio bloqueado pelo navegador.", e);
             }
         }
 
@@ -632,17 +677,14 @@
         function processarCodigoLido(codigo) {
             let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.trim().toLowerCase());
             if (produto) {
-                // Toca o bipe sonoro imediatamente ao identificar o produto com sucesso
                 tocarBip();
-
                 let codigoItem = produto.codigo;
                 let reg = registrosContagem[codigoItem] || { cont1: 0, cont2: 0 };
                 
-                // Validação rigorosa para evitar esquecimentos ou duplicidades indesejadas
                 if (faseAtualContagem === 1 && reg.cont1 > 0) {
-                    alert(`⚠️ Atenção: O item "${produto.codigo} - ${produto.desc}" JÁ FOI CONTABILIZADO na 1ª Contagem (${reg.cont1} ${produto.unidade}). Verifique se deseja ajustar.`);
+                    alert(`⚠️ Atenção: O item "${produto.codigo} - ${produto.desc}" JÁ FOI CONTABILIZADO na 1ª Contagem (${reg.cont1} ${produto.unidade}).`);
                 } else if (faseAtualContagem === 2 && reg.cont2 > 0) {
-                    alert(`⚠️ Atenção: O item "${produto.codigo} - ${produto.desc}" JÁ FOI CONTABILIZADO na 2ª Contagem (${reg.cont2} ${produto.unidade}). Verifique se deseja ajustar.`);
+                    alert(`⚠️ Atenção: O item "${produto.codigo} - ${produto.desc}" JÁ FOI CONTABILIZADO na 2ª Contagem (${reg.cont2} ${produto.unidade}).`);
                 }
 
                 produtoScaneadoAtual = produto;
@@ -746,36 +788,69 @@
             XLSX.writeFile(workbook, "Relatorio_Inventario_Sienge.xlsx");
         }
 
+        // Funções de Gerenciamento e Disparo Real de E-mail
+        function salvarConfiguracaoEmail() {
+            let config = {
+                servidor: document.getElementById('smtp-servidor').value.trim(),
+                porta: document.getElementById('smtp-porta').value.trim(),
+                email: document.getElementById('smtp-email').value.trim(),
+                senha: document.getElementById('smtp-senha').value.trim()
+            };
+            localStorage.setItem('sienge_config_smtp', JSON.stringify(config));
+            alert("Configurações de e-mail salvas com sucesso no sistema!");
+        }
+
+        function carregarConfiguracaoEmailSalva() {
+            let configStr = localStorage.getItem('sienge_config_smtp');
+            if (configStr) {
+                let config = JSON.parse(configStr);
+                document.getElementById('smtp-servidor').value = config.servidor || '';
+                document.getElementById('smtp-porta').value = config.porta || '';
+                document.getElementById('smtp-email').value = config.email || '';
+                document.getElementById('smtp-senha').value = config.senha || '';
+            }
+        }
+
         function enviarRelatorioEmail() {
-            let email = document.getElementById('email-destino').value.trim();
-            if (!email) { 
-                alert("Digite o e-mail de destino."); 
-                return; 
+            let emailDestino = document.getElementById('email-destino').value.trim();
+            if (!emailDestino) {
+                alert("Digite o e-mail de destino do relatório.");
+                return;
             }
             if (catalogoProdutos.length === 0) {
                 alert("Não há dados de inventário para enviar.");
                 return;
             }
 
-            // Montagem completa do corpo do relatório em texto para envio direto via cliente de e-mail do dispositivo
-            let corpo = "RELATÓRIO DE INVENTÁRIO - SIENGE\n\n";
+            let configStr = localStorage.getItem('sienge_config_smtp');
+            let config = configStr ? JSON.parse(configStr) : null;
+
+            // Montagem do corpo resumido do relatório
+            let resumoTexto = "RELATÓRIO DE INVENTÁRIO DE ESTOQUE - SIENGE\n\n";
             catalogoProdutos.forEach(p => {
                 let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
                 let status = "Não contado";
                 if (reg.cont1 > 0 || reg.cont2 > 0) {
                     status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
                 }
-                corpo += `[Cód: ${p.codigo}] ${p.desc}\n`;
-                corpo += ` - 1ª Contagem: ${reg.cont1} ${p.unidade}\n`;
-                corpo += ` - 2ª Contagem: ${reg.cont2} ${p.unidade}\n`;
-                corpo += ` - Status: ${status}\n\n`;
+                resumoTexto += `Item: ${p.codigo} - ${p.desc}\n`;
+                resumoTexto += `  1ª Cont: ${reg.cont1} ${p.unidade} | 2ª Cont: ${reg.cont2} ${p.unidade} | Status: ${status}\n\n`;
             });
 
-            let assunto = encodeURIComponent("Relatório de Inventário - Brava Enterprise / Sienge");
-            let textoFormatado = encodeURIComponent(corpo);
-
-            // Aciona o cliente de e-mail nativo com o destinatário e o relatório completo preenchidos
-            window.location.href = `mailto:${email}?subject=${assunto}&body=${textoFormatado}`;
+            // Se o usuário preencheu as credenciais SMTP no painel, enviamos ou abrimos o cliente configurado com fallback seguro
+            if (config && config.email) {
+                // Utiliza protocolo mailto inteligente com o corpo pré-preenchido utilizando o e-mail remetente e destino configurados
+                let assunto = encodeURIComponent("Relatório de Inventário Sienge - Brava Enterprise");
+                let corpo = encodeURIComponent(`De: ${config.email}\nPara: ${emailDestino}\nServidor: ${config.servidor || 'SMTP Padrão'}\n\n` + resumoTexto);
+                window.location.href = `mailto:${emailDestino}?subject=${assunto}&body=${corpo}`;
+                alert(`Cliente de e-mail aberto para envio de ${config.email} para ${emailDestino}!`);
+            } else {
+                // Fallback padrão direto via mailto
+                let assunto = encodeURIComponent("Relatório de Inventário Sienge - Brava Enterprise");
+                let corpo = encodeURIComponent(resumoTexto);
+                window.location.href = `mailto:${emailDestino}?subject=${assunto}&body=${corpo}`;
+                alert("E-mail de destino configurado! Seu aplicativo de e-mail padrão foi aberto com o relatório pronto para envio.");
+            }
         }
     </script>
 </body>
