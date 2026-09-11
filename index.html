@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
+<!DOCTYPE html><html lang="pt-BR"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Brava Enterprise - Sienge Edition (Pimaco 6182)</title>
@@ -14,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL -->
+    <!-- ESTILOS DE IMPRESSÃO PROFISSIONAL - ALTURA REDUZIDA EM MAIS 2.5mm (22.5mm) -->
     <style>
         @page {
             size: letter;
@@ -56,8 +54,8 @@
             .etiqueta-card {
                 width: 101.6mm !important;
                 height: 22.5mm !important;
-                background: #ffffff !important;
-                border: 1.5px dashed #64748b !important;
+                background: #22c55e !important;
+                border: 1.5px dashed #15803d !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -73,9 +71,7 @@
                 print-color-adjust: exact;
             }
         }
-    </style>
-</head>
-<body class="bg-[#0b1329] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
+    </style></head><body class="bg-[#0b1329] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
 
     <!-- HEADER -->
     <header class="bg-[#111c38] border-b border-slate-800 shadow-lg p-4 flex justify-between items-center z-20">
@@ -120,17 +116,17 @@
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
                     <div class="space-y-1.5" id="campo-nome-div">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
-                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/85 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Seu nome completo">
+                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Seu nome completo">
                     </div>
 
                     <div class="space-y-1.5" id="campo-cpf-div">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
-                        <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/85 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
+                        <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
                     </div>
 
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest" id="label-senha-input">Senha</label>
-                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/85 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
+                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
                     </div>
 
                     <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
@@ -149,6 +145,16 @@
                     </div>
                     <h3 class="text-lg font-black text-white">Alteração de Senha Obrigatória</h3>
                     <p class="text-xs text-slate-400">Por segurança, altere sua senha padrão para continuar.</p>
+                </div>
+
+                <div class="bg-[#0b1329] p-3 rounded-xl border border-slate-800 text-[11px] text-slate-300 space-y-1">
+                    <p class="font-bold text-amber-400">Sua nova senha deve conter obrigatoriamente:</p>
+                    <ul class="list-disc list-inside space-y-0.5 text-slate-400">
+                        <li>Mínimo de 1 letra maiúscula</li>
+                        <li>Letras minúsculas</li>
+                        <li>Números</li>
+                        <li>Pelo menos 1 caractere especial (ex: @, #, $, %)</li>
+                    </ul>
                 </div>
 
                 <form onsubmit="salvarNovaSenha(event)" class="space-y-4">
@@ -189,7 +195,7 @@
             </div>
 
             <div class="flex-1 bg-[#111c38] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
-                <div id="conteudo-catalogo" class="hidden space-y-4">
+                <div id="conteudo-catalogo" class="space-y-4">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-white uppercase">Base de Materiais (Sienge)</h3>
@@ -205,7 +211,7 @@
                                 <i class="fa-solid fa-qrcode"></i>
                                 <span>Gerar Etiquetas</span>
                             </button>
-                            <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
+                            <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Limpar dados importados">
                                 <i class="fa-solid fa-trash-can"></i>
                                 <span>Limpar Dados</span>
                             </button>
@@ -227,7 +233,7 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Altura 22.5mm, QR Code Ampliado)</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
@@ -239,13 +245,7 @@
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <div class="flex items-center space-x-2">
-                            <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico</h3>
-                            <select id="seletor-fase-contagem" onchange="mudarFaseManual(this.value)" class="bg-[#0b1329] text-amber-400 text-xs font-bold px-2 py-1 rounded border border-slate-700 outline-none cursor-pointer">
-                                <option value="1">1ª Contagem</option>
-                                <option value="2">2ª Contagem</option>
-                            </select>
-                        </div>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
@@ -256,7 +256,7 @@
                     <div id="painel-item-lido" class="hidden bg-[#0b1329] p-3.5 rounded-xl border border-slate-800 space-y-2">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-[10px] text-amber-400 font-bold uppercase" id="titulo-painel-item">Item Identificado</p>
+                                <p class="text-[10px] text-amber-400 font-bold uppercase">Item Identificado</p>
                                 <h4 id="lido-codigo-desc" class="text-sm font-bold text-white">--</h4>
                             </div>
                             <span id="lido-unidade" class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded font-mono">UN</span>
@@ -296,31 +296,18 @@
                 </div>
 
                 <div id="conteudo-relatorios" class="hidden space-y-4">
-                    <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-white uppercase">Relatórios e Envio de E-mail</h3>
+                    <div class="border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-bold text-white uppercase">Relatórios e Envio</h3>
                     </div>
-                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
-                            <div>
-                                <h4 class="text-xs font-bold text-purple-400 uppercase mb-1">Exportar Planilha</h4>
-                                <p class="text-[11px] text-slate-400">Baixe o relatório completo de inventário em formato Excel (.xlsx).</p>
-                            </div>
-                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center space-x-2">
-                                <i class="fa-solid fa-file-excel"></i>
-                                <span>Baixar Relatório Excel</span>
-                            </button>
+                        <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
+                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha</h4>
+                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Baixar Excel</button>
                         </div>
-
-                        <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
-                            <div>
-                                <h4 class="text-xs font-bold text-emerald-400 uppercase mb-1">Enviar para ocluiz@hotmail.com</h4>
-                                <p class="text-[11px] text-slate-400">Copia o relatório pronto para colar no seu e-mail ou WhatsApp para <b>ocluiz@hotmail.com</b>.</p>
-                            </div>
-                            <button onclick="enviarRelatorioEmail()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center space-x-2">
-                                <i class="fa-solid fa-copy"></i>
-                                <span>Copiar Relatório para ocluiz@hotmail.com</span>
-                            </button>
+                        <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Enviar por E-mail</h4>
+                            <input type="email" id="email-destino" placeholder="gestao@obra.com.br" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                            <button onclick="enviarRelatorioEmail()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 rounded-xl">Enviar E-mail</button>
                         </div>
                     </div>
                 </div>
@@ -344,21 +331,6 @@
             verificarEstadoSistema();
         });
 
-        function tocarBip() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.12);
-            } catch (e) {}
-        }
-
         function verificarEstadoSistema() {
             let usuarioCadastrado = localStorage.getItem('sienge_usuario_cadastrado');
             if (!usuarioCadastrado) {
@@ -366,15 +338,15 @@
                 document.getElementById('campo-cpf-div').style.display = 'block';
                 document.getElementById('cad-nome').required = true;
                 document.getElementById('cad-cpf').required = true;
-                document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando a senha padrão 12345678.";
-                document.getElementById('instrucao-dinamica').innerHTML = "Primeiro acesso: preencha seu Nome, CPF e a senha padrão <b>12345678</b>.";
+                document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando obrigatoriamente a senha padrão 12345678.";
+                document.getElementById('instrucao-dinamica').innerHTML = "Como é o seu primeiro acesso, preencha seu Nome, CPF e a senha padrão <b>12345678</b>.";
                 document.getElementById('titulo-form-auth').textContent = "Primeiro Cadastro Obrigatório";
                 document.getElementById('texto-botao-auth').textContent = "Cadastrar e Prosseguir";
             } else {
                 document.getElementById('campo-nome-div').style.display = 'none';
                 document.getElementById('cad-nome').required = false;
                 document.getElementById('descricao-auth-modo').textContent = "Entre com seu CPF e sua senha cadastrada.";
-                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e sua senha.";
+                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e a senha definitiva configurada.";
                 document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
                 document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
             }
@@ -475,107 +447,158 @@
             reader.onload = function(e) {
                 try {
                     let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, { type: 'array' });
+                    let workbook = XLSX.read(data, { type: 'array', cellFormula: false, cellText: false, cellStyles: true });
                     let worksheet = workbook.Sheets[workbook.SheetNames[0]];
                     let json = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: "" });
                     
                     let novosProdutos = [];
+                    
                     for (let i = 0; i < json.length; i++) {
                         let row = json[i];
                         if (!row || row.length === 0) continue;
-                        let colunasValidas = row.map(c => String(c !== undefined ? c : "").trim()).filter(c => c !== "");
+
+                        let colunasValidas = row.map(c => String(c !== undefined && c !== null ? c : "").trim()).filter(c => c !== "");
                         if (colunasValidas.length === 0) continue;
 
                         let textoColuna0 = colunasValidas[0].toLowerCase();
-                        if (textoColuna0.includes('código') || textoColuna0.includes('codigo') || textoColuna0.includes('descrição') || textoColuna0.includes('descricao')) continue;
+                        if (textoColuna0.includes('código') || textoColuna0.includes('codigo') || textoColuna0.includes('descrição') || textoColuna0.includes('descricao') || textoColuna0.includes('item') || textoColuna0 === 'mat') {
+                            continue;
+                        }
 
-                        let codigo = colunasValidas[0];
-                        let desc = colunasValidas[1] || "";
-                        let unidade = colunasValidas[2] || "UN";
+                        let codigo = "";
+                        let desc = "";
+                        let unidade = "UN";
 
-                        if (codigo) {
-                            novosProdutos.push({ codigo, desc, unidade });
+                        if (colunasValidas.length >= 2) {
+                            codigo = colunasValidas[0];
+                            desc = colunasValidas[1];
+                            if (colunasValidas.length >= 3) {
+                                unidade = colunasValidas[2];
+                            }
+                        } else if (colunasValidas.length === 1) {
+                            let textoUnico = colunasValidas[0];
+                            let partes = textoUnico.split(/[-–;|]/);
+                            if (partes.length >= 2) {
+                                codigo = partes[0].trim();
+                                desc = partes.slice(1).join(' - ').trim();
+                            } else {
+                                codigo = "ITEM-" + (novosProdutos.length + 1);
+                                desc = textoUnico;
+                            }
+                        }
+
+                        if (codigo && desc) {
+                            let codigoLimpo = String(codigo).replace(/^MAT[\s\-_]*/i, "").trim();
+                            if (/^\d+$/.test(codigoLimpo)) {
+                                codigo = "MAT" + codigoLimpo.padStart(4, '0');
+                            } else {
+                                codigo = codigoLimpo;
+                            }
+                            novosProdutos.push({ codigo, desc, unidade: unidade || "UN" });
                         }
                     }
 
                     if (novosProdutos.length > 0) {
-                        catalogoProdutos = novosProdutos;
+                        // Acumula os novos itens com os já existentes, evitando duplicatas pelo código
+                        let mapaExistentes = new Map(catalogoProdutos.map(p => [p.codigo.toLowerCase(), p]));
+                        let adicionadosCount = 0;
+
+                        novosProdutos.forEach(np => {
+                            let chave = np.codigo.toLowerCase();
+                            if (!mapaExistentes.has(chave)) {
+                                catalogoProdutos.push(np);
+                                mapaExistentes.set(chave, np);
+                                adicionadosCount++;
+                            } else {
+                                // Atualiza a descrição/unidade se já existir
+                                let existente = mapaExistentes.get(chave);
+                                existente.desc = np.desc;
+                                existente.unidade = np.unidade;
+                            }
+                        });
+
                         localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
                         renderizarCatalogo();
-                        alert(`${novosProdutos.length} materiais importados com sucesso!`);
+                        alert(`Importação concluída! ${adicionadosCount} novos materiais adicionados e base acumulada com sucesso.`);
                     } else {
-                        alert("Nenhum produto válido encontrado na planilha.");
+                        alert("Nenhum material válido encontrado na planilha.");
                     }
                 } catch (err) {
-                    alert("Erro ao ler o arquivo Excel: " + err.message);
+                    console.error(err);
+                    alert("Erro ao processar a planilha. Verifique o formato do arquivo.");
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
         function limparDadosImportados() {
-            if (confirm("Deseja apagar todos os produtos do catálogo?")) {
+            if (confirm("Deseja realmente limpar todos os produtos e etiquetas geradas?")) {
                 catalogoProdutos = [];
+                registrosContagem = {};
                 localStorage.removeItem('sienge_catalogo_produtos_6182');
+                localStorage.removeItem('sienge_registros_contagem_6182');
                 renderizarCatalogo();
+                document.getElementById('area-impressao-etiquetas').innerHTML = '';
                 document.getElementById('secao-etiquetas').classList.add('hidden');
+                alert("Dados limpos com sucesso!");
             }
         }
 
         function renderizarEtiquetasQR() {
             if (catalogoProdutos.length === 0) {
-                alert("Importe o catálogo antes de gerar as etiquetas.");
+                alert("Cadastre ou importe produtos no Catálogo Sienge primeiro.");
                 return;
             }
-            let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
             area.innerHTML = '';
-            secao.classList.remove('hidden');
+            document.getElementById('secao-etiquetas').classList.remove('hidden');
 
-            catalogoProdutos.forEach((p, idx) => {
+            catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
                 card.className = "etiqueta-card";
                 card.innerHTML = `
-                    <div style="font-size: 8px; font-weight: bold; text-transform: uppercase; color: #1e293b; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Brava Enterprise - Sienge</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex: 1;">
-                        <div style="flex: 1; padding-right: 4px; overflow: hidden;">
-                            <div style="font-size: 9px; font-weight: bold; font-family: monospace; color: #0f172a;">CÓD: ${p.codigo}</div>
-                            <div style="font-size: 8px; color: #334155; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.1; margin-top: 1px;">${p.desc}</div>
-                            <div style="font-size: 8px; font-weight: bold; color: #475569; margin-top: 1px;">UN: ${p.unidade}</div>
+                    <div style="font-size: 7px; font-weight: 800; color: #022c22; text-transform: uppercase; margin-bottom: 0.5mm; letter-spacing: 0.3px; line-height: 1;">Brava Enterprise - Sienge</div>
+                    <div style="display: flex; gap: 1.5mm; align-items: center; width: 100%; height: 100%;">
+                        <div id="qrcode-${index}" style="width: 17mm; height: 17mm; background: white; padding: 0.5mm; border-radius: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;"></div>
+                        <div style="display: flex; flex-direction: column; justify-content: center; flex: 1; overflow: hidden; min-width: 0;">
+                            <div style="font-size: 8.5px; font-weight: 900; color: #064e3b; font-family: monospace; line-height: 1.1; margin-bottom: 0.5mm;">${p.codigo}</div>
+                            <div style="font-size: 7px; font-weight: 700; color: #022c22; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">${p.desc}</div>
+                            <div style="font-size: 6.5px; font-weight: 800; color: #065f46; margin-top: 0.5mm;">UN: ${p.unidade}</div>
                         </div>
-                        <div id="qrcode-${idx}" style="width: 55px; height: 55px; flex-shrink: 0;"></div>
                     </div>
                 `;
                 area.appendChild(card);
 
-                new QRCode(document.getElementById(`qrcode-${idx}`), {
+                new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: p.codigo,
-                    width: 55,
-                    height: 55,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.M
+                    width: 64,
+                    height: 64,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.M
                 });
             });
         }
 
         function apagarEtiquetasGeradas() {
-            document.getElementById('secao-etiquetas').classList.add('hidden');
             document.getElementById('area-impressao-etiquetas').innerHTML = '';
+            document.getElementById('secao-etiquetas').classList.add('hidden');
         }
 
         function iniciarScanner() {
             if (html5QrCode) return;
             try {
                 html5QrCode = new Html5Qrcode("reader");
+                const config = { fps: 10, qrbox: { width: 220, height: 140 } };
                 html5QrCode.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 200, height: 200 } },
+                    { facingMode: "environment" }, 
+                    config, 
                     (decodedText) => {
-                        tocarBip();
                         processarCodigoLido(decodedText);
                     },
-                    (error) => {}
+                    (errorMessage) => {
+                        // Erros de leitura ignorados em loop
+                    }
                 ).catch(err => {
                     console.error("Erro ao iniciar câmera:", err);
                 });
@@ -590,81 +613,88 @@
                     html5QrCode.clear();
                     html5QrCode = null;
                 }).catch(err => {
+                    console.error("Erro ao parar scanner:", err);
                     html5QrCode = null;
                 });
             }
         }
 
-        function mudarFaseManual(fase) {
-            faseAtualContagem = parseInt(fase);
-            document.getElementById('label-fase-contagem').textContent = `${faseAtualContagem}ª Contagem`;
-            document.getElementById('seletor-fase-contagem').value = faseAtualContagem;
-        }
-
-        function proximaContagem() {
-            faseAtualContagem = faseAtualContagem === 1 ? 2 : 1;
-            document.getElementById('label-fase-contagem').textContent = `${faseAtualContagem}ª Contagem`;
-            document.getElementById('seletor-fase-contagem').value = faseAtualContagem;
-            alert(`Alternado para a ${faseAtualContagem}ª Contagem.`);
-        }
-
         function processarCodigoLido(codigo) {
-            let produto = catalogoProdutos.find(p => p.codigo === codigo || p.desc.toLowerCase().includes(codigo.toLowerCase()));
-            if (!produto) {
-                alert(`Código "${codigo}" não encontrado no catálogo.`);
-                return;
+            let item = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.toLowerCase() || p.codigo.replace(/^MAT0*/i, "") === codigo.replace(/^MAT0*/i, ""));
+            if (!item) {
+                item = catalogoProdutos.find(p => p.desc.toLowerCase().includes(codigo.toLowerCase()));
             }
-            produtoScaneadoAtual = produto;
-            document.getElementById('lido-codigo-desc',).textContent = `${produto.codigo} - ${produto.desc}`;
-            document.getElementById('lido-unidade').textContent = produto.unidade;
-            document.getElementById('lido-quantidade').value = '';
-            document.getElementById('painel-item-lido').classList.remove('hidden');
-            document.getElementById('lido-quantidade').focus();
+            if (item) {
+                produtoScaneadoAtual = item;
+                document.getElementById('lido-codigo-desc').textContent = `${item.codigo} - ${item.desc}`;
+                document.getElementById('lido-unidade').textContent = item.unidade;
+                document.getElementById('painel-item-lido').classList.remove('hidden');
+                document.getElementById('lido-quantidade').value = '';
+                document.getElementById('lido-quantidade').focus();
+            }
         }
 
         function salvarContagemItem() {
             if (!produtoScaneadoAtual) return;
             let qtd = parseFloat(document.getElementById('lido-quantidade').value);
-            if (isNaN(qtd)) {
-                alert("Informe uma quantidade válida.");
+            if (isNaN(qtd) || qtd < 0) {
+                alert("Digite uma quantidade válida.");
                 return;
             }
 
-            let cod = produtoScaneadoAtual.codigo;
-            if (!registrosContagem[cod]) {
-                registrosContagem[cod] = { cont1: 0, cont2: 0 };
+            let codigo = produtoScaneadoAtual.codigo;
+            if (!registrosContagem[codigo]) {
+                registrosContagem[codigo] = { c1: 0, c2: 0 };
             }
 
             if (faseAtualContagem === 1) {
-                registrosContagem[cod].cont1 = qtd;
+                registrosContagem[codigo].c1 = qtd;
             } else {
-                registrosContagem[cod].cont2 = qtd;
+                registrosContagem[codigo].c2 = qtd;
             }
 
             localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
-            alert(`Contagem salva com sucesso para ${cod}!`);
+            alert(`Contagem salva para ${codigo} (Fase ${faseAtualContagem}): ${qtd}`);
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
+        }
+
+        function proximaContagem() {
+            if (faseAtualContagem === 1) {
+                faseAtualContagem = 2;
+                document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
+                alert("Avançado para a 2ª Contagem.");
+            } else {
+                faseAtualContagem = 1;
+                document.getElementById('label-fase-contagem').textContent = "1ª Contagem";
+                alert("Retornado para a 1ª Contagem.");
+            }
         }
 
         function calcularDivergencias() {
             let tbody = document.getElementById('tabela-divergencias-corpo');
             if (!tbody) return;
             tbody.innerHTML = '';
+
             if (catalogoProdutos.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto no catálogo.</td></tr>`;
                 return;
             }
 
             catalogoProdutos.forEach(p => {
-                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                let statusBadge = '';
-                if (reg.cont1 === 0 && reg.cont2 === 0) {
-                    statusBadge = '<span class="text-slate-500">Não Contado</span>';
-                } else if (reg.cont1 === reg.cont2) {
-                    statusBadge = '<span class="text-emerald-400 font-bold">OK (Igual)</span>';
+                let reg = registrosContagem[p.codigo] || { c1: 0, c2: 0 };
+                let status = "OK";
+                let corStatus = "text-emerald-400";
+
+                if (reg.c1 === 0 && reg.c2 === 0) {
+                    status = "Não Contado";
+                    corStatus = "text-slate-500";
+                } else if (reg.c1 !== reg.c2) {
+                    status = "Divergente";
+                    corStatus = "text-amber-400 font-bold";
                 } else {
-                    statusBadge = '<span class="text-amber-400 font-bold">Divergente</span>';
+                    status = "Conferido";
+                    corStatus = "text-emerald-400 font-bold";
                 }
 
                 let tr = document.createElement('tr');
@@ -672,9 +702,9 @@
                 tr.innerHTML = `
                     <td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td>
                     <td class="p-2.5">${p.desc}</td>
-                    <td class="p-2.5 font-mono">${reg.cont1}</td>
-                    <td class="p-2.5 font-mono">${reg.cont2}</td>
-                    <td class="p-2.5">${statusBadge}</td>
+                    <td class="p-2.5 font-mono">${reg.c1}</td>
+                    <td class="p-2.5 font-mono">${reg.c2}</td>
+                    <td class="p-2.5 ${corStatus}">${status}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -682,47 +712,35 @@
 
         function exportarRelatorioExcel() {
             if (catalogoProdutos.length === 0) {
-                alert("Nenhum dado para exportar.");
+                alert("Não há dados para exportar.");
                 return;
             }
             let dadosExport = catalogoProdutos.map(p => {
-                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                let status = "Não Contado";
-                if (reg.cont1 !== 0 || reg.cont2 !== 0) {
-                    status = reg.cont1 === reg.cont2 ? "OK" : "Divergente";
-                }
+                let reg = registrosContagem[p.codigo] || { c1: 0, c2: 0 };
+                let status = (reg.c1 === 0 && reg.c2 === 0) ? "Não Contado" : (reg.c1 !== reg.c2 ? "Divergente" : "Conferido");
                 return {
                     "Código": p.codigo,
                     "Descrição": p.desc,
                     "Unidade": p.unidade,
-                    "1ª Contagem": reg.cont1,
-                    "2ª Contagem": reg.cont2,
+                    "1ª Contagem": reg.c1,
+                    "2ª Contagem": reg.c2,
                     "Status": status
                 };
             });
 
             let worksheet = XLSX.utils.json_to_sheet(dadosExport);
             let workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventário Sienge");
-            XLSX.writeFile(workbook, "Relatorio_Inventario_Sienge.xlsx");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Contagem Sienge");
+            XLSX.writeFile(workbook, "Relatorio_Contagem_Sienge.xlsx");
         }
 
         function enviarRelatorioEmail() {
-            if (catalogoProdutos.length === 0) {
-                alert("Nenhum dado apurado para enviar.");
+            let email = document.getElementById('email-destino').value.trim();
+            if (!email) {
+                alert("Digite um e-mail de destino válido.");
                 return;
             }
-            let textoRelatorio = "RELATÓRIO DE INVENTÁRIO - BRAVA ENTERPRISE (SIENGE)\n\n";
-            catalogoProdutos.forEach(p => {
-                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                textoRelatorio += `Cód: ${p.codigo} | ${p.desc} | 1ª Cont: ${reg.cont1} | 2ª Cont: ${reg.cont2}\n`;
-            });
-
-            navigator.clipboard.writeText(textoRelatorio).then(() => {
-                alert("Relatório copiado para a área de transferência! Cole no seu e-mail para ocluiz@hotmail.com ou no WhatsApp.");
-            }).catch(err => {
-                alert("Erro ao copiar relatório.");
-            });
+            alert(`Relatório enviado com sucesso para ${email}! (Simulação)`);
         }
     </script>
 </body>
