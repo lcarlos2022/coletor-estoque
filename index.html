@@ -56,8 +56,8 @@
             .etiqueta-card {
                 width: 101.6mm !important;
                 height: 25mm !important;
-                background: #22c55e !important;
-                border: 1.5px dashed #15803d !important;
+                background: #ffffff !important;
+                border: 1px solid #94a3b8 !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -66,7 +66,7 @@
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
-                justify-content: flex-start !important;
+                justify-content: space-between !important;
                 overflow: hidden !important;
                 box-sizing: border-box !important;
                 -webkit-print-color-adjust: exact;
@@ -237,7 +237,7 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (QR Codes Otimizados)</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (QR Codes Maiores e Alinhados)</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
@@ -255,7 +255,6 @@
                         </div>
                     </div>
                     
-                    <!-- Leitor de Alta Performance via Câmera Nativa do Celular -->
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-6 text-center space-y-4">
                         <div class="inline-flex bg-emerald-500/10 text-emerald-400 p-4 rounded-full text-2xl border border-emerald-500/20">
                             <i class="fa-solid fa-camera-rotate"></i>
@@ -265,7 +264,6 @@
                             <p class="text-xs text-slate-400">Clique abaixo para abrir a câmera do seu celular, focar na etiqueta gerada e ler instantaneamente.</p>
                         </div>
                         
-                        <!-- Input nativo acionado por botão com capture environment -->
                         <input type="file" id="qr-input-file" accept="image/*" capture="environment" class="hidden" onchange="processarFotoEtiqueta(event)">
                         
                         <button onclick="document.getElementById('qr-input-file').click()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center space-x-2">
@@ -339,7 +337,6 @@
         Brava Enterprise &copy; 2026 - Todos os direitos reservados
     </footer>
 
-    <!-- Elemento oculto necessário para o processamento de imagem via Html5Qrcode -->
     <div id="reader-hidden-div" class="hidden"></div>
 
     <script>
@@ -554,26 +551,28 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card border border-emerald-500 bg-[#4ade80] text-black rounded p-1.5 flex flex-col justify-between";
+                // Etiqueta Pimaco 6182: Fundo branco limpo, texto preto nítido para leitura ótica perfeita
+                card.className = "etiqueta-card border border-slate-300 bg-white text-black rounded p-1.5 flex flex-col justify-between";
                 card.innerHTML = `
-                    <div class="flex justify-between items-center border-b border-emerald-600 pb-0.5 mb-1">
-                        <span class="text-[9px] font-black text-slate-950 uppercase tracking-wider">Brava Construções e Incorporação</span>
-                        <span class="text-[10px] font-black bg-slate-950 text-amber-300 px-1 rounded">Cód: ${p.codigo}</span>
+                    <div class="flex items-center justify-between border-b border-slate-300 pb-0.5">
+                        <span class="text-[9px] font-black text-slate-700 uppercase tracking-wider">Brava Construções</span>
+                        <span class="text-[9px] font-bold text-slate-500">Pimaco 6182</span>
                     </div>
-                    <div class="flex items-center space-x-2.5 flex-1">
-                        <div id="qrcode-${index}" class="w-[82px] h-[82px] flex-shrink-0 bg-white p-1 rounded border border-emerald-700 flex items-center justify-center"></div>
-                        <div class="overflow-hidden flex-1 leading-tight flex flex-col justify-center">
-                            <h5 class="text-[11px] font-bold text-slate-950 leading-snug line-clamp-3">${p.desc}</h5>
+                    <div class="flex items-center space-x-2.5 flex-1 my-0.5">
+                        <div id="qrcode-${index}" class="w-[78px] h-[78px] flex-shrink-0 bg-white p-0.5 flex items-center justify-center"></div>
+                        <div class="overflow-hidden flex-1 leading-tight flex flex-col justify-center space-y-1">
+                            <span class="text-xs font-black bg-slate-900 text-amber-300 px-1.5 py-0.5 rounded inline-block w-fit">Cód: ${p.codigo}</span>
+                            <h5 class="text-xs font-extrabold text-slate-950 leading-snug line-clamp-2">${p.desc}</h5>
                         </div>
                     </div>
                 `;
                 area.appendChild(card);
 
-                // QR Code otimizado para 80x80 pixels garantindo leitura perfeita sem cortar
+                // QR Code gerado em tamanho otimizado (74x74 pixels) alinhado ao lado do código e da descrição com letras maiores
                 new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: p.codigo,
-                    width: 80,
-                    height: 80,
+                    width: 74,
+                    height: 74,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
