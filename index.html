@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brava Enterprise - Sienge Edition (Pimaco 6182)</title>
+    <title>Brava Enterprise - Sienge Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Biblioteca HTML5 QR Code Scanner -->
@@ -56,12 +56,12 @@
             .etiqueta-card {
                 width: 101.6mm !important;
                 height: 33.9mm !important;
-                background: #ffffff !important;
-                border: 1px dashed #cbd5e1 !important; /* Linha guia discreta para corte/impressão se necessário */
+                background: #15803d !important; /* Fundo verde impresso */
+                border: 1px solid #166534 !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
-                padding: 2mm 2.5mm !important;
+                padding: 1.5mm 2mm !important;
                 border-radius: 2px !important;
                 display: flex !important;
                 flex-direction: column !important;
@@ -237,7 +237,7 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Pimaco 6182 (Tamanho Real Ajustado)</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Customizadas (Fundo Verde e Nome Amarelo)</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
@@ -551,27 +551,27 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                // Altura exata da Pimaco 6182 (33.9mm) com preenchimento interno proporcional preenchendo perfeitamente o espaço
-                card.className = "etiqueta-card border border-slate-300 bg-white text-black rounded p-1.5 flex flex-col justify-between";
+                // Fundo verde vivo (#16a34a), sem referências à Pimaco, com layout interno otimizado para não passar da margem
+                card.className = "etiqueta-card border border-emerald-600 bg-emerald-600 text-white rounded p-1.5 flex flex-col justify-between";
                 card.innerHTML = `
-                    <div class="flex items-center justify-between border-b border-slate-300 pb-0.5">
-                        <span class="text-[9px] font-black text-slate-700 uppercase tracking-wider">Brava Construções & Incorporação</span>
-                        <span class="text-[9px] font-bold text-slate-500">Cód: ${p.codigo}</span>
+                    <div class="flex items-center justify-between border-b border-emerald-500 pb-0.5">
+                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">Brava Construções & Incorporação</span>
+                        <span class="text-[9px] font-black bg-slate-950 text-amber-300 px-1.5 py-0.2 rounded">Cód: ${p.codigo}</span>
                     </div>
-                    <div class="flex items-center space-x-2.5 flex-1 my-1">
-                        <div id="qrcode-${index}" class="w-[92px] h-[92px] flex-shrink-0 bg-white p-0.5 flex items-center justify-center"></div>
-                        <div class="overflow-hidden flex-1 leading-tight flex flex-col justify-center space-y-1">
-                            <h5 class="text-[11px] font-bold text-slate-950 leading-snug line-clamp-3">${p.desc}</h5>
+                    <div class="flex items-center space-x-2 flex-1 my-0.5">
+                        <div id="qrcode-${index}" class="w-[72px] h-[72px] flex-shrink-0 bg-white p-0.5 rounded flex items-center justify-center"></div>
+                        <div class="overflow-hidden flex-1 leading-tight flex flex-col justify-center space-y-0.5">
+                            <h5 class="text-[12px] font-black text-white leading-tight line-clamp-3">${p.desc}</h5>
                         </div>
                     </div>
                 `;
                 area.appendChild(card);
 
-                // QR Code redimensionado para preencher perfeitamente a altura real de 33.9mm da etiqueta Pimaco 6182
+                // QR Code redimensionado para 70x70 pixels para encaixar perfeitamente sem estourar a altura de 33.9mm
                 new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: p.codigo,
-                    width: 90,
-                    height: 90,
+                    width: 70,
+                    height: 70,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
