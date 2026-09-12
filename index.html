@@ -334,7 +334,7 @@
         
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
-        let html5QrCodeScanner = null;
+        let html5QrCode = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarEstadoSistema();
@@ -440,36 +440,46 @@
         }
 
         function iniciarLeitorQR() {
-            if (html5QrCodeScanner) return;
+            if (html5QrCode) return;
             const readerDiv = document.getElementById('reader');
             if (!readerDiv) return;
 
-            html5QrCodeScanner = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { 
+                fps: 15, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
 
-            html5QrCodeScanner.start(
+            html5QrCode.start(
                 { facingMode: "environment" },
                 config,
                 (decodedText) => {
                     processarCodigoLido(decodedText);
                 },
                 (errorMessage) => {
-                    // Erros de leitura quadro a quadro são ignorados para não poluir a tela
+                    // Ignora erros quadro a quadro para manter a leitura contínua sem travamentos
                 }
             ).catch(err => {
                 console.error("Erro ao iniciar a câmera:", err);
+                alert("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
             });
         }
 
         function pararLeitorQR() {
-            if (html5QrCodeScanner) {
-                html5QrCodeScanner.stop().then(() => {
-                    html5QrCodeScanner.clear();
-                    html5QrCodeScanner = null;
-                }).catch(err => {
-                    console.error("Erro ao parar leitor:", err);
-                    html5QrCodeScanner = null;
-                });
+            if (html5QrCode) {
+                if (html5QrCode.isScanning) {
+                    html5QrCode.stop().then(() => {
+                        html5QrCode.clear();
+                        html5QrCode = null;
+                    }).catch(err => {
+                        console.error("Erro ao parar leitor:", err);
+                        html5QrCode = null;
+                    });
+                } else {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                }
             }
         }
 
