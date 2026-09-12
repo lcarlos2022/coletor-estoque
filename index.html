@@ -431,7 +431,6 @@
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
             
             if (aba === 'scanner') {
-                // Pequeno atraso para garantir que o container DOM esteja visível e renderizado antes de iniciar a câmera
                 setTimeout(() => {
                     iniciarLeitorQR();
                 }, 200);
@@ -446,7 +445,6 @@
             const readerDiv = document.getElementById('reader');
             if (!readerDiv) return;
 
-            // Se já existe uma instância ativa, garantimos que ela pare antes de reiniciar
             if (html5QrCode) {
                 pararLeitorQRComCallback(() => {
                     executarStartLeitor();
@@ -471,11 +469,10 @@
                     processarCodigoLido(decodedText);
                 },
                 (errorMessage) => {
-                    // Ignora erros quadro a quadro para manter a leitura contínua sem travamentos
+                    // Ignora erros quadro a quadro
                 }
             ).catch(err => {
-                console.error("Erro ao iniciar a câmera:", err);
-                // Tenta fallback com câmera padrão caso a traseira estrita falhe em alguns dispositivos
+                console.error("Erro ao iniciar a câmera traseira:", err);
                 html5QrCode.start(
                     { facingMode: "user" },
                     config,
@@ -483,7 +480,7 @@
                     (errorMessage) => {}
                 ).catch(e => {
                     console.error("Erro crítico na câmera:", e);
-                    alert("Não foi possível acessar a câmera. Verifique as permissões do navegador ou se a página está usando HTTPS / localhost.");
+                    alert("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
                 });
             });
         }
@@ -495,13 +492,10 @@
                         html5QrCode.clear();
                         html5QrCode = null;
                     }).catch(err => {
-                        console.error("Erro ao parar leitor:", err);
                         html5QrCode = null;
                     });
                 } else {
-                    try {
-                        html5QrCode.clear();
-                    } catch(e) {}
+                    try { html5QrCode.clear(); } catch(e) {}
                     html5QrCode = null;
                 }
             }
@@ -671,16 +665,25 @@
         }
 
         function processarCodigoLido(codigo) {
-            let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.trim().toLowerCase());
+            let codigoLimpo = String(codigo).trim();
+            console.log("Código capturado pela câmera:", codigoLimpo);
+
+            let produto = catalogoProdutos.find(p => String(p.codigo).trim().toLowerCase() === codigoLimpo.toLowerCase());
+            
             if (produto) {
+                pararLeitorQR();
+
                 produtoScaneadoAtual = produto;
                 document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
                 document.getElementById('lido-unidade').textContent = produto.unidade;
+                
                 document.getElementById('painel-item-lido').classList.remove('hidden');
-                document.getElementById('lido-quantidade').value = '';
-                document.getElementById('lido-quantidade').focus();
+                let inputQtd = document.getElementById('lido-quantidade');
+                inputQtd.value = '';
+                inputQtd.focus();
             } else {
-                console.log(`Código lido não encontrado no catálogo Sienge: ${codigo}`);
+                console.warn(`Código lido (${codigoLimpo}) não encontrado no catálogo Sienge.`);
+                alert(`Atenção: O código "${codigoLimpo}" foi lido, mas NÃO consta no catálogo importado do Sienge.`);
             }
         }
 
