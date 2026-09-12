@@ -431,7 +431,10 @@
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
             
             if (aba === 'scanner') {
-                iniciarLeitorQR();
+                // Pequeno atraso para garantir que o container DOM esteja visível e renderizado antes de iniciar a câmera
+                setTimeout(() => {
+                    iniciarLeitorQR();
+                }, 200);
             } else {
                 pararLeitorQR();
             }
@@ -440,10 +443,20 @@
         }
 
         function iniciarLeitorQR() {
-            if (html5QrCode) return;
             const readerDiv = document.getElementById('reader');
             if (!readerDiv) return;
 
+            // Se já existe uma instância ativa, garantimos que ela pare antes de reiniciar
+            if (html5QrCode) {
+                pararLeitorQRComCallback(() => {
+                    executarStartLeitor();
+                });
+            } else {
+                executarStartLeitor();
+            }
+        }
+
+        function executarStartLeitor() {
             html5QrCode = new Html5Qrcode("reader");
             const config = { 
                 fps: 15, 
@@ -462,7 +475,16 @@
                 }
             ).catch(err => {
                 console.error("Erro ao iniciar a câmera:", err);
-                alert("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
+                // Tenta fallback com câmera padrão caso a traseira estrita falhe em alguns dispositivos
+                html5QrCode.start(
+                    { facingMode: "user" },
+                    config,
+                    (decodedText) => { processarCodigoLido(decodedText); },
+                    (errorMessage) => {}
+                ).catch(e => {
+                    console.error("Erro crítico na câmera:", e);
+                    alert("Não foi possível acessar a câmera. Verifique as permissões do navegador ou se a página está usando HTTPS / localhost.");
+                });
             });
         }
 
@@ -477,9 +499,32 @@
                         html5QrCode = null;
                     });
                 } else {
-                    html5QrCode.clear();
+                    try {
+                        html5QrCode.clear();
+                    } catch(e) {}
                     html5QrCode = null;
                 }
+            }
+        }
+
+        function pararLeitorQRComCallback(callback) {
+            if (html5QrCode) {
+                if (html5QrCode.isScanning) {
+                    html5QrCode.stop().then(() => {
+                        try { html5QrCode.clear(); } catch(e){}
+                        html5QrCode = null;
+                        if (callback) callback();
+                    }).catch(err => {
+                        html5QrCode = null;
+                        if (callback) callback();
+                    });
+                } else {
+                    try { html5QrCode.clear(); } catch(e){}
+                    html5QrCode = null;
+                    if (callback) callback();
+                }
+            } else {
+                if (callback) callback();
             }
         }
 
