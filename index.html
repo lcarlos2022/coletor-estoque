@@ -671,7 +671,7 @@
             let produto = catalogoProdutos.find(p => String(p.codigo).trim().toLowerCase() === codigoLimpo.toLowerCase());
             
             if (produto) {
-                pararLeitorQR();
+                // A câmera continua ligada (pararLeitorQR foi removido daqui a pedido)
 
                 produtoScaneadoAtual = produto;
                 document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
