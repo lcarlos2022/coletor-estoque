@@ -61,7 +61,7 @@
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
-                padding: 1.5mm 2mm !important;
+                padding: 2mm 3mm !important; /* Espaçamento interno aumentado */
                 border-radius: 2px !important;
                 display: flex !important;
                 flex-direction: column !important;
@@ -551,16 +551,16 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-1.5 flex flex-col justify-between";
+                // Mais espaçamento interno (padding p-2) e respiros bem distribuídos
+                card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-2 flex flex-col justify-between";
                 
-                // Sem "UN", com descrição grande e destacada (text-[13px] font-extrabold)
                 card.innerHTML = `
-                    <div class="flex items-center justify-between border-b border-emerald-500 pb-0.5">
+                    <div class="flex items-center justify-between border-b border-emerald-500 pb-1 mb-1">
                         <span class="text-[9px] font-black text-amber-300 uppercase tracking-tight">BRAVA CONSTRUÇÕES & INCORPORAÇÃO</span>
                         <span class="text-[10px] font-black bg-slate-950 text-amber-300 px-1.5 py-0.5 rounded">Cód: ${p.codigo}</span>
                     </div>
-                    <div class="flex items-center space-x-2.5 flex-1 my-0.5 overflow-hidden">
-                        <div id="qrcode-${index}" class="w-[64px] h-[64px] flex-shrink-0 bg-white p-0.5 rounded flex items-center justify-center"></div>
+                    <div class="flex items-center space-x-3 flex-1 my-1 overflow-hidden">
+                        <div id="qrcode-${index}" class="w-[62px] h-[62px] flex-shrink-0 bg-white p-0.5 rounded flex items-center justify-center"></div>
                         <div class="flex-1 leading-tight flex flex-col justify-center overflow-hidden">
                             <h5 class="text-[13px] font-extrabold text-white leading-snug line-clamp-2">${p.desc}</h5>
                         </div>
@@ -570,8 +570,8 @@
 
                 new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: p.codigo,
-                    width: 64,
-                    height: 64,
+                    width: 62,
+                    height: 62,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
