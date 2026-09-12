@@ -14,11 +14,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE IMPRESSÃO - MEDIDAS EXATAS (33.9mm x 101.6mm) -->
+    <!-- ESTILOS DE IMPRESSÃO - COM ESPAÇAMENTOS AMPLIADOS -->
     <style>
         @page {
             size: letter;
-            margin: 12mm 7.9mm;
+            margin: 10mm 6mm;
         }
         @media print {
             body * {
@@ -44,8 +44,8 @@
             #area-impressao-etiquetas {
                 display: grid !important;
                 grid-template-columns: repeat(2, 101.6mm) !important;
-                grid-auto-rows: 33.9mm !important;
-                gap: 0mm 3.1mm !important;
+                grid-auto-rows: 36mm !important; /* Altura ligeiramente maior para respiro */
+                gap: 4mm 4mm !important; /* Espaço ampliado entre uma etiqueta e outra */
                 background: white !important;
                 border: none !important;
                 max-height: none !important;
@@ -61,7 +61,7 @@
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
-                padding: 2mm 3mm !important; /* Espaçamento interno aumentado */
+                padding: 3mm 4mm !important; /* Padding interno generoso */
                 border-radius: 2px !important;
                 display: flex !important;
                 flex-direction: column !important;
@@ -551,7 +551,6 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                // Mais espaçamento interno (padding p-2) e respiros bem distribuídos
                 card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-2 flex flex-col justify-between";
                 
                 card.innerHTML = `
