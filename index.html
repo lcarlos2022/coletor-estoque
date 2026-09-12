@@ -551,24 +551,23 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                // Fundo verde vivo e nome da empresa completo em amarelo em destaque absoluto
+                // Mantém o layout exato solicitado, com descrição ampliada (removido o UN)
                 card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-1.5 flex flex-col justify-between";
                 card.innerHTML = `
                     <div class="flex items-center justify-between border-b border-emerald-500 pb-0.5">
-                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-tight">Brava Construções & Incorporação</span>
+                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-tight">BRAVA CONSTRUÇÕES & INCORPORAÇÃO</span>
+                        <span class="text-[10px] font-black bg-slate-950 text-amber-300 px-1.5 py-0.5 rounded">Cód: ${p.codigo}</span>
                     </div>
-                    <div class="flex items-center space-x-2 flex-1 my-0.5 overflow-hidden">
+                    <div class="flex items-center space-x-2.5 flex-1 my-0.5 overflow-hidden">
                         <div id="qrcode-${index}" class="w-[64px] h-[64px] flex-shrink-0 bg-white p-0.5 rounded flex items-center justify-center"></div>
                         <div class="flex-1 leading-tight flex flex-col justify-center overflow-hidden">
-                            <span class="text-[10px] font-black bg-slate-950 text-amber-300 px-1.5 py-0.5 rounded w-max mb-0.5">Cód: ${p.codigo}</span>
-                            <h5 class="text-[11px] font-black text-white leading-snug line-clamp-2">${p.desc}</h5>
-                            <span class="text-[9px] font-bold text-amber-200 mt-0.5">UN: ${p.unidade}</span>
+                            <h5 class="text-[12.5px] font-black text-white leading-snug line-clamp-2">${p.desc}</h5>
                         </div>
                     </div>
                 `;
                 area.appendChild(card);
 
-                // QR Code milimetricamente calibrado (64x64) para caber sem estouro no espaço vertical de 33.9mm
+                // QR Code calibrado (64x64) perfeitamente para 33.9mm
                 new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: p.codigo,
                     width: 64,
