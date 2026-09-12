@@ -56,7 +56,7 @@
             .etiqueta-card {
                 width: 101.6mm !important;
                 height: 33.9mm !important;
-                background: #16a34a !important; /* Fundo verde impresso */
+                background: #16a34a !important;
                 border: 0.5px solid #14532d !important;
                 box-shadow: none !important;
                 break-inside: avoid;
@@ -249,27 +249,18 @@
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera Nativa Autofocus)</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera em Tempo Real)</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
                     
-                    <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-6 text-center space-y-4">
-                        <div class="inline-flex bg-emerald-500/10 text-emerald-400 p-4 rounded-full text-2xl border border-emerald-500/20">
-                            <i class="fa-solid fa-camera-rotate"></i>
+                    <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
+                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700"></div>
+                        <div class="flex justify-center gap-2">
+                            <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Ligar Câmera</button>
+                            <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Desligar Câmera</button>
                         </div>
-                        <div class="space-y-1">
-                            <h4 class="text-sm font-bold text-white">Leitura por Câmera Nativa com Foco Automático</h4>
-                            <p class="text-xs text-slate-400">Clique abaixo para abrir a câmera do seu celular, focar na etiqueta gerada e ler instantaneamente.</p>
-                        </div>
-                        
-                        <input type="file" id="qr-input-file" accept="image/*" capture="environment" class="hidden" onchange="processarFotoEtiqueta(event)">
-                        
-                        <button onclick="document.getElementById('qr-input-file').click()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center space-x-2">
-                            <i class="fa-solid fa-camera"></i>
-                            <span>Abrir Câmera para Ler Etiqueta</span>
-                        </button>
                     </div>
 
                     <div id="painel-item-lido" class="hidden bg-[#0b1329] p-3.5 rounded-xl border border-slate-800 space-y-2">
@@ -337,14 +328,13 @@
         Brava Enterprise &copy; 2026 - Todos os direitos reservados
     </footer>
 
-    <div id="reader-hidden-div" class="hidden"></div>
-
     <script>
         let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos_6182')) || [];
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
         
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
+        let html5QrCodeScanner = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarEstadoSistema();
@@ -420,6 +410,7 @@
         }
 
         function fazerLogout() {
+            pararLeitorQR();
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
@@ -438,7 +429,48 @@
             let btnAlvo = document.getElementById(`btn-aba-${aba}`);
             if (alvo) alvo.classList.remove('hidden');
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
+            
+            if (aba === 'scanner') {
+                iniciarLeitorQR();
+            } else {
+                pararLeitorQR();
+            }
+
             if (aba === 'divergencias') { calcularDivergencias(); }
+        }
+
+        function iniciarLeitorQR() {
+            if (html5QrCodeScanner) return;
+            const readerDiv = document.getElementById('reader');
+            if (!readerDiv) return;
+
+            html5QrCodeScanner = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            html5QrCodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => {
+                    processarCodigoLido(decodedText);
+                },
+                (errorMessage) => {
+                    // Erros de leitura quadro a quadro são ignorados para não poluir a tela
+                }
+            ).catch(err => {
+                console.error("Erro ao iniciar a câmera:", err);
+            });
+        }
+
+        function pararLeitorQR() {
+            if (html5QrCodeScanner) {
+                html5QrCodeScanner.stop().then(() => {
+                    html5QrCodeScanner.clear();
+                    html5QrCodeScanner = null;
+                }).catch(err => {
+                    console.error("Erro ao parar leitor:", err);
+                    html5QrCodeScanner = null;
+                });
+            }
         }
 
         function renderizarCatalogo() {
@@ -583,22 +615,6 @@
             document.getElementById('area-impressao-etiquetas').innerHTML = '';
         }
 
-        function processarFotoEtiqueta(event) {
-            let file = event.target.files[0];
-            if (!file) return;
-
-            let html5QrCode = new Html5Qrcode("reader-hidden-div");
-            html5QrCode.scanFile(file, true)
-                .then(decodedText => {
-                    processarCodigoLido(decodedText);
-                    event.target.value = '';
-                })
-                .catch(err => {
-                    alert("Não foi possível detectar o QR Code na foto. Aproxime um pouco mais a câmera e certifique-se de focar bem no código.");
-                    event.target.value = '';
-                });
-        }
-
         function processarCodigoLido(codigo) {
             let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.trim().toLowerCase());
             if (produto) {
@@ -609,7 +625,7 @@
                 document.getElementById('lido-quantidade').value = '';
                 document.getElementById('lido-quantidade').focus();
             } else {
-                alert(`Código lido não encontrado no catálogo Sienge: ${codigo}`);
+                console.log(`Código lido não encontrado no catálogo Sienge: ${codigo}`);
             }
         }
 
