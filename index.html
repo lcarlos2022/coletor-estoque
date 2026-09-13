@@ -340,19 +340,25 @@
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
 
-        // Função geradora de bipe longo e encorpado (exatamente 1 bipe por leitura válida)
+        // Função geradora de bipe estilo caixa de supermercado (agudo, rápido e metálico)
         function tocarBipeSucesso() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
+                
+                // Frequência alta e metálica (1800 Hz)
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(750, audioCtx.currentTime); // Tom firme e profissional
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(1800, audioCtx.currentTime); 
+                
+                // Volume e duração curta (100ms) para o "piip!" rápido de caixa registradora
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.35); // Bipe encorpado (350 milissegundos)
+                osc.stop(audioCtx.currentTime + 0.1);
             } catch (e) {
                 console.log("Áudio não suportado ou bloqueado pelo navegador", e);
             }
@@ -702,7 +708,7 @@
                 ultimoCodigoLido = codigoLimpo;
                 ultimaLeituraTimestamp = agora;
 
-                tocarBipeSucesso(); // Toca exatamente UM bipe longo e limpo
+                tocarBipeSucesso(); // Toca exatamente UM bipe ágil estilo caixa de supermercado
 
                 produtoScaneadoAtual = produto;
                 document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
