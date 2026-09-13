@@ -335,8 +335,12 @@
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
         let html5QrCode = null;
+        
+        // Variáveis de controle para evitar leituras repetidas em sequência (Debounce)
+        let ultimoCodigoLido = "";
+        let ultimaLeituraTimestamp = 0;
 
-        // Função geradora de bipe longo e encorpado
+        // Função geradora de bipe longo e encorpado (exatamente 1 bipe por leitura válida)
         function tocarBipeSucesso() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -348,7 +352,7 @@
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.35); // Bipe mais longo (350 milissegundos)
+                osc.stop(audioCtx.currentTime + 0.35); // Bipe encorpado (350 milissegundos)
             } catch (e) {
                 console.log("Áudio não suportado ou bloqueado pelo navegador", e);
             }
@@ -684,12 +688,21 @@
 
         function processarCodigoLido(codigo) {
             let codigoLimpo = String(codigo).trim();
-            console.log("Código capturado pela câmera:", codigoLimpo);
+            let agora = Date.now();
+
+            // TRAVA DE SEGURANÇA (DEBOUNCE): Impede leituras duplicadas ou intermitentes do mesmo código em menos de 2 segundos
+            if (codigoLimpo === ultimoCodigoLido && (agora - ultimaLeituraTimestamp) < 2000) {
+                return; 
+            }
 
             let produto = catalogoProdutos.find(p => String(p.codigo).trim().toLowerCase() === codigoLimpo.toLowerCase());
             
             if (produto) {
-                tocarBipeSucesso(); // Bipe longo acionado a cada leitura bem-sucedida
+                // Atualiza o registro da última leitura bem-sucedida
+                ultimoCodigoLido = codigoLimpo;
+                ultimaLeituraTimestamp = agora;
+
+                tocarBipeSucesso(); // Toca exatamente UM bipe longo e limpo
 
                 produtoScaneadoAtual = produto;
                 document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
@@ -701,7 +714,6 @@
                 inputQtd.focus();
             } else {
                 console.warn(`Código lido (${codigoLimpo}) não encontrado no catálogo Sienge.`);
-                alert(`Atenção: O código "${codigoLimpo}" foi lido, mas NÃO consta no catálogo importado do Sienge.`);
             }
         }
 
