@@ -95,11 +95,11 @@
             flex-shrink: 0;
         }
 
-        .qr-code-container img {
+        .qr-code-container img, .qr-code-container canvas {
             display: block;
             margin: 0 auto;
-            width: 64px;
-            height: 64px;
+            width: 64px !important;
+            height: 64px !important;
         }
     </style>
 </head>
@@ -647,16 +647,20 @@
             }
         }
 
-        /* ETIQUETA FORMATADA EXACTAMENTE COMO NA IMAGEM DA AMOSTRA */
+        /* FUNÇÃO CORRIGIDA DE GERAÇÃO DAS ETIQUETAS */
         function renderizarEtiquetasQR() {
             if (catalogoProdutos.length === 0) {
                 alert("Não há produtos no catálogo para gerar etiquetas.");
                 return;
             }
+
             let area = document.getElementById('area-impressao-etiquetas');
             area.innerHTML = '';
+
+            // 1. Torna a área visível primeiro para a biblioteca medir o espaço do DOM
             document.getElementById('secao-etiquetas').classList.remove('hidden');
 
+            // 2. Monta o HTML das etiquetas
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
                 card.className = "etiqueta-card shadow-md";
@@ -676,16 +680,25 @@
                     </div>
                 `;
                 area.appendChild(card);
-
-                new QRCode(document.getElementById(`qrcode-${index}`), {
-                    text: String(p.codigo),
-                    width: 64,
-                    height: 64,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
             });
+
+            // 3. Aguarda a renderização do layout para desenhar o QR Code corretamente
+            setTimeout(() => {
+                catalogoProdutos.forEach((p, index) => {
+                    let container = document.getElementById(`qrcode-${index}`);
+                    if (container) {
+                        container.innerHTML = '';
+                        new QRCode(container, {
+                            text: String(p.codigo),
+                            width: 64,
+                            height: 64,
+                            colorDark : "#000000",
+                            colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.H
+                        });
+                    }
+                });
+            }, 50);
         }
 
         function apagarEtiquetasGeradas() {
