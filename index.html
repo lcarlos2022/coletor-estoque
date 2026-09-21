@@ -6,8 +6,8 @@
     <title>Brava Enterprise - Sienge Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Biblioteca jsQR dedicada para leitura rápida e estável via canvas -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <!-- QuaggaJS para leitura robusta de Código de Barras e QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <!-- Biblioteca SheetJS para manipulação de XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Biblioteca QRCode.js para geração de etiquetas -->
@@ -73,6 +73,21 @@
                 print-color-adjust: exact;
             }
         }
+        /* Ajuste para o container de vídeo do Quagga */
+        #interactive.viewport {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            overflow: hidden;
+        }
+        #interactive.viewport canvas, #interactive.viewport video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body class="bg-[#0b1329] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
@@ -101,7 +116,7 @@
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2">Identifique-se para acessar o sistema.</p>
+                <p class="text-xs text-slate-400 leading-relaxed px-2">Informe seus dados para acessar o sistema.</p>
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
@@ -193,26 +208,21 @@
                     </div>
                 </div>
 
-                <!-- ABA SCANNER CORRIGIDA (SEM PISCAR / TREMER) -->
+                <!-- ABA SCANNER CORRIGIDA (QUAGGA - LEITURA ESTÁVEL DE CÓDIGO DE BARRAS E QR) -->
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera Estável)</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Estável)</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <div class="relative w-full max-w-xs mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black aspect-[3/4] flex items-center justify-center">
-                            <!-- Vídeo fluido e sem re-renderizações que causam o flash/pisca -->
-                            <video id="video-camera" autoplay playsinline muted class="w-full h-full object-cover"></video>
-                            <canvas id="canvas-camera" class="hidden"></canvas>
-                            <!-- Guia visual fixo -->
-                            <div class="absolute inset-10 border-2 border-dashed border-emerald-400/80 rounded-xl pointer-events-none flex items-center justify-center shadow-lg">
-                                <span class="text-[10px] text-emerald-300 bg-slate-950/90 px-2.5 py-1 rounded-md font-mono tracking-wider">ENCAIXE O QR CODE</span>
-                            </div>
+                        <div class="relative w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black">
+                            <!-- Container onde o Quagga injeta o vídeo sem tremer -->
+                            <div id="interactive" class="viewport"></div>
                         </div>
-                        <p class="text-[11px] text-slate-400">Mantenha o celular firme apontado para o código.</p>
+                        <p class="text-[11px] text-slate-400">Posicione o código de barras ou QR code dentro da área de leitura.</p>
                     </div>
 
                     <div id="painel-item-lido" class="hidden bg-[#0b1329] p-3.5 rounded-xl border border-slate-800 space-y-2">
@@ -286,8 +296,7 @@
         
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
-        let streamCamera = null;
-        let loopLeituraScan = null;
+        let scannerAtivo = false;
 
         function processarAutenticacao(event) {
             event.preventDefault();
@@ -342,63 +351,63 @@
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
 
-        // MOTOR DE CÂMERA CORRIGIDO (FLUIDO, SEM PISCAR A TELA)
+        // LEITOR ROBUSTO COM QUAGGAJS (CÓDIGO DE BARRAS E QR CODE)
         function iniciarLeitorCamera() {
-            if (streamCamera) return; // Evita reiniciar se já estiver ativa
+            if (scannerAtivo) return;
 
-            const video = document.getElementById('video-camera');
-            const canvas = document.getElementById('canvas-camera');
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: "environment",
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                } 
-            })
-            .then(stream => {
-                streamCamera = stream;
-                video.srcObject = stream;
-                video.setAttribute("playsinline", true);
-                video.play();
-
-                // Processamento de frame otimizado para evitar travamentos ou pisca-pisca
-                loopLeituraScan = setInterval(() => {
-                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                        if (canvas.width !== video.videoWidth) {
-                            canvas.width = video.videoWidth;
-                            canvas.height = video.videoHeight;
-                        }
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                        let code = jsQR(imageData.data, imageData.width, imageData.height, {
-                            inversionAttempts: "dontInvert",
-                        });
-                        if (code && code.data) {
-                            processarCodigoLido(code.data);
-                        }
+            setTimeout(() => {
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: document.querySelector('#interactive'),
+                        constraints: {
+                            facingMode: "environment",
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        },
+                    },
+                    decoder: {
+                        readers: [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader",
+                            "code_39_reader",
+                            "code_93_reader",
+                            "codabar_reader",
+                            "i2of5_reader",
+                            "upc_reader",
+                            "upc_e_reader"
+                        ]
+                    },
+                    locate: true
+                }, function(err) {
+                    if (err) {
+                        console.error("Erro ao inicializar o Quagga:", err);
+                        alert("Não foi possível acessar a câmera do dispositivo.");
+                        return;
                     }
-                }, 150); // Taxa otimizada para leitura suave
-            })
-            .catch(err => {
-                console.error("Erro ao acessar a câmera:", err);
-                alert("Não foi possível acessar a câmera traseira do dispositivo.");
-            });
+                    Quagga.start();
+                    scannerAtivo = true;
+                });
+
+                Quagga.onDetected(function(result) {
+                    if (result && result.codeResult && result.codeResult.code) {
+                        processarCodigoLido(result.codeResult.code);
+                    }
+                });
+            }, 300);
         }
 
         function pararLeitorCamera() {
-            if (loopLeituraScan) {
-                clearInterval(loopLeituraScan);
-                loopLeituraScan = null;
-            }
-            if (streamCamera) {
-                streamCamera.getTracks().forEach(track => track.stop());
-                streamCamera = null;
-            }
-            const video = document.getElementById('video-camera');
-            if (video) {
-                video.srcObject = null;
+            if (scannerAtivo) {
+                try {
+                    Quagga.stop();
+                    Quagga.offDetected();
+                } catch(e) {
+                    console.error(e);
+                }
+                scannerAtivo = false;
             }
         }
 
