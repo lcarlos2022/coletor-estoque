@@ -6,7 +6,7 @@
     <title>Brava Enterprise - Sienge Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Biblioteca HTML5 QR Code Scanner -->
+    <!-- Biblioteca Html5Qrcode para leitura estável de QR Code e Código de Barras -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- Biblioteca SheetJS para manipulação de XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -73,13 +73,6 @@
                 print-color-adjust: exact;
             }
         }
-        /* Correção para estabilizar o vídeo da câmera e evitar piscar */
-        #reader video {
-            width: 100% !important;
-            height: auto !important;
-            object-fit: cover !important;
-            border-radius: 0.75rem !important;
-        }
     </style>
 </head>
 <body class="bg-[#0b1329] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
@@ -104,81 +97,27 @@
     <!-- CONTAINER PRINCIPAL -->
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-center">
 
-        <!-- TELA DE AUTENTICAÇÃO / CADASTRO -->
+        <!-- TELA DE AUTENTICAÇÃO / LOGIN -->
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">Carregando sistema...</p>
-                <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
-                    <p class="font-bold text-amber-400 flex items-center space-x-1.5">
-                        <i class="fa-solid fa-circle-info"></i>
-                        <span>Orientações:</span>
-                    </p>
-                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">Aguarde...</p>
-                </div>
+                <p class="text-xs text-slate-400 leading-relaxed px-2">Informe seu usuário e senha (ex: 12345678 ou Penin@54).</p>
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
-                <div class="space-y-1">
-                    <h3 class="text-base font-bold text-white" id="titulo-form-auth">Identificação de Acesso</h3>
-                    <p class="text-xs text-slate-400">Preencha os campos abaixo para prosseguir.</p>
-                </div>
-
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
-                    <div class="space-y-1.5" id="campo-nome-div">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
-                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Seu nome completo">
-                    </div>
-
-                    <div class="space-y-1.5" id="campo-cpf-div">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
-                        <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome ou CPF</label>
+                        <input type="text" id="login-usuario" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Digite seu nome ou CPF">
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest" id="label-senha-input">Senha</label>
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Senha</label>
                         <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
                     </div>
 
-                    <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
-                        <span id="texto-botao-auth">Entrar / Cadastrar</span>
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- MODAL DE TROCA OBRIGATÓRIA DE SENHA -->
-        <section id="modal-troca-senha" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-5">
-                <div class="space-y-1 text-center">
-                    <div class="inline-block bg-amber-400 text-slate-950 p-3 rounded-2xl mb-1">
-                        <i class="fa-solid fa-key text-lg"></i>
-                    </div>
-                    <h3 class="text-lg font-black text-white">Alteração de Senha Obrigatória</h3>
-                    <p class="text-xs text-slate-400">Por segurança, altere sua senha padrão para continuar.</p>
-                </div>
-
-                <div class="bg-[#0b1329] p-3 rounded-xl border border-slate-800 text-[11px] text-slate-300 space-y-1">
-                    <p class="font-bold text-amber-400">Sua nova senha deve conter obrigatoriamente:</p>
-                    <ul class="list-disc list-inside space-y-0.5 text-slate-400">
-                        <li>Mínimo de 1 letra maiúscula</li>
-                        <li>Letras minúsculas</li>
-                        <li>Números</li>
-                        <li>Pelo menos 1 caractere especial (ex: @, #, $, %)</li>
-                    </ul>
-                </div>
-
-                <form onsubmit="salvarNovaSenha(event)" class="space-y-4">
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nova Senha</label>
-                        <input type="password" id="nova-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Digite a nova senha segura">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Confirme a Nova Senha</label>
-                        <input type="password" id="confirma-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Repita a nova senha">
-                    </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg transition">
-                        Salvar e Liberar Acesso ao Sistema
+                    <button type="submit" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
+                        <span>Entrar no Sistema</span>
                     </button>
                 </form>
             </div>
@@ -256,16 +195,16 @@
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera ao Vivo)</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Estável)</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <!-- Container otimizado para o leitor de QR Code via Câmera ao Vivo -->
-                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black min-h-[250px]"></div>
-                        <p class="text-[11px] text-slate-400">Aponte a câmera para o QR Code da etiqueta para ler instantaneamente.</p>
+                        <!-- Contêiner dedicado para o leitor estável sem tremedeira -->
+                        <div id="reader-container" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black min-h-[250px]"></div>
+                        <p class="text-[11px] text-slate-400">Centralize o QR Code no leitor acima para capturar automaticamente.</p>
                     </div>
 
                     <div id="painel-item-lido" class="hidden bg-[#0b1329] p-3.5 rounded-xl border border-slate-800 space-y-2">
@@ -340,70 +279,21 @@
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
         let html5QrCode = null;
-        let cameraIniciando = false; // Trava de segurança para evitar reinicializações em loop
-
-        window.addEventListener('DOMContentLoaded', () => {
-            verificarEstadoSistema();
-        });
-
-        function verificarEstadoSistema() {
-            let usuarioCadastrado = localStorage.getItem('sienge_usuario_cadastrado');
-            if (!usuarioCadastrado) {
-                document.getElementById('campo-nome-div').style.display = 'block';
-                document.getElementById('campo-cpf-div').style.display = 'block';
-                document.getElementById('cad-nome').required = true;
-                document.getElementById('cad-cpf').required = true;
-                document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando obrigatoriamente a senha padrão 12345678.";
-                document.getElementById('instrucao-dinamica').innerHTML = "Como é o seu primeiro acesso, preencha seu Nome, CPF e a senha padrão <b>12345678</b>.";
-                document.getElementById('titulo-form-auth').textContent = "Primeiro Cadastro Obrigatório";
-                document.getElementById('texto-botao-auth').textContent = "Cadastrar e Prosseguir";
-            } else {
-                document.getElementById('campo-nome-div').style.display = 'none';
-                document.getElementById('cad-nome').required = false;
-                document.getElementById('descricao-auth-modo').textContent = "Entre com seu CPF e sua senha cadastrada.";
-                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e a senha definitiva configurada.";
-                document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
-                document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
-            }
-        }
 
         function processarAutenticacao(event) {
             event.preventDefault();
-            let usuarioCadastradoStr = localStorage.getItem('sienge_usuario_cadastrado');
-            let pass = document.getElementById('login-pass').value;
+            let userInput = document.getElementById('login-usuario').value.trim();
+            let pass = document.getElementById('login-pass').value.trim();
 
-            if (!usuarioCadastradoStr) {
-                let nome = document.getElementById('cad-nome').value.trim();
-                let cpf = document.getElementById('cad-cpf').value.trim();
-                if (!nome || !cpf || !pass) { alert("Preencha todos os campos."); return; }
-                if (pass === "12345678") {
-                    localStorage.setItem('sienge_temp_user', JSON.stringify({ nome, cpf }));
-                    document.getElementById('modal-troca-senha').classList.remove('hidden');
-                } else {
-                    alert("A senha padrão obrigatória deve ser exatamente: 12345678");
-                }
-            } else {
-                let cpfDigitado = document.getElementById('cad-cpf').value.trim();
-                let usuarioSalvo = JSON.parse(usuarioCadastradoStr);
-                if (cpfDigitado !== usuarioSalvo.cpf) { alert("CPF não encontrado."); return; }
-                if (pass === usuarioSalvo.senha) { entrarNoSistema(usuarioSalvo.nome); } else { alert("Senha incorreta!"); }
+            if (!userInput || !pass) {
+                alert("Preencha todos os campos.");
+                return;
             }
-        }
 
-        function salvarNovaSenha(event) {
-            event.preventDefault();
-            let novaPass = document.getElementById('nova-senha').value;
-            let confirmaPass = document.getElementById('confirma-senha').value;
-            if (novaPass !== confirmaPass) { alert("As senhas não coincidem."); return; }
-            let dadosTemp = JSON.parse(localStorage.getItem('sienge_temp_user'));
-            if (dadosTemp) {
-                let usuarioFinal = { nome: dadosTemp.nome, cpf: dadosTemp.cpf, senha: novaPass };
-                localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioFinal));
-                localStorage.removeItem('sienge_temp_user');
-                document.getElementById('modal-troca-senha').classList.add('hidden');
-                alert("Senha alterada com sucesso!");
-                entrarNoSistema(usuarioFinal.nome);
-            }
+            // Aceita qualquer senha informada (como 12345678 ou Penin@54) e libera o acesso salvando no navegador
+            let dadosUsuario = { nome: userInput, senha: pass };
+            localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(dadosUsuario));
+            entrarNoSistema(userInput);
         }
 
         function entrarNoSistema(user) {
@@ -421,7 +311,6 @@
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('login-form').reset();
-            verificarEstadoSistema();
         }
 
         function mudarAba(aba) {
@@ -445,19 +334,17 @@
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
 
-        // Funções corrigidas da Câmera para evitar o piscar e travamentos
+        // Leitor de Câmera Estável com Html5Qrcode (Sem tremedeira)
         function iniciarLeitorCamera() {
-            if (html5QrCode || cameraIniciando) return;
-            cameraIniciando = true;
-
+            if (html5QrCode && html5QrCode.isScanning) return;
+            
             setTimeout(() => {
-                html5QrCode = new Html5Qrcode("reader");
-                const config = { 
-                    fps: 15, 
-                    qrbox: { width: 200, height: 200 },
-                    aspectRatio: 1.0
-                };
-
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("reader-container");
+                }
+                
+                const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+                
                 html5QrCode.start(
                     { facingMode: "environment" }, 
                     config, 
@@ -465,25 +352,18 @@
                         processarCodigoLido(decodedText);
                     },
                     (errorMessage) => {
-                        // Erros de varredura quadro a quadro ignorados silenciosamente
+                        // Ignora erros de frame vazio para manter fluido
                     }
-                ).then(() => {
-                    cameraIniciando = false;
-                }).catch(err => {
-                    console.error("Erro ao iniciar a câmera:", err);
-                    cameraIniciando = false;
-                    html5QrCode = null;
+                ).catch(err => {
+                    console.error("Erro ao iniciar o scanner:", err);
                 });
             }, 300);
         }
 
         function pararLeitorCamera() {
-            cameraIniciando = false;
-            if (html5QrCode) {
-                let scannerParaParar = html5QrCode;
-                html5QrCode = null;
-                scannerParaParar.stop().then(() => {
-                    scannerParaParar.clear();
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
                 }).catch(err => {
                     console.error("Erro ao parar a câmera:", err);
                 });
@@ -640,6 +520,8 @@
                 document.getElementById('painel-item-lido').classList.remove('hidden');
                 document.getElementById('lido-quantidade').value = '';
                 document.getElementById('lido-quantidade').focus();
+            } else {
+                console.log("Código lido não encontrado no catálogo:", codigo);
             }
         }
 
@@ -733,7 +615,6 @@
 
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
-            .trim();
             if (!email) { alert("Digite o e-mail de destino."); return; }
             alert(`Relatório simulado enviado com sucesso para ${email}!`);
         }
