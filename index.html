@@ -56,7 +56,7 @@
             .etiqueta-card {
                 width: 101.6mm !important;
                 height: 33.9mm !important;
-                background: #16a34a !important; /* Fundo verde impresso */
+                background: #16a34a !important;
                 border: 0.5px solid #14532d !important;
                 box-shadow: none !important;
                 break-inside: avoid;
@@ -72,6 +72,13 @@
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+        }
+        /* Correção para estabilizar o vídeo da câmera e evitar piscar */
+        #reader video {
+            width: 100% !important;
+            height: auto !important;
+            object-fit: cover !important;
+            border-radius: 0.75rem !important;
         }
     </style>
 </head>
@@ -256,8 +263,8 @@
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <!-- Container para o leitor de QR Code via Câmera ao Vivo -->
-                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black"></div>
+                        <!-- Container otimizado para o leitor de QR Code via Câmera ao Vivo -->
+                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black min-h-[250px]"></div>
                         <p class="text-[11px] text-slate-400">Aponte a câmera para o QR Code da etiqueta para ler instantaneamente.</p>
                     </div>
 
@@ -332,7 +339,8 @@
         
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
-        let html5QrCode = null; // Instância do leitor ao vivo
+        let html5QrCode = null;
+        let cameraIniciando = false; // Trava de segurança para evitar reinicializações em loop
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarEstadoSistema();
@@ -437,36 +445,47 @@
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
 
-        // Funções da Câmera ao Vivo com html5-qrcode
+        // Funções corrigidas da Câmera para evitar o piscar e travamentos
         function iniciarLeitorCamera() {
-            if (html5QrCode) return; // Já está rodando
+            if (html5QrCode || cameraIniciando) return;
+            cameraIniciando = true;
 
-            html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+            setTimeout(() => {
+                html5QrCode = new Html5Qrcode("reader");
+                const config = { 
+                    fps: 15, 
+                    qrbox: { width: 200, height: 200 },
+                    aspectRatio: 1.0
+                };
 
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                config, 
-                (decodedText, decodedResult) => {
-                    // Sucesso ao ler o QR Code
-                    processarCodigoLido(decodedText);
-                },
-                (errorMessage) => {
-                    // Erros de varredura quadro a quadro podem ser ignorados
-                }
-            ).catch(err => {
-                console.error("Erro ao iniciar a câmera ao vivo:", err);
-            });
+                html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    config, 
+                    (decodedText) => {
+                        processarCodigoLido(decodedText);
+                    },
+                    (errorMessage) => {
+                        // Erros de varredura quadro a quadro ignorados silenciosamente
+                    }
+                ).then(() => {
+                    cameraIniciando = false;
+                }).catch(err => {
+                    console.error("Erro ao iniciar a câmera:", err);
+                    cameraIniciando = false;
+                    html5QrCode = null;
+                });
+            }, 300);
         }
 
         function pararLeitorCamera() {
+            cameraIniciando = false;
             if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    html5QrCode = null;
+                let scannerParaParar = html5QrCode;
+                html5QrCode = null;
+                scannerParaParar.stop().then(() => {
+                    scannerParaParar.clear();
                 }).catch(err => {
                     console.error("Erro ao parar a câmera:", err);
-                    html5QrCode = null;
                 });
             }
         }
@@ -714,6 +733,7 @@
 
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
+            .trim();
             if (!email) { alert("Digite o e-mail de destino."); return; }
             alert(`Relatório simulado enviado com sucesso para ${email}!`);
         }
