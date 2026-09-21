@@ -647,7 +647,7 @@
             }
         }
 
-        /* FUNÇÃO CORRIGIDA DE GERAÇÃO DAS ETIQUETAS */
+        /* FUNÇÃO DE GERAÇÃO DAS ETIQUETAS COM DESCRIÇÃO AO LADO DO QR CODE EM BRANCO */
         function renderizarEtiquetasQR() {
             if (catalogoProdutos.length === 0) {
                 alert("Não há produtos no catálogo para gerar etiquetas.");
@@ -660,7 +660,7 @@
             // 1. Torna a área visível primeiro para a biblioteca medir o espaço do DOM
             document.getElementById('secao-etiquetas').classList.remove('hidden');
 
-            // 2. Monta o HTML das etiquetas
+            // 2. Monta o HTML das etiquetas (descrição removida de cima e colocada em branco ao lado do QR Code)
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
                 card.className = "etiqueta-card shadow-md";
