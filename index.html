@@ -56,22 +56,27 @@
             .etiqueta-card {
                 width: 101.6mm !important;
                 height: 33.9mm !important;
-                background: #16a34a !important;
-                border: 1px solid #14532d !important;
+                background-color: #10b981 !important;
+                border: 2px solid #059669 !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
-                padding: 3.5mm 4mm !important;
-                border-radius: 8px !important;
+                padding: 3mm 4mm !important;
+                border-radius: 12px !important;
                 display: flex !important;
                 flex-direction: column !important;
-                align-items: stretch !important;
                 justify-content: space-between !important;
                 overflow: hidden !important;
                 box-sizing: border-box !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+        }
+
+        /* Estilo do Container do QR Code */
+        .qr-code-container img {
+            display: block;
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -227,7 +232,7 @@
                         </table>
                     </div>
 
-                    <!-- ETIQUETAS ESTRUTURADAS NO PADRÃO DA IMAGEM -->
+                    <!-- ETIQUETAS ESTRUTURADAS NO PADRÃO IDÊNTICO AO DA FOTO -->
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center flex-wrap gap-2">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">ETIQUETAS CUSTOMIZADAS (FUNDO VERDE / NOME AMARELO)</h4>
@@ -236,7 +241,7 @@
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
                             </div>
                         </div>
-                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-[#0b1329] p-3 rounded-xl border border-slate-800 max-h-96 overflow-y-auto"></div>
+                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0b1329] p-4 rounded-xl border border-slate-800 max-h-96 overflow-y-auto"></div>
                     </div>
                 </div>
 
@@ -619,7 +624,7 @@
             }
         }
 
-        // GERADOR DA ETIQUETA FORMATADA EXACTAMENTE COMO A FOTO
+        // GERADOR DA ETIQUETA COM CORRESPONDEÂNCIA EXATA DA FOTO
         function renderizarEtiquetasQR() {
             if (catalogoProdutos.length === 0) {
                 alert("Não há produtos no catálogo para gerar etiquetas.");
@@ -631,19 +636,19 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card bg-[#16a34a] text-white rounded-xl p-3 shadow-md flex flex-col justify-between border border-emerald-700";
+                card.className = "etiqueta-card bg-[#10b981] text-white rounded-2xl p-3 shadow-lg flex flex-col justify-between border-2 border-[#059669]";
                 
                 card.innerHTML = `
-                    <div class="flex items-center justify-between gap-2 mb-1">
-                        <span class="text-[10px] font-extrabold text-[#facc15] uppercase tracking-wider">BRAVA CONSTRUCAO INCORPORADORA</span>
-                        <div class="bg-black text-[#facc15] font-extrabold text-sm px-2.5 py-0.5 rounded-lg whitespace-nowrap shadow">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[11px] font-black text-[#facc15] tracking-tight uppercase">BRAVA CONSTRUCAO INCORPORADORA</span>
+                        <div class="bg-black text-[#facc15] font-black text-sm px-3 py-1 rounded-lg whitespace-nowrap shadow-md">
                             Cód: ${p.codigo}
                         </div>
                     </div>
-                    <div class="flex items-center space-x-3 flex-1 mt-1">
-                        <div id="qrcode-${index}" class="w-[64px] h-[64px] flex-shrink-0 bg-white p-1 rounded-xl flex items-center justify-center shadow"></div>
-                        <div class="flex-1 leading-tight">
-                            <h5 class="text-xs font-bold text-white line-clamp-3">${p.desc}</h5>
+                    <div class="flex items-center space-x-3 flex-1">
+                        <div id="qrcode-${index}" class="qr-code-container w-[72px] h-[72px] flex-shrink-0 bg-white p-1 rounded-xl flex items-center justify-center shadow-md border border-white"></div>
+                        <div class="flex-1 flex items-center pr-1">
+                            <h5 class="text-xs font-bold text-white leading-tight line-clamp-3">${p.desc}</h5>
                         </div>
                     </div>
                 `;
@@ -651,8 +656,8 @@
 
                 new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: String(p.codigo),
-                    width: 58,
-                    height: 58,
+                    width: 64,
+                    height: 64,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
