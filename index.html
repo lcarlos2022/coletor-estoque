@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brava Enterprise - Sienge Edition</title>
+    <title>Brava Enterprise - Gestor de Etiquetas</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Biblioteca HTML5 QR Code Scanner -->
@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE IMPRESSÃO E ETIQUETAS IGUAIS À FOTO -->
+    <!-- ESTILOS DE IMPRESSÃO E ETIQUETAS -->
     <style>
         @page {
             size: letter;
@@ -73,11 +73,11 @@
             }
         }
 
-        /* Estilo exato da etiqueta na tela */
+        /* Estilo exato da etiqueta */
         .etiqueta-card {
-            background-color: #059669; /* Verde exato da foto */
+            background-color: #059669; /* Verde exato da imagem */
             border-radius: 12px;
-            padding: 12px 14px;
+            padding: 12px 16px;
             min-height: 125px;
             display: flex;
             flex-direction: column;
@@ -92,6 +92,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .qr-code-container img {
@@ -646,7 +647,7 @@
             }
         }
 
-        /* FUNÇÃO DE ETIQUETA CORRIGIDA 100% IGUAL À IMAGEM */
+        /* ETIQUETA FORMATADA EXACTAMENTE COMO NA IMAGEM DA AMOSTRA */
         function renderizarEtiquetasQR() {
             if (catalogoProdutos.length === 0) {
                 alert("Não há produtos no catálogo para gerar etiquetas.");
@@ -660,7 +661,6 @@
                 let card = document.createElement('div');
                 card.className = "etiqueta-card shadow-md";
                 
-                // Formatação exata da foto: Fundo verde, Nome Amarelo Vivo, Caixa PRETA com texto Amarelo no Código, Descrição BRANCA com Unidade
                 card.innerHTML = `
                     <div class="flex items-center justify-between gap-2 mb-1">
                         <span class="text-[11px] font-black text-[#facc15] tracking-tight uppercase">BRAVA CONSTRUCAO INCORPORADORA</span>
