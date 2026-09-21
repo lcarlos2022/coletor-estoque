@@ -6,8 +6,8 @@
     <title>Brava Enterprise - Sienge Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Biblioteca Html5Qrcode para leitura estável de QR Code e Código de Barras -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Biblioteca jsQR dedicada para leitura rápida e estável via canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <!-- Biblioteca SheetJS para manipulação de XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Biblioteca QRCode.js para geração de etiquetas -->
@@ -101,7 +101,7 @@
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2">Informe seu usuário e senha (ex: 12345678 ou Penin@54).</p>
+                <p class="text-xs text-slate-400 leading-relaxed px-2">Identifique-se para acessar o sistema.</p>
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
@@ -193,18 +193,26 @@
                     </div>
                 </div>
 
+                <!-- ABA SCANNER CORRIGIDA (SEM PISCAR / TREMER) -->
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Estável)</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera Estável)</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <!-- Contêiner dedicado para o leitor estável sem tremedeira -->
-                        <div id="reader-container" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black min-h-[250px]"></div>
-                        <p class="text-[11px] text-slate-400">Centralize o QR Code no leitor acima para capturar automaticamente.</p>
+                        <div class="relative w-full max-w-xs mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black aspect-[3/4] flex items-center justify-center">
+                            <!-- Vídeo fluido e sem re-renderizações que causam o flash/pisca -->
+                            <video id="video-camera" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                            <canvas id="canvas-camera" class="hidden"></canvas>
+                            <!-- Guia visual fixo -->
+                            <div class="absolute inset-10 border-2 border-dashed border-emerald-400/80 rounded-xl pointer-events-none flex items-center justify-center shadow-lg">
+                                <span class="text-[10px] text-emerald-300 bg-slate-950/90 px-2.5 py-1 rounded-md font-mono tracking-wider">ENCAIXE O QR CODE</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-400">Mantenha o celular firme apontado para o código.</p>
                     </div>
 
                     <div id="painel-item-lido" class="hidden bg-[#0b1329] p-3.5 rounded-xl border border-slate-800 space-y-2">
@@ -278,7 +286,8 @@
         
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
-        let html5QrCode = null;
+        let streamCamera = null;
+        let loopLeituraScan = null;
 
         function processarAutenticacao(event) {
             event.preventDefault();
@@ -290,7 +299,6 @@
                 return;
             }
 
-            // Aceita qualquer senha informada (como 12345678 ou Penin@54) e libera o acesso salvando no navegador
             let dadosUsuario = { nome: userInput, senha: pass };
             localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(dadosUsuario));
             entrarNoSistema(userInput);
@@ -334,39 +342,63 @@
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
 
-        // Leitor de Câmera Estável com Html5Qrcode (Sem tremedeira)
+        // MOTOR DE CÂMERA CORRIGIDO (FLUIDO, SEM PISCAR A TELA)
         function iniciarLeitorCamera() {
-            if (html5QrCode && html5QrCode.isScanning) return;
-            
-            setTimeout(() => {
-                if (!html5QrCode) {
-                    html5QrCode = new Html5Qrcode("reader-container");
-                }
-                
-                const config = { fps: 10, qrbox: { width: 220, height: 220 } };
-                
-                html5QrCode.start(
-                    { facingMode: "environment" }, 
-                    config, 
-                    (decodedText) => {
-                        processarCodigoLido(decodedText);
-                    },
-                    (errorMessage) => {
-                        // Ignora erros de frame vazio para manter fluido
+            if (streamCamera) return; // Evita reiniciar se já estiver ativa
+
+            const video = document.getElementById('video-camera');
+            const canvas = document.getElementById('canvas-camera');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: "environment",
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            })
+            .then(stream => {
+                streamCamera = stream;
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+                video.play();
+
+                // Processamento de frame otimizado para evitar travamentos ou pisca-pisca
+                loopLeituraScan = setInterval(() => {
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        if (canvas.width !== video.videoWidth) {
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                        }
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        let code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: "dontInvert",
+                        });
+                        if (code && code.data) {
+                            processarCodigoLido(code.data);
+                        }
                     }
-                ).catch(err => {
-                    console.error("Erro ao iniciar o scanner:", err);
-                });
-            }, 300);
+                }, 150); // Taxa otimizada para leitura suave
+            })
+            .catch(err => {
+                console.error("Erro ao acessar a câmera:", err);
+                alert("Não foi possível acessar a câmera traseira do dispositivo.");
+            });
         }
 
         function pararLeitorCamera() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                }).catch(err => {
-                    console.error("Erro ao parar a câmera:", err);
-                });
+            if (loopLeituraScan) {
+                clearInterval(loopLeituraScan);
+                loopLeituraScan = null;
+            }
+            if (streamCamera) {
+                streamCamera.getTracks().forEach(track => track.stop());
+                streamCamera = null;
+            }
+            const video = document.getElementById('video-camera');
+            if (video) {
+                video.srcObject = null;
             }
         }
 
@@ -520,8 +552,6 @@
                 document.getElementById('painel-item-lido').classList.remove('hidden');
                 document.getElementById('lido-quantidade').value = '';
                 document.getElementById('lido-quantidade').focus();
-            } else {
-                console.log("Código lido não encontrado no catálogo:", codigo);
             }
         }
 
