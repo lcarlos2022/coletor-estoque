@@ -92,8 +92,8 @@
         .qr-code-container img, .qr-code-container canvas {
             display: block;
             margin: 0 auto;
-            width: 60px !important;
-            height: 60px !important;
+            width: 54px !important;
+            height: 54px !important;
         }
     </style>
 </head>
@@ -119,8 +119,8 @@
 
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
-                <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">Carregando sistema...</p>
+                <h2 class="text-3xl font-black text-white tracking-tight">Controlo de Acesso</h2>
+                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">A carregar sistema...</p>
                 <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
                     <p class="font-bold text-amber-400 flex items-center space-x-1.5">
                         <i class="fa-solid fa-circle-info"></i>
@@ -139,7 +139,7 @@
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
                     <div class="space-y-1.5" id="campo-nome-div">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
-                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Seu nome completo">
+                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="O seu nome completo">
                     </div>
 
                     <div class="space-y-1.5" id="campo-cpf-div">
@@ -148,12 +148,12 @@
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest" id="label-senha-input">Senha</label>
-                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest" id="label-senha-input">Palavra-passe</label>
+                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite a sua palavra-passe">
                     </div>
 
                     <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
-                        <span id="texto-botao-auth">Entrar / Cadastrar</span>
+                        <span id="texto-botao-auth">Entrar / Registar</span>
                     </button>
                 </form>
             </div>
@@ -165,21 +165,21 @@
                     <div class="inline-block bg-amber-400 text-slate-950 p-3 rounded-2xl mb-1">
                         <i class="fa-solid fa-key text-lg"></i>
                     </div>
-                    <h3 class="text-lg font-black text-white">Alteração de Senha Obrigatória</h3>
-                    <p class="text-xs text-slate-400">Por segurança, altere sua senha padrão para continuar.</p>
+                    <h3 class="text-lg font-black text-white">Alteração de Palavra-passe Obrigatória</h3>
+                    <p class="text-xs text-slate-400">Por segurança, altere a palavra-passe predefinida para continuar.</p>
                 </div>
 
                 <form onsubmit="salvarNovaSenha(event)" class="space-y-4">
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nova Senha</label>
-                        <input type="password" id="nova-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Digite a nova senha">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nova Palavra-passe</label>
+                        <input type="password" id="nova-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Digite a nova palavra-passe">
                     </div>
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Confirme a Nova Senha</label>
-                        <input type="password" id="confirma-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Repita a nova senha">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Confirme a Nova Palavra-passe</label>
+                        <input type="password" id="confirma-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Repita a nova palavra-passe">
                     </div>
                     <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg transition">
-                        Salvar e Liberar Acesso
+                        Guardar e Libertar Acesso
                     </button>
                 </form>
             </div>
@@ -210,7 +210,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-white uppercase">Base de Materiais (Sienge)</h3>
-                            <p class="text-xs text-slate-400">Gerencie os itens do estoque.</p>
+                            <p class="text-xs text-slate-400">Gerencie os itens do inventário.</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <label class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition flex items-center space-x-1.5">
@@ -258,7 +258,7 @@
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera)</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmara)</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
@@ -267,8 +267,8 @@
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
                         <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700"></div>
                         <div class="flex justify-center gap-2">
-                            <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Ligar Câmera</button>
-                            <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Desligar Câmera</button>
+                            <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Ligar Câmara</button>
+                            <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Desligar Câmara</button>
                         </div>
                     </div>
 
@@ -282,7 +282,7 @@
                         </div>
                         <div class="flex space-x-2 pt-1">
                             <input type="number" id="lido-quantidade" step="any" placeholder="Quantidade" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:outline-none">
-                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs">Salvar</button>
+                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs">Guardar</button>
                         </div>
                     </div>
                     <div class="flex justify-between pt-2">
@@ -320,7 +320,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha</h4>
-                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Baixar Excel</button>
+                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Descarregar Excel</button>
                         </div>
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">Enviar por E-mail</h4>
@@ -371,15 +371,15 @@
                 document.getElementById('campo-cpf-div').style.display = 'block';
                 document.getElementById('cad-nome').required = true;
                 document.getElementById('cad-cpf').required = true;
-                document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando a senha padrão 12345678.";
-                document.getElementById('instrucao-dinamica').innerHTML = "Preencha seu Nome, CPF e a senha padrão <b>12345678</b>.";
-                document.getElementById('titulo-form-auth').textContent = "Primeiro Cadastro Obrigatório";
-                document.getElementById('texto-botao-auth').textContent = "Cadastrar e Prosseguir";
+                document.getElementById('descricao-auth-modo').textContent = "Faça o seu registo inicial utilizando a palavra-passe predefinida 12345678.";
+                document.getElementById('instrucao-dinamica').innerHTML = "Preencha o seu Nome, CPF e a palavra-passe predefinida <b>12345678</b>.";
+                document.getElementById('titulo-form-auth').textContent = "Primeiro Registo Obrigatório";
+                document.getElementById('texto-botao-auth').textContent = "Registar e Prosseguir";
             } else {
                 document.getElementById('campo-nome-div').style.display = 'none';
                 document.getElementById('cad-nome').required = false;
-                document.getElementById('descricao-auth-modo').textContent = "Entre com seu CPF e senha cadastrada.";
-                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e a senha configurada.";
+                document.getElementById('descricao-auth-modo').textContent = "Entre com o seu CPF e palavra-passe registada.";
+                document.getElementById('instrucao-dinamica').textContent = "Digite o seu CPF e a palavra-passe configurada.";
                 document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
                 document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
             }
@@ -398,13 +398,13 @@
                     localStorage.setItem('sienge_temp_user', JSON.stringify({ nome, cpf }));
                     document.getElementById('modal-troca-senha').classList.remove('hidden');
                 } else {
-                    alert("A senha padrão é: 12345678");
+                    alert("A palavra-passe predefinida é: 12345678");
                 }
             } else {
                 let cpfDigitado = document.getElementById('cad-cpf').value.trim();
                 let usuarioSalvo = JSON.parse(usuarioCadastradoStr);
                 if (cpfDigitado !== usuarioSalvo.cpf) { alert("CPF não encontrado."); return; }
-                if (pass === usuarioSalvo.senha) { entrarNoSistema(usuarioSalvo.nome); } else { alert("Senha incorreta!"); }
+                if (pass === usuarioSalvo.senha) { entrarNoSistema(usuarioSalvo.nome); } else { alert("Palavra-passe incorreta!"); }
             }
         }
 
@@ -412,14 +412,14 @@
             event.preventDefault();
             let novaPass = document.getElementById('nova-senha').value;
             let confirmaPass = document.getElementById('confirma-senha').value;
-            if (novaPass !== confirmaPass) { alert("As senhas não coincidem."); return; }
+            if (novaPass !== confirmaPass) { alert("As palavras-passe não coincidem."); return; }
             let dadosTemp = JSON.parse(localStorage.getItem('sienge_temp_user'));
             if (dadosTemp) {
                 let usuarioFinal = { nome: dadosTemp.nome, cpf: dadosTemp.cpf, senha: novaPass };
                 localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioFinal));
                 localStorage.removeItem('sienge_temp_user');
                 document.getElementById('modal-troca-senha').classList.add('hidden');
-                alert("Senha alterada com sucesso!");
+                alert("Palavra-passe alterada com sucesso!");
                 entrarNoSistema(usuarioFinal.nome);
             }
         }
@@ -484,7 +484,7 @@
                     { facingMode: "user" }, config,
                     (decodedText) => { processarCodigoLido(decodedText); },
                     (errorMessage) => {}
-                ).catch(e => { alert("Não foi possível acessar a câmera."); });
+                ).catch(e => { alert("Não foi possível aceder à câmara."); });
             });
         }
 
@@ -629,17 +629,18 @@
                 let card = document.createElement('div');
                 card.className = "etiqueta-card shadow-md";
                 
+                // Estrutura atualizada conforme a imagem: Topo com Empresa e Código | Corpo com QR Code à esquerda e Descrição ao lado
                 card.innerHTML = `
-                    <div class="flex items-center justify-between gap-2 mb-1">
+                    <div class="flex items-center justify-between gap-1 mb-1">
                         <span class="text-[10px] font-black text-[#facc15] tracking-tight uppercase">BRAVA CONSTRUCAO INCORPORADORA</span>
-                        <div class="bg-black text-[#facc15] font-black text-sm px-2.5 py-0.5 rounded-lg whitespace-nowrap shadow">
+                        <div class="bg-black text-[#facc15] font-black text-xs px-2.5 py-0.5 rounded-md whitespace-nowrap shadow">
                             Cód: ${p.codigo}
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2.5 flex-1 pt-0.5">
-                        <div id="qrcode-${index}" class="qr-code-container w-[66px] h-[66px] flex-shrink-0 bg-white p-1 rounded-lg flex items-center justify-center border border-white"></div>
-                        <div class="flex-1 flex items-center pr-1">
-                            <h5 class="text-[11px] font-bold text-white leading-snug line-clamp-3">${p.desc}${p.unidade ? ', ' + p.unidade.toLowerCase() : ''}</h5>
+                    <div class="flex items-center space-x-2.5 flex-1">
+                        <div id="qrcode-${index}" class="qr-code-container w-[58px] h-[58px] flex-shrink-0 bg-white p-1 rounded-md flex items-center justify-center border border-white"></div>
+                        <div class="flex-1 flex items-center pr-1 overflow-hidden">
+                            <h5 class="text-[11px] font-bold text-white leading-tight line-clamp-3">${p.desc}${p.unidade ? ', ' + p.unidade.toLowerCase() : ''}</h5>
                         </div>
                     </div>
                 `;
@@ -653,8 +654,8 @@
                         container.innerHTML = '';
                         new QRCode(container, {
                             text: String(p.codigo),
-                            width: 60,
-                            height: 60,
+                            width: 54,
+                            height: 54,
                             colorDark : "#000000",
                             colorLight : "#ffffff",
                             correctLevel : QRCode.CorrectLevel.H
@@ -704,7 +705,7 @@
             }
 
             localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
-            alert("Contagem salva com sucesso!");
+            alert("Contagem guardada com sucesso!");
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
         }
@@ -715,7 +716,7 @@
                 document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
                 alert("Avançado para a 2ª Contagem.");
             } else {
-                alert("Você já está na 2ª contagem.");
+                alert("Já se encontra na 2ª contagem.");
             }
         }
 
