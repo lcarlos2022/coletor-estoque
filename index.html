@@ -6,8 +6,6 @@
     <title>Brava Enterprise - Sienge Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- QuaggaJS para leitura robusta de Código de Barras e QR Code -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <!-- Biblioteca SheetJS para manipulação de XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Biblioteca QRCode.js para geração de etiquetas -->
@@ -73,21 +71,6 @@
                 print-color-adjust: exact;
             }
         }
-        /* Ajuste para o container de vídeo do Quagga */
-        #interactive.viewport {
-            position: relative;
-            width: 100%;
-            height: 280px;
-            overflow: hidden;
-        }
-        #interactive.viewport canvas, #interactive.viewport video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
     </style>
 </head>
 <body class="bg-[#0b1329] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
@@ -146,8 +129,8 @@
                     <span>Catálogo Sienge</span>
                 </button>
                 <button onclick="mudarAba('scanner')" id="btn-aba-scanner" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
-                    <i class="fa-solid fa-qrcode text-emerald-400 text-base"></i>
-                    <span>Leitor QR / Barras</span>
+                    <i class="fa-solid fa-ban text-red-400 text-base"></i>
+                    <span>Leitor Desativado</span>
                 </button>
                 <button onclick="mudarAba('divergencias')" id="btn-aba-divergencias" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
                     <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base"></i>
@@ -208,38 +191,14 @@
                     </div>
                 </div>
 
-                <!-- ABA SCANNER CORRIGIDA (QUAGGA - LEITURA ESTÁVEL DE CÓDIGO DE BARRAS E QR) -->
-                <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Estável)</h3>
-                        <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
-                            Fase: <span id="label-fase-contagem">1ª Contagem</span>
-                        </div>
+                <!-- ABA SCANNER DESATIVADA A PEDIDO -->
+                <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-4 items-center justify-center text-center p-6">
+                    <div class="w-16 h-16 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+                        <i class="fa-solid fa-ban"></i>
                     </div>
-                    
-                    <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <div class="relative w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black">
-                            <!-- Container onde o Quagga injeta o vídeo sem tremer -->
-                            <div id="interactive" class="viewport"></div>
-                        </div>
-                        <p class="text-[11px] text-slate-400">Posicione o código de barras ou QR code dentro da área de leitura.</p>
-                    </div>
-
-                    <div id="painel-item-lido" class="hidden bg-[#0b1329] p-3.5 rounded-xl border border-slate-800 space-y-2">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-[10px] text-amber-400 font-bold uppercase">Item Identificado</p>
-                                <h4 id="lido-codigo-desc" class="text-sm font-bold text-white">--</h4>
-                            </div>
-                            <span id="lido-unidade" class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded font-mono">UN</span>
-                        </div>
-                        <div class="flex space-x-2 pt-1">
-                            <input type="number" id="lido-quantidade" step="any" placeholder="Quantidade" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:outline-none">
-                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs">Salvar</button>
-                        </div>
-                    </div>
-                    <div class="flex justify-between pt-2">
-                        <button onclick="proximaContagem()" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs px-3 py-2 rounded-xl">Avançar 2ª Contagem</button>
+                    <div class="space-y-1">
+                        <h3 class="text-base font-bold text-white uppercase tracking-wide">Leitura de Códigos Desativada</h3>
+                        <p class="text-xs text-slate-400 max-w-xs leading-relaxed">A câmera e os leitores automáticos de QR Code ou código de barras foram totalmente desativados conforme solicitado.</p>
                     </div>
                 </div>
 
@@ -293,10 +252,6 @@
     <script>
         let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos_6182')) || [];
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
-        
-        let faseAtualContagem = 1;
-        let produtoScaneadoAtual = null;
-        let scannerAtivo = false;
 
         function processarAutenticacao(event) {
             event.preventDefault();
@@ -323,7 +278,6 @@
         }
 
         function fazerLogout() {
-            pararLeitorCamera();
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
@@ -342,73 +296,7 @@
             if (alvo) alvo.classList.remove('hidden');
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
 
-            if (aba === 'scanner') {
-                iniciarLeitorCamera();
-            } else {
-                pararLeitorCamera();
-            }
-
             if (aba === 'divergencias') { calcularDivergencias(); }
-        }
-
-        // LEITOR ROBUSTO COM QUAGGAJS (CÓDIGO DE BARRAS E QR CODE)
-        function iniciarLeitorCamera() {
-            if (scannerAtivo) return;
-
-            setTimeout(() => {
-                Quagga.init({
-                    inputStream: {
-                        name: "Live",
-                        type: "LiveStream",
-                        target: document.querySelector('#interactive'),
-                        constraints: {
-                            facingMode: "environment",
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        },
-                    },
-                    decoder: {
-                        readers: [
-                            "code_128_reader",
-                            "ean_reader",
-                            "ean_8_reader",
-                            "code_39_reader",
-                            "code_93_reader",
-                            "codabar_reader",
-                            "i2of5_reader",
-                            "upc_reader",
-                            "upc_e_reader"
-                        ]
-                    },
-                    locate: true
-                }, function(err) {
-                    if (err) {
-                        console.error("Erro ao inicializar o Quagga:", err);
-                        alert("Não foi possível acessar a câmera do dispositivo.");
-                        return;
-                    }
-                    Quagga.start();
-                    scannerAtivo = true;
-                });
-
-                Quagga.onDetected(function(result) {
-                    if (result && result.codeResult && result.codeResult.code) {
-                        processarCodigoLido(result.codeResult.code);
-                    }
-                });
-            }, 300);
-        }
-
-        function pararLeitorCamera() {
-            if (scannerAtivo) {
-                try {
-                    Quagga.stop();
-                    Quagga.offDetected();
-                } catch(e) {
-                    console.error(e);
-                }
-                scannerAtivo = false;
-            }
         }
 
         function renderizarCatalogo() {
@@ -550,50 +438,6 @@
         function apagarEtiquetasGeradas() {
             document.getElementById('secao-etiquetas').classList.add('hidden');
             document.getElementById('area-impressao-etiquetas').innerHTML = '';
-        }
-
-        function processarCodigoLido(codigo) {
-            let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.trim().toLowerCase());
-            if (produto) {
-                produtoScaneadoAtual = produto;
-                document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
-                document.getElementById('lido-unidade').textContent = produto.unidade;
-                document.getElementById('painel-item-lido').classList.remove('hidden');
-                document.getElementById('lido-quantidade').value = '';
-                document.getElementById('lido-quantidade').focus();
-            }
-        }
-
-        function salvarContagemItem() {
-            if (!produtoScaneadoAtual) return;
-            let qtd = parseFloat(document.getElementById('lido-quantidade').value);
-            if (isNaN(qtd)) { alert("Digite uma quantidade válida."); return; }
-
-            let codigo = produtoScaneadoAtual.codigo;
-            if (!registrosContagem[codigo]) {
-                registrosContagem[codigo] = { cont1: 0, cont2: 0 };
-            }
-
-            if (faseAtualContagem === 1) {
-                registrosContagem[codigo].cont1 = qtd;
-            } else {
-                registrosContagem[codigo].cont2 = qtd;
-            }
-
-            localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
-            alert("Contagem salva com sucesso!");
-            document.getElementById('painel-item-lido').classList.add('hidden');
-            produtoScaneadoAtual = null;
-        }
-
-        function proximaContagem() {
-            if (faseAtualContagem === 1) {
-                faseAtualContagem = 2;
-                document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
-                alert("Avançado para a 2ª Contagem.");
-            } else {
-                alert("Você já está na 2ª contagem.");
-            }
         }
 
         function calcularDivergencias() {
