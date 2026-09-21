@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE IMPRESSÃO E ETIQUETAS AJUSTADOS COM BASE NA IMAGEM -->
+    <!-- ESTILOS DE IMPRESSÃO E ETIQUETAS CONFIGURADOS -->
     <style>
         @page {
             size: letter;
@@ -57,12 +57,12 @@
                 width: 101.6mm !important;
                 height: 33.9mm !important;
                 background: #16a34a !important;
-                border: 0.5px solid #14532d !important;
+                border: 1px solid #14532d !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
-                padding: 3mm 4mm !important;
-                border-radius: 6px !important;
+                padding: 3.5mm 4mm !important;
+                border-radius: 8px !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
@@ -151,27 +151,17 @@
                     <p class="text-xs text-slate-400">Por segurança, altere sua senha padrão para continuar.</p>
                 </div>
 
-                <div class="bg-[#0b1329] p-3 rounded-xl border border-slate-800 text-[11px] text-slate-300 space-y-1">
-                    <p class="font-bold text-amber-400">Sua nova senha deve conter obrigatoriamente:</p>
-                    <ul class="list-disc list-inside space-y-0.5 text-slate-400">
-                        <li>Mínimo de 1 letra maiúscula</li>
-                        <li>Letras minúsculas</li>
-                        <li>Números</li>
-                        <li>Pelo menos 1 caractere especial (ex: @, #, $, %)</li>
-                    </ul>
-                </div>
-
                 <form onsubmit="salvarNovaSenha(event)" class="space-y-4">
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nova Senha</label>
-                        <input type="password" id="nova-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Digite a nova senha segura">
+                        <input type="password" id="nova-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Digite a nova senha">
                     </div>
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Confirme a Nova Senha</label>
                         <input type="password" id="confirma-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Repita a nova senha">
                     </div>
                     <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg transition">
-                        Salvar e Liberar Acesso ao Sistema
+                        Salvar e Liberar Acesso
                     </button>
                 </form>
             </div>
@@ -215,12 +205,13 @@
                                 <i class="fa-solid fa-qrcode"></i>
                                 <span>Gerar Etiquetas</span>
                             </button>
-                            <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Limpar dados importados">
+                            <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
                                 <i class="fa-solid fa-trash-can"></i>
                                 <span>Limpar Dados</span>
                             </button>
                         </div>
                     </div>
+
                     <div class="overflow-x-auto max-h-64 border border-slate-800 rounded-xl">
                         <table class="w-full text-left border-collapse text-xs">
                             <thead class="bg-[#0b1329] text-slate-400 sticky top-0">
@@ -235,6 +226,8 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- SEÇÃO DAS ETIQUETAS AJUSTADAS -->
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center flex-wrap gap-2">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">ETIQUETAS CUSTOMIZADAS (FUNDO VERDE / NOME AMARELO)</h4>
@@ -243,13 +236,13 @@
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
                             </div>
                         </div>
-                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-[#0b1329] p-3 rounded-xl border border-slate-800 max-h-80 overflow-y-auto"></div>
+                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-[#0b1329] p-3 rounded-xl border border-slate-800 max-h-96 overflow-y-auto"></div>
                     </div>
                 </div>
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera em Tempo Real)</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera)</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
@@ -336,22 +329,18 @@
         let produtoScaneadoAtual = null;
         let html5QrCode = null;
         
-        // Variáveis de controle para evitar leituras repetidas em sequência (Debounce)
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
 
-        // Função geradora de bipe estilo caixa de supermercado (agudo, rápido e metálico)
         function tocarBipeSucesso() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 
-                // Frequência alta e metálica (1800 Hz)
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(1800, audioCtx.currentTime); 
                 
-                // Volume e duração curta (100ms) para o "piip!" rápido de caixa registradora
                 gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
                 
@@ -360,7 +349,7 @@
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.1);
             } catch (e) {
-                console.log("Áudio não suportado ou bloqueado pelo navegador", e);
+                console.log("Áudio não suportado", e);
             }
         }
 
@@ -375,15 +364,15 @@
                 document.getElementById('campo-cpf-div').style.display = 'block';
                 document.getElementById('cad-nome').required = true;
                 document.getElementById('cad-cpf').required = true;
-                document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando obrigatoriamente a senha padrão 12345678.";
-                document.getElementById('instrucao-dinamica').innerHTML = "Como é o seu primeiro acesso, preencha seu Nome, CPF e a senha padrão <b>12345678</b>.";
+                document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando a senha padrão 12345678.";
+                document.getElementById('instrucao-dinamica').innerHTML = "Preencha seu Nome, CPF e a senha padrão <b>12345678</b>.";
                 document.getElementById('titulo-form-auth').textContent = "Primeiro Cadastro Obrigatório";
                 document.getElementById('texto-botao-auth').textContent = "Cadastrar e Prosseguir";
             } else {
                 document.getElementById('campo-nome-div').style.display = 'none';
                 document.getElementById('cad-nome').required = false;
-                document.getElementById('descricao-auth-modo').textContent = "Entre com seu CPF e sua senha cadastrada.";
-                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e a senha definitiva configurada.";
+                document.getElementById('descricao-auth-modo').textContent = "Entre com seu CPF e senha cadastrada.";
+                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e a senha configurada.";
                 document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
                 document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
             }
@@ -402,7 +391,7 @@
                     localStorage.setItem('sienge_temp_user', JSON.stringify({ nome, cpf }));
                     document.getElementById('modal-troca-senha').classList.remove('hidden');
                 } else {
-                    alert("A senha padrão obrigatória deve ser exatamente: 12345678");
+                    alert("A senha padrão é: 12345678");
                 }
             } else {
                 let cpfDigitado = document.getElementById('cad-cpf').value.trim();
@@ -459,9 +448,7 @@
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
             
             if (aba === 'scanner') {
-                setTimeout(() => {
-                    iniciarLeitorQR();
-                }, 200);
+                setTimeout(() => { iniciarLeitorQR(); }, 200);
             } else {
                 pararLeitorQR();
             }
@@ -474,9 +461,7 @@
             if (!readerDiv) return;
 
             if (html5QrCode) {
-                pararLeitorQRComCallback(() => {
-                    executarStartLeitor();
-                });
+                pararLeitorQRComCallback(() => { executarStartLeitor(); });
             } else {
                 executarStartLeitor();
             }
@@ -484,31 +469,21 @@
 
         function executarStartLeitor() {
             html5QrCode = new Html5Qrcode("reader");
-            const config = { 
-                fps: 15, 
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
-            };
+            const config = { fps: 15, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
 
             html5QrCode.start(
                 { facingMode: "environment" },
                 config,
-                (decodedText) => {
-                    processarCodigoLido(decodedText);
-                },
-                (errorMessage) => {
-                    // Ignora erros quadro a quadro
-                }
+                (decodedText) => { processarCodigoLido(decodedText); },
+                (errorMessage) => {}
             ).catch(err => {
-                console.error("Erro ao iniciar a câmera traseira:", err);
                 html5QrCode.start(
                     { facingMode: "user" },
                     config,
                     (decodedText) => { processarCodigoLido(decodedText); },
                     (errorMessage) => {}
                 ).catch(e => {
-                    console.error("Erro crítico na câmera:", e);
-                    alert("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
+                    alert("Não foi possível acessar a câmera.");
                 });
             });
         }
@@ -519,9 +494,7 @@
                     html5QrCode.stop().then(() => {
                         html5QrCode.clear();
                         html5QrCode = null;
-                    }).catch(err => {
-                        html5QrCode = null;
-                    });
+                    }).catch(() => { html5QrCode = null; });
                 } else {
                     try { html5QrCode.clear(); } catch(e) {}
                     html5QrCode = null;
@@ -536,7 +509,7 @@
                         try { html5QrCode.clear(); } catch(e){}
                         html5QrCode = null;
                         if (callback) callback();
-                    }).catch(err => {
+                    }).catch(() => {
                         html5QrCode = null;
                         if (callback) callback();
                     });
@@ -573,7 +546,7 @@
             reader.onload = function(e) {
                 try {
                     let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, { type: 'array', cellFormula: false, cellText: false, cellStyles: true });
+                    let workbook = XLSX.read(data, { type: 'array' });
                     let worksheet = workbook.Sheets[workbook.SheetNames[0]];
                     let json = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: "" });
                     
@@ -587,7 +560,7 @@
                         if (colunasValidas.length === 0) continue;
 
                         let textoColuna0 = colunasValidas[0].toLowerCase();
-                        if (textoColuna0.includes('código') || textoColuna0.includes('codigo') || textoColuna0.includes('descrição') || textoColuna0.includes('descricao') || textoColuna0.includes('item') || textoColuna0 === 'mat') {
+                        if (textoColuna0.includes('código') || textoColuna0.includes('codigo') || textoColuna0.includes('descrição') || textoColuna0.includes('descri')) {
                             continue;
                         }
 
@@ -598,9 +571,7 @@
                         if (colunasValidas.length >= 2) {
                             codigo = colunasValidas[0];
                             desc = colunasValidas[1];
-                            if (colunasValidas.length >= 3) {
-                                unidade = colunasValidas[2];
-                            }
+                            if (colunasValidas.length >= 3) { unidade = colunasValidas[2]; }
                         } else if (colunasValidas.length === 1) {
                             let textoUnico = colunasValidas[0];
                             let partes = textoUnico.split(/[-–;|]/);
@@ -628,13 +599,12 @@
                         catalogoProdutos = novosProdutos;
                         localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
                         renderizarCatalogo();
-                        alert(`Importação concluída com sucesso! ${catalogoProdutos.length} materiais carregados.`);
+                        alert(`Importação concluída! ${catalogoProdutos.length} materiais carregados.`);
                     } else {
                         alert("Nenhum material válido foi encontrado na planilha.");
                     }
                 } catch (err) {
-                    console.error(err);
-                    alert("Erro ao ler o arquivo Excel.");
+                    alert("Erro ao ler a planilha Excel.");
                 }
             };
             reader.readAsBuffer ? reader.readAsArrayBuffer(file) : reader.readAsBinaryString(file);
@@ -649,7 +619,7 @@
             }
         }
 
-        // FUNÇÃO DE ETIQUETAS FORMATADA EXATAMENTE COMO NA FOTO
+        // GERADOR DE ETIQUETAS FORMATADAS CONFORME A FOTO
         function renderizarEtiquetasQR() {
             if (catalogoProdutos.length === 0) {
                 alert("Não há produtos no catálogo para gerar etiquetas.");
@@ -661,19 +631,19 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card bg-[#16a34a] text-white rounded-2xl p-3 shadow-md flex flex-col justify-between border border-emerald-600";
+                card.className = "etiqueta-card bg-[#16a34a] text-white rounded-xl p-3 shadow-md flex flex-col justify-between border border-emerald-700";
                 
                 card.innerHTML = `
                     <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[11px] font-extrabold text-amber-300 uppercase tracking-wider">BRAVA CONSTRUCAO INCORPORADORA</span>
-                        <div class="bg-black text-amber-300 font-extrabold text-base px-3 py-1 rounded-xl whitespace-nowrap shadow">
+                        <span class="text-[11px] font-extrabold text-[#facc15] uppercase tracking-wider">BRAVA CONSTRUCAO INCORPORADORA</span>
+                        <div class="bg-black text-[#facc15] font-extrabold text-sm px-2.5 py-0.5 rounded-lg whitespace-nowrap shadow">
                             Cód: ${p.codigo}
                         </div>
                     </div>
-                    <div class="flex items-center space-x-3.5 flex-1">
+                    <div class="flex items-center space-x-3 flex-1">
                         <div id="qrcode-${index}" class="w-[72px] h-[72px] flex-shrink-0 bg-white p-1 rounded-xl flex items-center justify-center shadow"></div>
-                        <div class="flex-1 leading-snug">
-                            <h5 class="text-sm font-bold text-white line-clamp-3">${p.desc}</h5>
+                        <div class="flex-1 leading-tight">
+                            <h5 class="text-xs font-bold text-white line-clamp-3">${p.desc}</h5>
                         </div>
                     </div>
                 `;
@@ -681,8 +651,8 @@
 
                 new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: String(p.codigo),
-                    width: 68,
-                    height: 68,
+                    width: 66,
+                    height: 66,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
@@ -719,8 +689,6 @@
                 let inputQtd = document.getElementById('lido-quantidade');
                 inputQtd.value = '';
                 inputQtd.focus();
-            } else {
-                console.warn(`Código lido (${codigoLimpo}) não encontrado no catálogo Sienge.`);
             }
         }
 
@@ -815,7 +783,7 @@
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
             if (!email) { alert("Digite o e-mail de destino."); return; }
-            alert(`Relatório simulado enviado com sucesso para ${email}!`);
+            alert(`Relatório simulado enviado para ${email}!`);
         }
     </script>
 </body>
