@@ -10,6 +10,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Biblioteca QRCode.js para geração de etiquetas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Biblioteca Html5-Qrcode para leitura por câmera -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- ESTILOS DE IMPRESSÃO - MEDIDAS EXATAS (33.9mm x 101.6mm) -->
@@ -129,8 +131,8 @@
                     <span>Catálogo Sienge</span>
                 </button>
                 <button onclick="mudarAba('scanner')" id="btn-aba-scanner" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
-                    <i class="fa-solid fa-ban text-red-400 text-base"></i>
-                    <span>Leitor Desativado</span>
+                    <i class="fa-solid fa-camera text-emerald-400 text-base"></i>
+                    <span>Leitor Câmera</span>
                 </button>
                 <button onclick="mudarAba('divergencias')" id="btn-aba-divergencias" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
                     <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base"></i>
@@ -191,14 +193,38 @@
                     </div>
                 </div>
 
-                <!-- ABA SCANNER TOTALMENTE DESLIGADA -->
-                <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-4 items-center justify-center text-center p-6">
-                    <div class="w-16 h-16 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
-                        <i class="fa-solid fa-ban"></i>
+                <!-- ABA SCANNER ATIVO COM CÂMERA -->
+                <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-white uppercase">Leitor por Câmera</h3>
+                            <p class="text-xs text-slate-400">Aponte para o QR Code ou código de barras da etiqueta.</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="iniciarLeitorCamera()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-xl font-semibold shadow">Ligar Câmera</button>
+                            <button onclick="pararLeitorCamera()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-xl font-semibold shadow">Desligar</button>
+                        </div>
                     </div>
-                    <div class="space-y-1">
-                        <h3 class="text-base font-bold text-white uppercase tracking-wide">Leitor Bloqueado / Desativado</h3>
-                        <p class="text-xs text-slate-400 max-w-xs leading-relaxed">Nenhum recurso de leitura óptica ou de câmera está ativo neste modo.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                        <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center min-h-[240px]">
+                            <div id="reader" class="w-full max-w-xs overflow-hidden rounded-lg"></div>
+                        </div>
+                        <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-3">
+                            <div class="space-y-2">
+                                <h4 class="text-xs font-bold text-amber-400 uppercase">Item Lido</h4>
+                                <div id="info-item-lido" class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-xs text-slate-300">
+                                    Nenhum item escaneado ainda.
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-[10px] font-bold text-slate-300 uppercase">Quantidade Contada</label>
+                                <div class="flex space-x-2">
+                                    <input type="number" id="qtd-lida" value="1" min="1" class="w-24 bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white font-mono">
+                                    <button onclick="registrarContagemLeitor(1)" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-xl">1ª Contagem</button>
+                                    <button onclick="registrarContagemLeitor(2)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-xl">2ª Contagem</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -252,6 +278,8 @@
     <script>
         let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos_6182')) || [];
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
+        let html5QrCode = null;
+        let codigoAtualLido = null;
 
         function processarAutenticacao(event) {
             event.preventDefault();
@@ -278,6 +306,7 @@
         }
 
         function fazerLogout() {
+            pararLeitorCamera();
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
@@ -296,6 +325,12 @@
             if (alvo) alvo.classList.remove('hidden');
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
 
+            if (aba === 'scanner') {
+                setTimeout(() => iniciarLeitorCamera(), 300);
+            } else {
+                pararLeitorCamera();
+            }
+
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
 
@@ -313,6 +348,69 @@
                 tr.innerHTML = `<td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td><td class="p-2.5">${p.desc}</td><td class="p-2.5 font-mono">${p.unidade}</td>`;
                 tbody.appendChild(tr);
             });
+        }
+
+        function iniciarLeitorCamera() {
+            if (html5QrCode) return;
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 220, height: 120 } };
+            
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).catch(err => {
+                console.error("Erro ao iniciar câmera:", err);
+            });
+        }
+
+        function pararLeitorCamera() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                }).catch(err => {
+                    html5QrCode = null;
+                });
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            codigoAtualLido = decodedText.trim();
+            let produto = catalogoProdutos.find(p => p.codigo === codigoAtualLido);
+            let infoDiv = document.getElementById('info-item-lido');
+            
+            if (produto) {
+                infoDiv.innerHTML = `<span class="text-emerald-400 font-bold">Código: ${produto.codigo}</span><br><span class="text-white">${produto.desc}</span>`;
+            } else {
+                infoDiv.innerHTML = `<span class="text-amber-400 font-bold">Código Lido: ${codigoAtualLido}</span><br><span class="text-slate-400 italic">Produto não encontrado no catálogo.</span>`;
+            }
+        }
+
+        function onScanFailure(error) {
+            // Ignorado para manter a execução contínua sem poluir o console
+        }
+
+        function registrarContagemLeitor(numContagem) {
+            if (!codigoAtualLido) {
+                alert("Nenhum código foi escaneado ainda.");
+                return;
+            }
+            let qtd = parseInt(document.getElementById('qtd-lida').value) || 1;
+            if (!registrosContagem[codigoAtualLido]) {
+                registrosContagem[codigoAtualLido] = { cont1: 0, cont2: 0 };
+            }
+
+            if (numContagem === 1) {
+                registrosContagem[codigoAtualLido].cont1 += qtd;
+                alert(`Adicionado ${qtd} à 1ª Contagem do item ${codigoAtualLido}`);
+            } else {
+                registrosContagem[codigoAtualLido].cont2 += qtd;
+                alert(`Adicionado ${qtd} à 2ª Contagem do item ${codigoAtualLido}`);
+            }
+
+            localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
         }
 
         function importarPlanilhaSienge(event) {
