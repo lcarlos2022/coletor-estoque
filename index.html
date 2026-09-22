@@ -201,12 +201,16 @@
                             <p class="text-xs text-slate-400">Aponte para o QR Code ou código de barras da etiqueta.</p>
                         </div>
                         <div class="flex space-x-2">
-                            <button onclick="iniciarLeitorCamera()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-xl font-semibold shadow">Ligar Câmera</button>
-                            <button onclick="pararLeitorCamera()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-xl font-semibold shadow">Desligar</button>
+                            <button onclick="iniciarLeitorCamera()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-bold shadow transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-play"></i><span>Ligar Câmera</span>
+                            </button>
+                            <button onclick="pararLeitorCamera()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-bold shadow transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-stop"></i><span>Desligar</span>
+                            </button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-                        <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center min-h-[240px]">
+                        <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center min-h-[260px]">
                             <div id="reader" class="w-full max-w-xs overflow-hidden rounded-lg"></div>
                         </div>
                         <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-3">
@@ -314,6 +318,7 @@
         }
 
         function mudarAba(aba) {
+            pararLeitorCamera(); // Garante que a câmera desliga ao trocar de aba
             ['catalogo', 'scanner', 'divergencias', 'relatorios'].forEach(a => {
                 let el = document.getElementById(`conteudo-${a}`);
                 let btn = document.getElementById(`btn-aba-${a}`);
@@ -324,12 +329,6 @@
             let btnAlvo = document.getElementById(`btn-aba-${aba}`);
             if (alvo) alvo.classList.remove('hidden');
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
-
-            if (aba === 'scanner') {
-                setTimeout(() => iniciarLeitorCamera(), 300);
-            } else {
-                pararLeitorCamera();
-            }
 
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
@@ -351,9 +350,10 @@
         }
 
         function iniciarLeitorCamera() {
-            if (html5QrCode) return;
+            if (html5QrCode) return; // Se já estiver rodando, não faz nada
+            
             html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 220, height: 120 } };
+            const config = { fps: 10, qrbox: { width: 200, height: 120 } };
             
             html5QrCode.start(
                 { facingMode: "environment" },
@@ -362,6 +362,8 @@
                 onScanFailure
             ).catch(err => {
                 console.error("Erro ao iniciar câmera:", err);
+                alert("Erro ao acessar a câmera. Verifique as permissões do navegador.");
+                html5QrCode = null;
             });
         }
 
@@ -389,7 +391,7 @@
         }
 
         function onScanFailure(error) {
-            // Ignorado para manter a execução contínua sem poluir o console
+            // Ignorado propositalmente para evitar loop de erros no console
         }
 
         function registrarContagemLeitor(numContagem) {
