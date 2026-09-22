@@ -6,19 +6,19 @@
     <title>Brava Enterprise - Sienge Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Biblioteca HTML5 QR Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- Biblioteca SheetJS para manipulação de XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Biblioteca QRCode.js para geração de etiquetas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Biblioteca Html5-Qrcode para leitura por câmera -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE IMPRESSÃO - MEDIDAS EXATAS (33.9mm x 101.6mm) -->
+    <!-- ESTILOS DE IMPRESSÃO - COM ESPAÇAMENTOS AMPLIADOS -->
     <style>
         @page {
             size: letter;
-            margin: 10mm 7.9mm;
+            margin: 10mm 6mm;
         }
         @media print {
             body * {
@@ -44,8 +44,8 @@
             #area-impressao-etiquetas {
                 display: grid !important;
                 grid-template-columns: repeat(2, 101.6mm) !important;
-                grid-auto-rows: 33.9mm !important;
-                gap: 0mm 3.1mm !important;
+                grid-auto-rows: 36mm !important;
+                gap: 4mm 4mm !important;
                 background: white !important;
                 border: none !important;
                 max-height: none !important;
@@ -61,10 +61,11 @@
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
-                padding: 2mm 3mm !important;
+                padding: 3mm 4mm !important;
                 border-radius: 2px !important;
                 display: flex !important;
                 flex-direction: column !important;
+                align-items: stretch !important;
                 justify-content: space-between !important;
                 overflow: hidden !important;
                 box-sizing: border-box !important;
@@ -96,27 +97,81 @@
     <!-- CONTAINER PRINCIPAL -->
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-center">
 
-        <!-- TELA DE AUTENTICAÇÃO / LOGIN -->
+        <!-- TELA DE AUTENTICAÇÃO / CADASTRO -->
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2">Informe seus dados para acessar o sistema.</p>
+                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">Carregando sistema...</p>
+                <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
+                    <p class="font-bold text-amber-400 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Orientações:</span>
+                    </p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">Aguarde...</p>
+                </div>
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
+                <div class="space-y-1">
+                    <h3 class="text-base font-bold text-white" id="titulo-form-auth">Identificação de Acesso</h3>
+                    <p class="text-xs text-slate-400">Preencha os campos abaixo para prosseguir.</p>
+                </div>
+
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome ou CPF</label>
-                        <input type="text" id="login-usuario" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Digite seu nome ou CPF">
+                    <div class="space-y-1.5" id="campo-nome-div">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
+                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Seu nome completo">
+                    </div>
+
+                    <div class="space-y-1.5" id="campo-cpf-div">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
+                        <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Senha</label>
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest" id="label-senha-input">Senha</label>
                         <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
                     </div>
 
-                    <button type="submit" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
-                        <span>Entrar no Sistema</span>
+                    <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
+                        <span id="texto-botao-auth">Entrar / Cadastrar</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- MODAL DE TROCA OBRIGATÓRIA DE SENHA -->
+        <section id="modal-troca-senha" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-5">
+                <div class="space-y-1 text-center">
+                    <div class="inline-block bg-amber-400 text-slate-950 p-3 rounded-2xl mb-1">
+                        <i class="fa-solid fa-key text-lg"></i>
+                    </div>
+                    <h3 class="text-lg font-black text-white">Alteração de Senha Obrigatória</h3>
+                    <p class="text-xs text-slate-400">Por segurança, altere sua senha padrão para continuar.</p>
+                </div>
+
+                <div class="bg-[#0b1329] p-3 rounded-xl border border-slate-800 text-[11px] text-slate-300 space-y-1">
+                    <p class="font-bold text-amber-400">Sua nova senha deve conter obrigatoriamente:</p>
+                    <ul class="list-disc list-inside space-y-0.5 text-slate-400">
+                        <li>Mínimo de 1 letra maiúscula</li>
+                        <li>Letras minúsculas</li>
+                        <li>Números</li>
+                        <li>Pelo menos 1 caractere especial (ex: @, #, $, %)</li>
+                    </ul>
+                </div>
+
+                <form onsubmit="salvarNovaSenha(event)" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nova Senha</label>
+                        <input type="password" id="nova-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Digite a nova senha segura">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Confirme a Nova Senha</label>
+                        <input type="password" id="confirma-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Repita a nova senha">
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg transition">
+                        Salvar e Liberar Acesso ao Sistema
                     </button>
                 </form>
             </div>
@@ -130,8 +185,8 @@
                     <span>Catálogo Sienge</span>
                 </button>
                 <button onclick="mudarAba('scanner')" id="btn-aba-scanner" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
-                    <i class="fa-solid fa-camera text-emerald-400 text-base"></i>
-                    <span>Leitor Câmera</span>
+                    <i class="fa-solid fa-qrcode text-emerald-400 text-base"></i>
+                    <span>Leitor QR / Barras</span>
                 </button>
                 <button onclick="mudarAba('divergencias')" id="btn-aba-divergencias" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
                     <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base"></i>
@@ -192,42 +247,37 @@
                     </div>
                 </div>
 
-                <!-- ABA SCANNER ATIVO COM CÂMERA -->
-                <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-4">
+                <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <div>
-                            <h3 class="text-sm font-bold text-white uppercase">Leitor por Câmera</h3>
-                            <p class="text-xs text-slate-400">Aponte para o QR Code ou código de barras da etiqueta.</p>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="iniciarLeitorCamera()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-bold shadow transition flex items-center space-x-1.5">
-                                <i class="fa-solid fa-play"></i><span>Ligar Câmera</span>
-                            </button>
-                            <button onclick="pararLeitorCamera()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-bold shadow transition flex items-center space-x-1.5">
-                                <i class="fa-solid fa-stop"></i><span>Desligar</span>
-                            </button>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera em Tempo Real)</h3>
+                        <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
+                            Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-                        <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center min-h-[260px]">
-                            <div id="reader" class="w-full max-w-xs overflow-hidden rounded-lg"></div>
+                    
+                    <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
+                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700"></div>
+                        <div class="flex justify-center gap-2">
+                            <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Ligar Câmera</button>
+                            <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Desligar Câmera</button>
                         </div>
-                        <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-3">
-                            <div class="space-y-2">
-                                <h4 class="text-xs font-bold text-amber-400 uppercase">Item Lido</h4>
-                                <div id="info-item-lido" class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-xs text-slate-300">
-                                    Nenhum item escaneado ainda.
-                                </div>
+                    </div>
+
+                    <div id="painel-item-lido" class="hidden bg-[#0b1329] p-3.5 rounded-xl border border-slate-800 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[10px] text-amber-400 font-bold uppercase">Item Identificado</p>
+                                <h4 id="lido-codigo-desc" class="text-sm font-bold text-white">--</h4>
                             </div>
-                            <div class="space-y-2">
-                                <label class="block text-[10px] font-bold text-slate-300 uppercase">Quantidade Contada</label>
-                                <div class="flex space-x-2">
-                                    <input type="number" id="qtd-lida" value="1" min="1" class="w-24 bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white font-mono">
-                                    <button onclick="registrarContagemLeitor(1)" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-xl">1ª Contagem</button>
-                                    <button onclick="registrarContagemLeitor(2)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-xl">2ª Contagem</button>
-                                </div>
-                            </div>
+                            <span id="lido-unidade" class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded font-mono">UN</span>
                         </div>
+                        <div class="flex space-x-2 pt-1">
+                            <input type="number" id="lido-quantidade" step="any" placeholder="Quantidade" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:outline-none">
+                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs">Salvar</button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between pt-2">
+                        <button onclick="proximaContagem()" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs px-3 py-2 rounded-xl">Avançar 2ª Contagem</button>
                     </div>
                 </div>
 
@@ -281,22 +331,73 @@
     <script>
         let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos_6182')) || [];
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
+        
+        let faseAtualContagem = 1;
+        let produtoScaneadoAtual = null;
         let html5QrCode = null;
-        let codigoAtualLido = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarEstadoSistema();
+        });
+
+        function verificarEstadoSistema() {
+            let usuarioCadastrado = localStorage.getItem('sienge_usuario_cadastrado');
+            if (!usuarioCadastrado) {
+                document.getElementById('campo-nome-div').style.display = 'block';
+                document.getElementById('campo-cpf-div').style.display = 'block';
+                document.getElementById('cad-nome').required = true;
+                document.getElementById('cad-cpf').required = true;
+                document.getElementById('descricao-auth-modo').textContent = "Faça seu cadastro inicial utilizando obrigatoriamente a senha padrão 12345678.";
+                document.getElementById('instrucao-dinamica').innerHTML = "Como é o seu primeiro acesso, preencha seu Nome, CPF e a senha padrão <b>12345678</b>.";
+                document.getElementById('titulo-form-auth').textContent = "Primeiro Cadastro Obrigatório";
+                document.getElementById('texto-botao-auth').textContent = "Cadastrar e Prosseguir";
+            } else {
+                document.getElementById('campo-nome-div').style.display = 'none';
+                document.getElementById('cad-nome').required = false;
+                document.getElementById('descricao-auth-modo').textContent = "Entre com seu CPF e sua senha cadastrada.";
+                document.getElementById('instrucao-dinamica').textContent = "Digite seu CPF e a senha definitiva configurada.";
+                document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
+                document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
+            }
+        }
 
         function processarAutenticacao(event) {
             event.preventDefault();
-            let userInput = document.getElementById('login-usuario').value.trim();
-            let pass = document.getElementById('login-pass').value.trim();
+            let usuarioCadastradoStr = localStorage.getItem('sienge_usuario_cadastrado');
+            let pass = document.getElementById('login-pass').value;
 
-            if (!userInput || !pass) {
-                alert("Preencha todos os campos.");
-                return;
+            if (!usuarioCadastradoStr) {
+                let nome = document.getElementById('cad-nome').value.trim();
+                let cpf = document.getElementById('cad-cpf').value.trim();
+                if (!nome || !cpf || !pass) { alert("Preencha todos os campos."); return; }
+                if (pass === "12345678") {
+                    localStorage.setItem('sienge_temp_user', JSON.stringify({ nome, cpf }));
+                    document.getElementById('modal-troca-senha').classList.remove('hidden');
+                } else {
+                    alert("A senha padrão obrigatória deve ser exatamente: 12345678");
+                }
+            } else {
+                let cpfDigitado = document.getElementById('cad-cpf').value.trim();
+                let usuarioSalvo = JSON.parse(usuarioCadastradoStr);
+                if (cpfDigitado !== usuarioSalvo.cpf) { alert("CPF não encontrado."); return; }
+                if (pass === usuarioSalvo.senha) { entrarNoSistema(usuarioSalvo.nome); } else { alert("Senha incorreta!"); }
             }
+        }
 
-            let dadosUsuario = { nome: userInput, senha: pass };
-            localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(dadosUsuario));
-            entrarNoSistema(userInput);
+        function salvarNovaSenha(event) {
+            event.preventDefault();
+            let novaPass = document.getElementById('nova-senha').value;
+            let confirmaPass = document.getElementById('confirma-senha').value;
+            if (novaPass !== confirmaPass) { alert("As senhas não coincidem."); return; }
+            let dadosTemp = JSON.parse(localStorage.getItem('sienge_temp_user'));
+            if (dadosTemp) {
+                let usuarioFinal = { nome: dadosTemp.nome, cpf: dadosTemp.cpf, senha: novaPass };
+                localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioFinal));
+                localStorage.removeItem('sienge_temp_user');
+                document.getElementById('modal-troca-senha').classList.add('hidden');
+                alert("Senha alterada com sucesso!");
+                entrarNoSistema(usuarioFinal.nome);
+            }
         }
 
         function entrarNoSistema(user) {
@@ -309,15 +410,15 @@
         }
 
         function fazerLogout() {
-            pararLeitorCamera();
+            pararLeitorQR();
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('login-form').reset();
+            verificarEstadoSistema();
         }
 
         function mudarAba(aba) {
-            pararLeitorCamera();
             ['catalogo', 'scanner', 'divergencias', 'relatorios'].forEach(a => {
                 let el = document.getElementById(`conteudo-${a}`);
                 let btn = document.getElementById(`btn-aba-${a}`);
@@ -328,8 +429,97 @@
             let btnAlvo = document.getElementById(`btn-aba-${aba}`);
             if (alvo) alvo.classList.remove('hidden');
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
+            
+            if (aba === 'scanner') {
+                setTimeout(() => {
+                    iniciarLeitorQR();
+                }, 200);
+            } else {
+                pararLeitorQR();
+            }
 
             if (aba === 'divergencias') { calcularDivergencias(); }
+        }
+
+        function iniciarLeitorQR() {
+            const readerDiv = document.getElementById('reader');
+            if (!readerDiv) return;
+
+            if (html5QrCode) {
+                pararLeitorQRComCallback(() => {
+                    executarStartLeitor();
+                });
+            } else {
+                executarStartLeitor();
+            }
+        }
+
+        function executarStartLeitor() {
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { 
+                fps: 15, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => {
+                    processarCodigoLido(decodedText);
+                },
+                (errorMessage) => {
+                    // Ignora erros quadro a quadro
+                }
+            ).catch(err => {
+                console.error("Erro ao iniciar a câmera traseira:", err);
+                html5QrCode.start(
+                    { facingMode: "user" },
+                    config,
+                    (decodedText) => { processarCodigoLido(decodedText); },
+                    (errorMessage) => {}
+                ).catch(e => {
+                    console.error("Erro crítico na câmera:", e);
+                    alert("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
+                });
+            });
+        }
+
+        function pararLeitorQR() {
+            if (html5QrCode) {
+                if (html5QrCode.isScanning) {
+                    html5QrCode.stop().then(() => {
+                        html5QrCode.clear();
+                        html5QrCode = null;
+                    }).catch(err => {
+                        html5QrCode = null;
+                    });
+                } else {
+                    try { html5QrCode.clear(); } catch(e) {}
+                    html5QrCode = null;
+                }
+            }
+        }
+
+        function pararLeitorQRComCallback(callback) {
+            if (html5QrCode) {
+                if (html5QrCode.isScanning) {
+                    html5QrCode.stop().then(() => {
+                        try { html5QrCode.clear(); } catch(e){}
+                        html5QrCode = null;
+                        if (callback) callback();
+                    }).catch(err => {
+                        html5QrCode = null;
+                        if (callback) callback();
+                    });
+                } else {
+                    try { html5QrCode.clear(); } catch(e){}
+                    html5QrCode = null;
+                    if (callback) callback();
+                }
+            } else {
+                if (callback) callback();
+            }
         }
 
         function renderizarCatalogo() {
@@ -346,70 +536,6 @@
                 tr.innerHTML = `<td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td><td class="p-2.5">${p.desc}</td><td class="p-2.5 font-mono">${p.unidade}</td>`;
                 tbody.appendChild(tr);
             });
-        }
-
-        function iniciarLeitorCamera() {
-            if (html5QrCode) return;
-            
-            html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 200, height: 120 } };
-            
-            html5QrCode.start(
-                { facingMode: "environment" },
-                config,
-                onScanSuccess,
-                onScanFailure
-            ).catch(err => {
-                console.error("Erro ao iniciar câmera:", err);
-                alert("Erro ao acessar a câmera. Verifique as permissões do navegador.");
-                html5QrCode = null;
-            });
-        }
-
-        function pararLeitorCamera() {
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    html5QrCode = null;
-                }).catch(err => {
-                    html5QrCode = null;
-                });
-            }
-        }
-
-        function onScanSuccess(decodedText) {
-            codigoAtualLido = decodedText.trim();
-            let produto = catalogoProdutos.find(p => p.codigo === codigoAtualLido);
-            let infoDiv = document.getElementById('info-item-lido');
-            
-            if (produto) {
-                infoDiv.innerHTML = `<span class="text-emerald-400 font-bold">Código: ${produto.codigo}</span><br><span class="text-white">${produto.desc}</span>`;
-            } else {
-                infoDiv.innerHTML = `<span class="text-amber-400 font-bold">Código Lido: ${codigoAtualLido}</span><br><span class="text-slate-400 italic">Produto não encontrado no catálogo.</span>`;
-            }
-        }
-
-        function onScanFailure(error) {}
-
-        function registrarContagemLeitor(numContagem) {
-            if (!codigoAtualLido) {
-                alert("Nenhum código foi escaneado ainda.");
-                return;
-            }
-            let qtd = parseInt(document.getElementById('qtd-lida').value) || 1;
-            if (!registrosContagem[codigoAtualLido]) {
-                registrosContagem[codigoAtualLido] = { cont1: 0, cont2: 0 };
-            }
-
-            if (numContagem === 1) {
-                registrosContagem[codigoAtualLido].cont1 += qtd;
-                alert(`Adicionado ${qtd} à 1ª Contagem do item ${codigoAtualLido}`);
-            } else {
-                registrosContagem[codigoAtualLido].cont2 += qtd;
-                alert(`Adicionado ${qtd} à 2ª Contagem do item ${codigoAtualLido}`);
-            }
-
-            localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
         }
 
         function importarPlanilhaSienge(event) {
@@ -506,19 +632,17 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                // Estrutura corrigida, mantendo tamanhos fixos estruturados e espaçamentos limpos
-                card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-1.5 flex flex-col justify-between";
-                card.style.height = "33.9mm";
-                card.style.width = "101.6mm";
+                card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-2 flex flex-col justify-between";
+                
                 card.innerHTML = `
-                    <div class="flex items-center justify-between border-b border-emerald-500 pb-0.5" style="max-height: 25%;">
-                        <span class="text-[8.5px] font-black text-amber-300 uppercase tracking-tight">BRAVA CONSTRUÇÕES & INCORPORAÇÃO</span>
-                        <span class="text-[9px] font-black bg-slate-950 text-amber-300 px-1 py-0.2 rounded">Cód: ${p.codigo} | ${p.unidade}</span>
+                    <div class="flex items-center justify-between border-b border-emerald-500 pb-1 mb-1">
+                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-tight">BRAVA CONSTRUCAO INCORPORADORA</span>
+                        <span class="text-[17px] font-black bg-slate-950 text-amber-300 px-3 py-0.5 rounded shadow-sm">Cód: ${p.codigo}</span>
                     </div>
-                    <div class="flex items-center space-x-2 flex-1 my-0.5 overflow-hidden" style="max-height: 70%;">
-                        <div id="qrcode-${index}" class="w-[50px] h-[50px] flex-shrink-0 bg-white p-0.5 rounded flex items-center justify-center"></div>
+                    <div class="flex items-center space-x-3 flex-1 my-1 overflow-hidden">
+                        <div id="qrcode-${index}" class="w-[62px] h-[62px] flex-shrink-0 bg-white p-0.5 rounded flex items-center justify-center"></div>
                         <div class="flex-1 leading-tight flex flex-col justify-center overflow-hidden">
-                            <h5 class="text-[11px] font-black text-white leading-snug line-clamp-2">${p.desc}</h5>
+                            <h5 class="text-[13px] font-extrabold text-white leading-snug line-clamp-2">${p.desc}</h5>
                         </div>
                     </div>
                 `;
@@ -526,8 +650,8 @@
 
                 new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: p.codigo,
-                    width: 50,
-                    height: 50,
+                    width: 62,
+                    height: 62,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
@@ -538,6 +662,61 @@
         function apagarEtiquetasGeradas() {
             document.getElementById('secao-etiquetas').classList.add('hidden');
             document.getElementById('area-impressao-etiquetas').innerHTML = '';
+        }
+
+        function processarCodigoLido(codigo) {
+            let codigoLimpo = String(codigo).trim();
+            console.log("Código capturado pela câmera:", codigoLimpo);
+
+            let produto = catalogoProdutos.find(p => String(p.codigo).trim().toLowerCase() === codigoLimpo.toLowerCase());
+            
+            if (produto) {
+                // A câmera continua ligada (pararLeitorQR foi removido daqui a pedido)
+
+                produtoScaneadoAtual = produto;
+                document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
+                document.getElementById('lido-unidade').textContent = produto.unidade;
+                
+                document.getElementById('painel-item-lido').classList.remove('hidden');
+                let inputQtd = document.getElementById('lido-quantidade');
+                inputQtd.value = '';
+                inputQtd.focus();
+            } else {
+                console.warn(`Código lido (${codigoLimpo}) não encontrado no catálogo Sienge.`);
+                alert(`Atenção: O código "${codigoLimpo}" foi lido, mas NÃO consta no catálogo importado do Sienge.`);
+            }
+        }
+
+        function salvarContagemItem() {
+            if (!produtoScaneadoAtual) return;
+            let qtd = parseFloat(document.getElementById('lido-quantidade').value);
+            if (isNaN(qtd)) { alert("Digite uma quantidade válida."); return; }
+
+            let codigo = produtoScaneadoAtual.codigo;
+            if (!registrosContagem[codigo]) {
+                registrosContagem[codigo] = { cont1: 0, cont2: 0 };
+            }
+
+            if (faseAtualContagem === 1) {
+                registrosContagem[codigo].cont1 = qtd;
+            } else {
+                registrosContagem[codigo].cont2 = qtd;
+            }
+
+            localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
+            alert("Contagem salva com sucesso!");
+            document.getElementById('painel-item-lido').classList.add('hidden');
+            produtoScaneadoAtual = null;
+        }
+
+        function proximaContagem() {
+            if (faseAtualContagem === 1) {
+                faseAtualContagem = 2;
+                document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
+                alert("Avançado para a 2ª Contagem.");
+            } else {
+                alert("Você já está na 2ª contagem.");
+            }
         }
 
         function calcularDivergencias() {
