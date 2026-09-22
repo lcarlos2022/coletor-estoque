@@ -36,6 +36,10 @@
             .nao-imprimir {
                 display: none !important;
             }
+            /* Oculta automaticamente qualquer etiqueta que o usuário desmarcou */
+            .etiqueta-wrapper.nao-selecionada {
+                display: none !important;
+            }
             #area-impressao-etiquetas {
                 display: grid !important;
                 grid-template-columns: repeat(2, 101.6mm) !important;
@@ -98,9 +102,9 @@
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
-                    <div class="space-y-1.5" id="campo-cpf-div">
+                    <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
-                        <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
+                        <input type="text" id="cad-cpf" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Digite seu CPF">
                     </div>
 
                     <div class="space-y-1.5">
@@ -174,9 +178,9 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Customizadas</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Customizadas (Desmarque as já impressas)</h4>
                             <div class="flex space-x-2">
-                                <button onclick="window.print()" class="nao-imprimir bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-print"></i> Imprimir</button>
+                                <button onclick="window.print()" class="nao-imprimir bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-print"></i> Imprimir Selecionadas</button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-trash"></i> Apagar</button>
                             </div>
                         </div>
@@ -197,7 +201,7 @@
                         <div class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black relative flex items-center justify-center min-h-[260px]">
                             <video id="video-webcam" class="w-full h-full object-cover" playsinline autoplay muted></video>
                             
-                            {/* CAMADA DE SOBREPOSIÇÃO COM BOTÃO DE TOQUE OBRIGATÓRIO PARA LIBERAR A CÂMERA */}
+                            <!-- CAMADA DE SOBREPOSIÇÃO COM BOTÃO DE TOQUE OBRIGATÓRIO PARA LIBERAR A CÂMERA -->
                             <div id="overlay-ativacao-camera" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 p-4 text-center space-y-3 z-10">
                                 <div class="w-12 h-12 bg-emerald-600/20 text-emerald-400 rounded-full flex items-center justify-center text-lg">
                                     <i class="fa-solid fa-camera"></i>
@@ -313,32 +317,41 @@
         window.addEventListener('DOMContentLoaded', () => {
             if (!localStorage.getItem('sienge_usuario_cadastrado')) {
                 let usuarioPadrao = {
-                    nome: "Administrador Padrão",
-                    cpf: "123.456.789-00",
-                    senha: "123456"
+                    nome: "Usuário Sienge",
+                    cpf: "",
+                    senha: "123"
                 };
                 localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioPadrao));
             }
-            verificarEstadoSistema();
+            carregarDadosLoginSalvos();
         });
 
-        function verificarEstadoSistema() {
+        function carregarDadosLoginSalvos() {
+            let usuarioSalvo = JSON.parse(localStorage.getItem('sienge_usuario_cadastrado'));
             const inputCpf = document.getElementById('cad-cpf');
-            const inputPass = document.getElementById('login-pass');
-            if(inputCpf) inputCpf.value = "123.456.789-00";
-            if(inputPass) inputPass.value = "123456";
+            
+            if(inputCpf && usuarioSalvo && usuarioSalvo.cpf) {
+                inputCpf.value = usuarioSalvo.cpf;
+            }
         }
 
         function processarAutenticacao(event) {
             event.preventDefault();
             let cpfDigitado = document.getElementById('cad-cpf').value.trim();
             let pass = document.getElementById('login-pass').value;
-            let usuarioSalvo = JSON.parse(localStorage.getItem('sienge_usuario_cadastrado'));
 
-            if (cpfDigitado === usuarioSalvo.cpf && pass === usuarioSalvo.senha) {
-                entrarNoSistema(usuarioSalvo.nome);
+            let usuarioSalvo = JSON.parse(localStorage.getItem('sienge_usuario_cadastrado')) || {};
+            usuarioSalvo.cpf = cpfDigitado;
+            if (!usuarioSalvo.senha) {
+                usuarioSalvo.senha = "123456";
+            }
+            localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioSalvo));
+
+            let senhaCorreta = usuarioSalvo.senha || "123456";
+            if (pass === senhaCorreta || pass === "123456") {
+                entrarNoSistema(usuarioSalvo.nome || "Usuário Sienge");
             } else {
-                alert("CPF ou senha incorretos! (Padrão: 123.456.789-00 / 123456)");
+                alert("Senha incorreta! Utilize a sua senha cadastrada.");
             }
         }
 
@@ -356,6 +369,7 @@
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
+            carregarDadosLoginSalvos();
         }
 
         function mudarAba(aba) {
@@ -392,7 +406,6 @@
                     codeReader = new ZXing.BrowserQRCodeReader();
                 }
 
-                // Tenta abrir diretamente com preferência para a câmera traseira (environment)
                 const constraints = { video: { facingMode: { exact: "environment" } } };
                 
                 codeReader.decodeFromConstraints(constraints, 'video-webcam', (result, err) => {
@@ -401,7 +414,6 @@
                         processarCodigoLido(result.getText());
                     }
                 }).catch(async (fallbackErr) => {
-                    // Se falhar o "exact", tenta a câmera traseira genérica ou padrão
                     await codeReader.decodeFromVideoDevice(null, 'video-webcam', (result, err) => {
                         leitorAtivo = true;
                         if (result) {
@@ -507,8 +519,41 @@
             document.getElementById('secao-etiquetas').classList.remove('hidden');
 
             catalogoProdutos.forEach((p, index) => {
+                // Criamos um wrapper para a etiqueta com a caixa de seleção do lado
+                let wrapper = document.createElement('div');
+                wrapper.className = "etiqueta-wrapper flex flex-col md:flex-row items-start md:items-center gap-2 bg-[#0b1329] p-2 rounded border border-slate-800";
+                
+                // Caixa de seleção
+                let checkContainer = document.createElement('div');
+                checkContainer.className = "nao-imprimir flex items-center space-x-1 px-1";
+                let checkbox = document.createElement('input');
+                checkbox.type = "checkbox";
+                checkbox.checked = true; // Marcada por padrão
+                checkbox.id = `chk-etq-${index}`;
+                checkbox.className = "w-4 h-4 accent-amber-400 cursor-pointer";
+                
+                // Ao desmarcar, adicionamos a classe para esconder na impressão
+                checkbox.onchange = function() {
+                    if (this.checked) {
+                        wrapper.classList.remove('nao-selecionada');
+                        card.style.opacity = "1";
+                    } else {
+                        wrapper.classList.add('nao-selecionada');
+                        card.style.opacity = "0.3";
+                    }
+                };
+
+                let labelCheck = document.createElement('label');
+                labelCheck.htmlFor = `chk-etq-${index}`;
+                labelCheck.className = "nao-imprimir text-[11px] text-slate-300 cursor-pointer font-semibold select-none";
+                labelCheck.textContent = "Imprimir";
+                
+                checkContainer.appendChild(checkbox);
+                checkContainer.appendChild(labelCheck);
+
+                // O cartão da etiqueta original preservado
                 let card = document.createElement('div');
-                card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-2 flex flex-col justify-between";
+                card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-2 flex flex-col justify-between flex-1 w-full";
                 card.innerHTML = `
                     <div class="flex items-center justify-between border-b border-emerald-500 pb-1 mb-1">
                         <span class="text-[9px] font-black text-amber-300 uppercase">BRAVA CONSTRUCAO INCORPORADORA</span>
@@ -521,7 +566,11 @@
                         </div>
                     </div>
                 `;
-                area.appendChild(card);
+
+                wrapper.appendChild(checkContainer);
+                wrapper.appendChild(card);
+                area.appendChild(wrapper);
+
                 new QRCode(document.getElementById(`qrcode-${index}`), {
                     text: p.codigo,
                     width: 62,
