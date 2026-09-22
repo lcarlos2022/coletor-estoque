@@ -336,19 +336,19 @@
         let produtoScaneadoAtual = null;
         let html5QrCode = null;
 
-        // Função geradora de som de bipe (Web Audio API)
+        // Função geradora de bipe longo e encorpado
         function tocarBipeSucesso() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Frequência aguda agradável
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(750, audioCtx.currentTime); // Tom firme e profissional
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.12); // Duração curta de 120ms
+                osc.stop(audioCtx.currentTime + 0.35); // Bipe mais longo (350 milissegundos)
             } catch (e) {
                 console.log("Áudio não suportado ou bloqueado pelo navegador", e);
             }
@@ -689,7 +689,7 @@
             let produto = catalogoProdutos.find(p => String(p.codigo).trim().toLowerCase() === codigoLimpo.toLowerCase());
             
             if (produto) {
-                tocarBipeSucesso(); // Som de bipe integrado com sucesso
+                tocarBipeSucesso(); // Bipe longo acionado a cada leitura bem-sucedida
 
                 produtoScaneadoAtual = produto;
                 document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
