@@ -215,7 +215,7 @@
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700"></div>
+                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 min-h-[220px]"></div>
                         <div class="flex justify-center gap-2">
                             <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Ligar Câmera</button>
                             <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Desligar Câmera</button>
@@ -401,9 +401,7 @@
             if (alvo) alvo.classList.remove('hidden');
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
             
-            if (aba === 'scanner') {
-                setTimeout(() => { iniciarLeitorQR(); }, 300);
-            } else {
+            if (aba !== 'scanner') {
                 pararLeitorQR();
             }
 
@@ -411,56 +409,31 @@
         }
 
         function iniciarLeitorQR() {
-            if (html5QrCode) return;
+            if (html5QrCode) {
+                pararLeitorQR();
+            }
+
             const readerDiv = document.getElementById('reader');
             if (!readerDiv) return;
 
             html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            const config = { fps: 10, qrbox: { width: 220, height: 220 } };
 
-            // Abordagem universal segura: se for celular/tablet tenta a traseira, se falhar ou for PC abre a padrão disponível
-            Html5Qrcode.getCameras().then(devices => {
-                let cameraId = { facingMode: "environment" };
-                if (devices && devices.length > 0) {
-                    // Procura preferencialmente por uma câmera traseira (back/environment)
-                    let backCamera = devices.find(device => 
-                        device.label.toLowerCase().includes('back') || 
-                        device.label.toLowerCase().includes('traseira') ||
-                        device.label.toLowerCase().includes('environment')
-                    );
-                    if (backCamera) {
-                        cameraId = backCamera.id;
-                    } else {
-                        cameraId = devices[0].id;
-                    }
-                }
-
+            // Força a inicialização limpa usando o modo nativo do dispositivo (evita travamentos de hardware no tablet)
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => { processarCodigoLido(decodedText); },
+                (errorMessage) => {}
+            ).catch(err => {
+                // Tentativa secundária com câmera frontal caso a traseira não exista no tablet
                 html5QrCode.start(
-                    cameraId,
-                    config,
-                    (decodedText) => { processarCodigoLido(decodedText); },
-                    (errorMessage) => {}
-                ).catch(err => {
-                    // Fallback automático caso o ID específico dê erro de permissão no navegador
-                    html5QrCode.start(
-                        { facingMode: "environment" },
-                        config,
-                        (decodedText) => { processarCodigoLido(decodedText); },
-                        (errorMessage) => {}
-                    ).catch(e => {
-                        console.error("Erro final ao ligar câmera:", e);
-                        html5QrCode = null;
-                    });
-                });
-            }).catch(err => {
-                // Caso o navegador bloqueie a listagem de hardware, tenta ligar direto pelo modo genérico
-                html5QrCode.start(
-                    { facingMode: "environment" },
+                    { facingMode: "user" },
                     config,
                     (decodedText) => { processarCodigoLido(decodedText); },
                     (errorMessage) => {}
                 ).catch(e => {
-                    alert("Não foi possível acessar a câmera. Verifique se outro aplicativo ou aba está travando o uso do vídeo.");
+                    alert("Aviso: Não foi possível ligar a câmera. Verifique se o navegador tem permissão nas configurações do tablet ou se outro app está usando a câmera.");
                     html5QrCode = null;
                 });
             });
@@ -472,7 +445,10 @@
                     html5QrCode.stop().then(() => {
                         html5QrCode.clear();
                         html5QrCode = null;
-                    }).catch(err => { html5QrCode = null; });
+                    }).catch(err => { 
+                        html5QrCode.clear();
+                        html5QrCode = null; 
+                    });
                 } else {
                     html5QrCode.clear();
                     html5QrCode = null;
@@ -652,7 +628,6 @@
         }
 
         function enviarRelatorioEmail() {
-            let email = document.getElementById('email-destino').value.trim();
             let emailDestino = document.getElementById('email-destino').value.trim();
             if (!emailDestino) { alert("Digite o e-mail."); return; }
             alert(`Relatório enviado para ${emailDestino}!`);
