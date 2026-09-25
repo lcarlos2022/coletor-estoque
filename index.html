@@ -320,14 +320,13 @@
     </footer>
 
     <script>
-        if (!localStorage.getItem('sienge_usuario_cadastrado')) {
-            const usuarioOficial = {
-                nome: "Luiz Carlos Oliveira",
-                cpf: "265.082.493-04",
-                senha: "Penin@54"
-            };
-            localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioOficial));
-        }
+        // CORREÇÃO: Força a atualização do usuário oficial para evitar conflitos com dados salvos antigos no navegador
+        const usuarioOficial = {
+            nome: "Luiz Carlos Oliveira",
+            cpf: "265.082.493-04",
+            senha: "Penin@54"
+        };
+        localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioOficial));
 
         let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos_6182')) || [];
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
@@ -420,7 +419,6 @@
             html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-            // Correção aprimorada para inicialização de câmera compatível com múltiplos dispositivos
             Html5Qrcode.getCameras().then(devices => {
                 let cameraId = { facingMode: "environment" };
                 if (devices && devices.length > 0) {
@@ -444,26 +442,22 @@
                     (decodedText) => { processarCodigoLido(decodedText); },
                     (errorMessage) => {}
                 ).catch(err => {
-                    // Fallback automático caso o ID exato falhe
                     html5QrCode.start(
                         { facingMode: "environment" },
                         config,
                         (decodedText) => { processarCodigoLido(decodedText); },
                         (errorMessage) => {}
                     ).catch(fallbackErr => {
-                        console.error("Erro ao iniciar a câmera:", fallbackErr);
                         html5QrCode = null;
                     });
                 });
             }).catch(err => {
-                // Fallback direto se getCameras não for suportado ou for negado
                 html5QrCode.start(
                     { facingMode: "environment" },
                     config,
                     (decodedText) => { processarCodigoLido(decodedText); },
                     (errorMessage) => {}
                 ).catch(fallbackErr => {
-                    console.error("Erro no fallback da câmera:", fallbackErr);
                     html5QrCode = null;
                 });
             });
