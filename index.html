@@ -133,6 +133,14 @@
                         <span>Entrar no Sistema</span>
                     </button>
                 </form>
+
+                <!-- BOTÃO DE INCLUSÃO DE NOVO COLABORADOR SOLICITADO -->
+                <div class="pt-2 border-t border-slate-800 text-center">
+                    <button onclick="abrirModalColaborador()" class="w-full bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Cadastrar Novo Colaborador</span>
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -283,18 +291,51 @@
         </section>
     </main>
 
+    <!-- MODAL DE CADASTRO DE NOVO COLABORADOR -->
+    <div id="modal-colaborador" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 w-full max-w-md space-y-5 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-user-plus text-amber-400"></i>
+                    <span>Cadastrar Novo Colaborador</span>
+                </h3>
+                <button onclick="fecharModalColaborador()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form onsubmit="salvarNovoColaborador(event)" class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
+                    <input type="text" id="novo-colab-nome" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Nome do colaborador">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
+                    <input type="text" id="novo-colab-cpf" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="000.000.000-00">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Senha</label>
+                    <input type="password" id="novo-colab-pass" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Defina uma senha">
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="fecharModalColaborador()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-3 rounded-xl text-xs">Salvar Cadastro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <footer class="text-center py-3 text-[10px] text-slate-500 border-t border-slate-800 nao-imprimir">
         Brava Enterprise &copy; 2026 - Todos os direitos reservados
     </footer>
 
     <script>
-        // Força a gravação direta das suas credenciais corretas para evitar erros de divergência
-        const usuarioOficial = {
-            nome: "Luiz Carlos Oliveira",
-            cpf: "265.082.493-04",
-            senha: "Penin@54"
-        };
-        localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioOficial));
+        if (!localStorage.getItem('sienge_usuario_cadastrado')) {
+            const usuarioOficial = {
+                nome: "Luiz Carlos Oliveira",
+                cpf: "265.082.493-04",
+                senha: "Penin@54"
+            };
+            localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioOficial));
+        }
 
         let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos_6182')) || [];
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
@@ -313,7 +354,7 @@
             if (cpfDigitado === usuarioSalvo.cpf && pass === usuarioSalvo.senha) {
                 entrarNoSistema(usuarioSalvo.nome);
             } else {
-                alert("CPF ou senha incorretos. Utilize o CPF: 265.082.493-04 e a senha: Penin@54");
+                alert("CPF ou senha incorretos.");
             }
         }
 
@@ -332,6 +373,30 @@
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('login-form').reset();
+        }
+
+        function abrirModalColaborador() {
+            document.getElementById('modal-colaborador').classList.remove('hidden');
+        }
+
+        function fecharModalColaborador() {
+            document.getElementById('modal-colaborador').classList.add('hidden');
+        }
+
+        function salvarNovoColaborador(event) {
+            event.preventDefault();
+            let nome = document.getElementById('novo-colab-nome').value.trim();
+            let cpf = document.getElementById('novo-colab-cpf').value.trim();
+            let senha = document.getElementById('novo-colab-pass').value;
+
+            if (nome && cpf && senha) {
+                let novoUsuario = { nome, cpf, senha };
+                localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(novoUsuario));
+                alert(`Colaborador ${nome} cadastrado com sucesso!`);
+                fecharModalColaborador();
+                document.getElementById('cad-cpf').value = cpf;
+                document.getElementById('login-pass').value = '';
+            }
         }
 
         function mudarAba(aba) {
@@ -390,8 +455,6 @@
                         (decodedText) => { processarCodigoLido(decodedText); },
                         (errorMessage) => {}
                     ).catch(fallbackErr => {
-                        console.error("Erro crítico ao ligar câmara:", fallbackErr);
-                        alert("Não foi possível acessar a câmara.");
                         html5QrCode = null;
                     });
                 });
