@@ -416,17 +416,37 @@
             if (!readerDiv) return;
 
             html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            // CONFIGURAÇÃO ESTABILIZADA PARA TABLETS: resolução fixa e FPS controlado
+            const config = { 
+                fps: 5, 
+                qrbox: { width: 220, height: 220 },
+                aspectRatio: 1.0
+            };
 
-            // CORREÇÃO PARA TABLETS: Uso direto de facingMode para evitar loop de piscada de tela
+            const constraints = {
+                facingMode: "environment",
+                width: { ideal: 640 },
+                height: { ideal: 480 }
+            };
+
             html5QrCode.start(
-                { facingMode: "environment" },
+                constraints,
                 config,
                 (decodedText) => { processarCodigoLido(decodedText); },
                 (errorMessage) => {}
             ).catch(err => {
                 console.error("Erro ao iniciar a câmera no tablet:", err);
-                html5QrCode = null;
+                // Fallback caso a resolução estrita falhe no tablet
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 5, qrbox: { width: 200, height: 200 } },
+                    (decodedText) => { processarCodigoLido(decodedText); },
+                    (errorMessage) => {}
+                ).catch(e => {
+                    alert("Não foi possível acessar a câmera do tablet. Verifique as permissões do navegador.");
+                    html5QrCode = null;
+                });
             });
         }
 
