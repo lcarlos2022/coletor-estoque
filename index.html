@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ESTILOS DE IMPRESSÃO -->
+    <!-- ESTILOS DE IMPRESSÃO (EXATO LAYOUT DA SUA FOTO) -->
     <style>
         @page {
             size: letter;
@@ -65,9 +65,7 @@
                 border-radius: 2px !important;
                 display: flex !important;
                 flex-direction: column !important;
-                align-items: stretch !important;
                 justify-content: space-between !important;
-                overflow: hidden !important;
                 box-sizing: border-box !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
@@ -126,7 +124,6 @@
                     </button>
                 </form>
 
-                <!-- BOTÃO DE INCLUSÃO DE NOVO COLABORADOR -->
                 <div class="pt-2 border-t border-slate-800 text-center">
                     <button onclick="abrirModalColaborador()" class="w-full bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center space-x-2">
                         <i class="fa-solid fa-user-plus"></i>
@@ -196,7 +193,7 @@
                     </div>
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Customizadas</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">ETIQUETAS CUSTOMIZADAS</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar</span></button>
@@ -215,10 +212,19 @@
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700"></div>
-                        <div class="flex justify-center gap-2">
-                            <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Ligar Câmera</button>
-                            <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Desligar Câmera</button>
+                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 min-h-[160px]"></div>
+                        
+                        <div class="flex flex-wrap justify-center gap-2 pt-2">
+                            <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-xl text-xs shadow transition">Ligar Câmera Direta</button>
+                            <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-2 rounded-xl text-xs shadow transition">Desligar Câmera</button>
+                        </div>
+
+                        <div class="border-t border-slate-800 pt-3 mt-3">
+                            <p class="text-[11px] text-slate-400 mb-2">Se a câmera direta falhar no seu tablet, use a captura nativa abaixo:</p>
+                            <label class="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs cursor-pointer shadow transition">
+                                <i class="fa-solid fa-camera mr-1.5"></i> Abrir Câmera Nativa do Tablet
+                                <input type="file" accept="image/*" capture="environment" class="hidden" onchange="lerQRCodeNativo(event)">
+                            </label>
                         </div>
                     </div>
 
@@ -401,9 +407,7 @@
             if (alvo) alvo.classList.remove('hidden');
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
             
-            if (aba === 'scanner') {
-                setTimeout(() => { iniciarLeitorQR(); }, 300);
-            } else {
+            if (aba !== 'scanner') {
                 pararLeitorQR();
             }
 
@@ -411,22 +415,31 @@
         }
 
         function iniciarLeitorQR() {
-            if (html5QrCode) return;
+            if (html5QrCode) {
+                pararLeitorQR();
+            }
+
             const readerDiv = document.getElementById('reader');
             if (!readerDiv) return;
 
             html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            const config = { fps: 10, qrbox: { width: 200, height: 200 } };
 
-            // CORREÇÃO PARA TABLETS: Uso direto de facingMode para evitar loop de piscada de tela
             html5QrCode.start(
                 { facingMode: "environment" },
                 config,
                 (decodedText) => { processarCodigoLido(decodedText); },
                 (errorMessage) => {}
             ).catch(err => {
-                console.error("Erro ao iniciar a câmera no tablet:", err);
-                html5QrCode = null;
+                html5QrCode.start(
+                    { facingMode: "user" },
+                    config,
+                    (decodedText) => { processarCodigoLido(decodedText); },
+                    (errorMessage) => {}
+                ).catch(e => {
+                    alert("Câmera direta bloqueada pelo tablet. Use o botão 'Abrir Câmera Nativa do Tablet' logo abaixo!");
+                    html5QrCode = null;
+                });
             });
         }
 
@@ -436,12 +449,30 @@
                     html5QrCode.stop().then(() => {
                         html5QrCode.clear();
                         html5QrCode = null;
-                    }).catch(err => { html5QrCode = null; });
+                    }).catch(err => { 
+                        html5QrCode.clear();
+                        html5QrCode = null; 
+                    });
                 } else {
                     html5QrCode.clear();
                     html5QrCode = null;
                 }
             }
+        }
+
+        function lerQRCodeNativo(event) {
+            let arquivo = event.target.files[0];
+            if (!arquivo) return;
+            
+            let html5QrCodeTemp = new Html5Qrcode("reader");
+            html5QrCodeTemp.scanFile(arquivo, true)
+                .then(decodedText => {
+                    processarCodigoLido(decodedText);
+                    alert("Código lido com sucesso: " + decodedText);
+                })
+                .catch(err => {
+                    alert("Não foi possível identificar o código na foto. Tente centralizar bem o QR Code na imagem.");
+                });
         }
 
         function renderizarCatalogo() {
@@ -522,21 +553,21 @@
 
             catalogoProdutos.forEach((p, index) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-2 flex flex-col justify-between";
+                card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-2.5 flex flex-col justify-between";
                 card.innerHTML = `
                     <div class="flex items-center justify-between border-b border-emerald-500 pb-1 mb-1">
-                        <span class="text-[9px] font-black text-amber-300 uppercase">BRAVA CONSTRUÇÃO</span>
-                        <span class="text-[17px] font-black bg-slate-950 text-amber-300 px-3 py-0.5 rounded">Cód: ${p.codigo}</span>
+                        <span class="text-[10px] font-bold text-amber-300 tracking-wider uppercase">BRAVA CONSTRUÇÃO</span>
+                        <span class="text-[14px] font-black bg-slate-950 text-white px-2.5 py-0.5 rounded shadow">Cód: ${p.codigo}</span>
                     </div>
-                    <div class="flex items-center space-x-3 flex-1 my-1 overflow-hidden">
-                        <div id="qrcode-${index}" class="w-[62px] h-[62px] flex-shrink-0 bg-white p-0.5 rounded flex items-center justify-center"></div>
+                    <div class="flex items-center space-x-3 flex-1 my-0.5 overflow-hidden">
+                        <div id="qrcode-${index}" class="w-[58px] h-[58px] flex-shrink-0 bg-white p-0.5 rounded flex items-center justify-center"></div>
                         <div class="flex-1 leading-tight flex flex-col justify-center overflow-hidden">
-                            <h5 class="text-[13px] font-extrabold text-white leading-snug line-clamp-2">${p.desc}</h5>
+                            <h5 class="text-[12px] font-bold text-white leading-tight line-clamp-2">${p.desc}</h5>
                         </div>
                     </div>
                 `;
                 area.appendChild(card);
-                new QRCode(document.getElementById(`qrcode-${index}`), { text: p.codigo, width: 62, height: 62, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+                new QRCode(document.getElementById(`qrcode-${index}`), { text: p.codigo, width: 58, height: 58, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
             });
         }
 
@@ -554,6 +585,8 @@
                 document.getElementById('painel-item-lido').classList.remove('hidden');
                 document.getElementById('lido-quantidade').value = '';
                 document.getElementById('lido-quantidade').focus();
+            } else {
+                alert("Código lido (" + codigo + "), mas não encontrado no catálogo Sienge.");
             }
         }
 
@@ -616,9 +649,9 @@
         }
 
         function enviarRelatorioEmail() {
-            let email = document.getElementById('email-destino').value.trim();
-            if (!email) { alert("Digite o e-mail."); return; }
-            alert(`Relatório enviado para ${email}!`);
+            let emailDestino = document.getElementById('email-destino').value.trim();
+            if (!emailDestino) { alert("Digite o e-mail."); return; }
+            alert(`Relatório enviado para ${emailDestino}!`);
         }
     </script>
 </body>
