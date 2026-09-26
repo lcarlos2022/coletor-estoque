@@ -320,7 +320,6 @@
     </footer>
 
     <script>
-        // CORREÇÃO: Força a atualização do usuário oficial para evitar conflitos com dados salvos antigos no navegador
         const usuarioOficial = {
             nome: "Luiz Carlos Oliveira",
             cpf: "265.082.493-04",
@@ -419,47 +418,15 @@
             html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-            Html5Qrcode.getCameras().then(devices => {
-                let cameraId = { facingMode: "environment" };
-                if (devices && devices.length > 0) {
-                    let backCamera = devices.find(device => 
-                        device.label.toLowerCase().includes('back') || 
-                        device.label.toLowerCase().includes('traseira') ||
-                        device.label.toLowerCase().includes('rear') ||
-                        device.label.toLowerCase().includes('câmera 0') ||
-                        device.label.toLowerCase().includes('camera 0')
-                    );
-                    if (backCamera) {
-                        cameraId = { deviceId: { exact: backCamera.id } };
-                    } else {
-                        cameraId = { deviceId: { exact: devices[0].id } };
-                    }
-                }
-
-                html5QrCode.start(
-                    cameraId,
-                    config,
-                    (decodedText) => { processarCodigoLido(decodedText); },
-                    (errorMessage) => {}
-                ).catch(err => {
-                    html5QrCode.start(
-                        { facingMode: "environment" },
-                        config,
-                        (decodedText) => { processarCodigoLido(decodedText); },
-                        (errorMessage) => {}
-                    ).catch(fallbackErr => {
-                        html5QrCode = null;
-                    });
-                });
-            }).catch(err => {
-                html5QrCode.start(
-                    { facingMode: "environment" },
-                    config,
-                    (decodedText) => { processarCodigoLido(decodedText); },
-                    (errorMessage) => {}
-                ).catch(fallbackErr => {
-                    html5QrCode = null;
-                });
+            // CORREÇÃO PARA TABLETS: Uso direto de facingMode para evitar loop de piscada de tela
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => { processarCodigoLido(decodedText); },
+                (errorMessage) => {}
+            ).catch(err => {
+                console.error("Erro ao iniciar a câmera no tablet:", err);
+                html5QrCode = null;
             });
         }
 
