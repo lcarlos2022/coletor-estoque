@@ -21,6 +21,10 @@
             overflow: hidden;
             background: #000;
             border: 2px dashed #f59e0b;
+            min-height: 180px;
+        }
+        #reader {
+            width: 100% !important;
         }
         #reader video {
             width: 100% !important;
@@ -365,7 +369,7 @@
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
             
             if (aba === 'scanner') {
-                setTimeout(() => { ligarCameraLeitor(); }, 300);
+                setTimeout(() => { ligarCameraLeitor(); }, 350);
             } else {
                 pararCameraLeitor();
             }
@@ -379,14 +383,21 @@
 
             msgStatus.textContent = "A iniciar câmara...";
 
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("reader");
+            // Garante que limpa instâncias anteriores pendentes no DOM
+            if (html5QrCode) {
+                try {
+                    if (html5QrCode.isScanning) {
+                        await html5QrCode.stop();
+                    }
+                    html5QrCode.clear();
+                } catch (e) {}
             }
 
+            html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 200, height: 120 } };
 
             try {
-                // Tenta ligar diretamente com a câmara traseira em telemóveis ou webcam principal no PC
+                // Tenta ligar diretamente requisitando qualquer câmara traseira/webcam disponível por restrição ideal
                 await html5QrCode.start(
                     { facingMode: "environment" }, 
                     config,
@@ -397,14 +408,13 @@
                 msgStatus.textContent = "Câmara ativa! Aponte para o código.";
                 return;
             } catch (err1) {
-                console.warn("Tentativa facingMode falhou, a tentar listar dispositivos...", err1);
+                console.warn("Tentativa facingMode falhou, a tentar enumerar dispositivos...", err1);
             }
 
-            // Segunda tentativa: listar dispositivos disponíveis (ideal para notebooks)
+            // Alternativa robusta para computadores enumerando as câmaras diretamente
             try {
                 const devices = await Html5Qrcode.getCameras();
                 if (devices && devices.length > 0) {
-                    // Pega a primeira câmara da lista (webcam do note)
                     const cameraId = devices[0].id;
                     await html5QrCode.start(
                         cameraId, 
@@ -421,20 +431,22 @@
             } catch (err2) {
                 leitorEmExecucao = false;
                 msgStatus.textContent = "Erro ao aceder à câmara.";
-                alert("Não foi possível abrir a câmara. Certifique-se de:\n1. Permitir o acesso à câmara no navegador.\n2. Estar a usar uma ligação segura (HTTPS / GitHub Pages).\n3. O dispositivo ter uma webcam ligada.");
+                alert("Não foi possível abrir a câmara. Verifique se:\n1. Permitiu o acesso à câmara no navegador.\n2. A página está aberta via HTTPS (GitHub Pages).\n3. O notebook possui webcam ligada e sem outra aplicação a usá-la em exclusivo.");
             }
         }
 
         async function pararCameraLeitor() {
-            if (html5QrCode && leitorEmExecucao) {
+            if (html5QrCode) {
                 try {
-                    await html5QrCode.stop();
-                    await html5QrCode.clear();
+                    if (html5QrCode.isScanning) {
+                        await html5QrCode.stop();
+                    }
+                    html5QrCode.clear();
                 } catch (e) {
                     console.error("Erro ao parar câmara:", e);
                 }
-                leitorEmExecucao = false;
             }
+            leitorEmExecucao = false;
             const msgStatus = document.getElementById('scanner-status-msg');
             if (msgStatus) {
                 msgStatus.textContent = "Câmara pausada.";
