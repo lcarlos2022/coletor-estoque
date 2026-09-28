@@ -6,6 +6,8 @@
     <title>Brava Enterprise - Sienge Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Biblioteca Oficial para Leitura de QR / Barras via Câmara -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <!-- Biblioteca SheetJS para manipulação de XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,16 +16,15 @@
             position: relative;
             width: 100%;
             max-width: 260px;
-            height: 180px;
             margin: 0 auto;
             border-radius: 12px;
             overflow: hidden;
             background: #000;
             border: 2px dashed #f59e0b;
         }
-        .scanner-container video {
+        #reader video {
             width: 100% !important;
-            height: 100% !important;
+            height: 180px !important;
             object-fit: cover !important;
         }
     </style>
@@ -147,9 +148,9 @@
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <!-- Quadrado do Vídeo -->
+                        <!-- Contentor da Câmara Nativo do Html5Qrcode -->
                         <div class="scanner-container">
-                            <video id="video-webcam" autoplay playsinline muted></video>
+                            <div id="reader"></div>
                         </div>
                         
                         <div id="scanner-status-msg" class="text-amber-400 font-bold text-[11px]">
@@ -157,8 +158,8 @@
                         </div>
                         
                         <div class="max-w-xs mx-auto flex gap-2">
-                            <button onclick="ligarCameraNativa()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Ligar Câmera</button>
-                            <button onclick="pararCameraNativa()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Parar</button>
+                            <button onclick="ligarCameraLeitor()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Ligar Câmera</button>
+                            <button onclick="pararCameraLeitor()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Parar</button>
                         </div>
 
                         <!-- Inserção manual -->
@@ -260,7 +261,8 @@
         
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
-        let mediaStreamAtiva = null;
+        let html5QrCode = null;
+        let leitorEmExecucao = false;
         
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
@@ -316,7 +318,7 @@
         }
 
         function fazerLogout() {
-            pararCameraNativa();
+            pararCameraLeitor();
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
@@ -363,65 +365,67 @@
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
             
             if (aba === 'scanner') {
-                setTimeout(() => { ligarCameraNativa(); }, 300);
+                setTimeout(() => { ligarCameraLeitor(); }, 300);
             } else {
-                pararCameraNativa();
+                pararCameraLeitor();
             }
 
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
 
-        async function ligarCameraNativa() {
+        async function ligarCameraLeitor() {
             const msgStatus = document.getElementById('scanner-status-msg');
-            const videoEl = document.getElementById('video-webcam');
+            if (leitorEmExecucao) return;
 
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                msgStatus.textContent = "Erro: Navegador sem suporte à câmara.";
-                alert("O seu navegador não suporta acesso à câmara. Certifique-se de usar HTTPS.");
-                return;
+            msgStatus.textContent = "A iniciar a câmara...";
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
             }
 
-            msgStatus.textContent = "A pedir acesso à câmara...";
+            const config = { fps: 10, qrbox: { width: 200, height: 120 } };
 
-            // Tenta primeiro a câmara traseira (environment)
-            let constraintsList = [
-                { video: { facingMode: { exact: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } } },
-                { video: { facingMode: "environment" } },
-                { video: true }
-            ];
-
-            let stream = null;
-            for (let constraints of constraintsList) {
+            try {
+                await html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    config,
+                    (decodedText) => {
+                        processarCodigoLido(decodedText);
+                    },
+                    (errorMessage) => {
+                        // Erros de leitura frame a frame são normais, ignorados de propósito
+                    }
+                );
+                leitorEmExecucao = true;
+                msgStatus.textContent = "Câmara ativa! Aponte para o código.";
+            } catch (err) {
+                console.warn("Falha com câmara traseira, a tentar câmara padrão...", err);
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    break;
-                } catch (err) {
-                    console.warn("Tentativa de constraints falhou:", constraints, err);
+                    await html5QrCode.start(
+                        { facingMode: "user" }, 
+                        config,
+                        (decodedText) => { processarCodigoLido(decodedText); },
+                        (err) => {}
+                    );
+                    leitorEmExecucao = true;
+                    msgStatus.textContent = "Câmara frontal ativa!";
+                } catch (ex) {
+                    leitorEmExecucao = false;
+                    msgStatus.textContent = "Erro ao abrir câmara.";
+                    alert("Não foi possível aceder à câmara. Certifique-se de que está a abrir o site no GitHub Pages via HTTPS e permitiu o uso da câmara.");
                 }
             }
-
-            if (!stream) {
-                msgStatus.textContent = "Erro ao abrir câmara.";
-                alert("Não foi possível abrir a câmara. Verifique as permissões nas definições do telemóvel e se o site está em HTTPS.");
-                return;
-            }
-
-            mediaStreamAtiva = stream;
-            videoEl.srcObject = stream;
-            videoEl.setAttribute("playsinline", true);
-            videoEl.play();
-
-            msgStatus.textContent = "Câmara ativa! Aponte para o código.";
         }
 
-        function pararCameraNativa() {
-            if (mediaStreamAtiva) {
-                mediaStreamAtiva.getTracks().forEach(track => track.stop());
-                mediaStreamAtiva = null;
-            }
-            const videoEl = document.getElementById('video-webcam');
-            if (videoEl) {
-                videoEl.srcObject = null;
+        async function pararCameraLeitor() {
+            if (html5QrCode && leitorEmExecucao) {
+                try {
+                    await html5QrCode.stop();
+                    html5QrCode.clear();
+                } catch (e) {
+                    console.error("Erro ao parar câmara:", e);
+                }
+                leitorEmExecucao = false;
             }
             const msgStatus = document.getElementById('scanner-status-msg');
             if (msgStatus) {
@@ -530,7 +534,7 @@
             document.getElementById('lido-quantidade').focus();
 
             const msgStatus = document.getElementById('scanner-status-msg');
-            msgStatus.textContent = `Lido: ${produtoScaneadoAtual.codigo}`;
+            msgStatus.textContent = `Lido com sucesso: ${produtoScaneadoAtual.codigo}`;
         }
 
         function salvarContagemItem() {
