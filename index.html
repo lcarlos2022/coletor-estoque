@@ -2,34 +2,29 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brava Enterprise - Sienge Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Biblioteca Oficial para Leitura de QR / Barras via Câmara -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <!-- Biblioteca SheetJS para manipulação de XLSX -->
+    <!-- Biblioteca SheetJS apenas para manipulação de XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .scanner-container {
             position: relative;
             width: 100%;
-            max-width: 260px;
+            max-width: 280px;
             margin: 0 auto;
             border-radius: 12px;
             overflow: hidden;
             background: #000;
-            border: 2px dashed #f59e0b;
-            min-height: 180px;
+            border: 2px solid #f59e0b;
         }
-        #reader {
-            width: 100% !important;
-        }
-        #reader video {
-            width: 100% !important;
-            height: 180px !important;
-            object-fit: cover !important;
+        #video-cam {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
         }
     </style>
 </head>
@@ -64,7 +59,7 @@
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
-                    <div class="space-y-1.5" id="campo-cpf-div">
+                    <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
                         <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
                     </div>
@@ -95,8 +90,8 @@
                     <span>Catálogo Sienge</span>
                 </button>
                 <button onclick="mudarAba('scanner')" id="btn-aba-scanner" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
-                    <i class="fa-solid fa-qrcode text-emerald-400 text-base"></i>
-                    <span>Leitor QR / Barras</span>
+                    <i class="fa-solid fa-camera text-emerald-400 text-base"></i>
+                    <span>Leitor / Câmara</span>
                 </button>
                 <button onclick="mudarAba('divergencias')" id="btn-aba-divergencias" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
                     <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base"></i>
@@ -145,30 +140,30 @@
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Integrado</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Câmara / Entrada de Código</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <!-- Contentor da Câmara -->
+                        <!-- Elemento de Vídeo Nativo Seguro -->
                         <div class="scanner-container">
-                            <div id="reader"></div>
+                            <video id="video-cam" autoplay playsinline muted></video>
                         </div>
                         
                         <div id="scanner-status-msg" class="text-amber-400 font-bold text-[11px]">
-                            Clique em "Ligar Câmara" para iniciar
+                            Clique em "Ligar Câmara" para iniciar a visualização
                         </div>
                         
                         <div class="max-w-xs mx-auto flex gap-2">
-                            <button onclick="ligarCameraLeitor()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Ligar Câmara</button>
-                            <button onclick="pararCameraLeitor()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Parar</button>
+                            <button onclick="ligarCameraNativa()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Ligar Câmara</button>
+                            <button onclick="pararCameraNativa()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Parar</button>
                         </div>
 
-                        <!-- Inserção manual -->
+                        <!-- Inserção manual direta e rápida -->
                         <div class="pt-2 border-t border-slate-800 flex gap-2 max-w-xs mx-auto">
-                            <input type="text" id="codigo-manual" placeholder="Ou digite o código..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none">
+                            <input type="text" id="codigo-manual" placeholder="Digite o código ou item..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none">
                             <button onclick="processarCodigoManual()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs">OK</button>
                         </div>
                     </div>
@@ -264,28 +259,8 @@
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
         
         let faseAtualContagem = 1;
-        let produtoScaneadoAtual = null;
-        let html5QrCode = null;
-        let leitorEmExecucao = false;
-        
-        let ultimoCodigoLido = "";
-        let ultimaLeituraTimestamp = 0;
-
-        function tocarBipeSucesso() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(1800, audioCtx.currentTime); 
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.1);
-            } catch (e) {}
-        }
+        let produtoSelecionadoAtual = null;
+        let mediaStreamAtivo = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             let usuarios = JSON.parse(localStorage.getItem('brava_usuarios_cadastrados')) || [];
@@ -322,7 +297,7 @@
         }
 
         function fazerLogout() {
-            pararCameraLeitor();
+            pararCameraNativa();
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
@@ -369,84 +344,46 @@
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
             
             if (aba === 'scanner') {
-                setTimeout(() => { ligarCameraLeitor(); }, 350);
+                setTimeout(() => { ligarCameraNativa(); }, 200);
             } else {
-                pararCameraLeitor();
+                pararCameraNativa();
             }
 
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
 
-        async function ligarCameraLeitor() {
+        async function ligarCameraNativa() {
             const msgStatus = document.getElementById('scanner-status-msg');
-            if (leitorEmExecucao) return;
-
-            msgStatus.textContent = "A iniciar câmara...";
-
-            // Garante que limpa instâncias anteriores pendentes no DOM
-            if (html5QrCode) {
-                try {
-                    if (html5QrCode.isScanning) {
-                        await html5QrCode.stop();
-                    }
-                    html5QrCode.clear();
-                } catch (e) {}
-            }
-
-            html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 200, height: 120 } };
+            const videoElement = document.getElementById('video-cam');
+            
+            msgStatus.textContent = "A solicitar acesso à câmara...";
 
             try {
-                // Tenta ligar diretamente requisitando qualquer câmara traseira/webcam disponível por restrição ideal
-                await html5QrCode.start(
-                    { facingMode: "environment" }, 
-                    config,
-                    (decodedText) => { processarCodigoLido(decodedText); },
-                    (errorMessage) => {}
-                );
-                leitorEmExecucao = true;
-                msgStatus.textContent = "Câmara ativa! Aponte para o código.";
-                return;
-            } catch (err1) {
-                console.warn("Tentativa facingMode falhou, a tentar enumerar dispositivos...", err1);
-            }
-
-            // Alternativa robusta para computadores enumerando as câmaras diretamente
-            try {
-                const devices = await Html5Qrcode.getCameras();
-                if (devices && devices.length > 0) {
-                    const cameraId = devices[0].id;
-                    await html5QrCode.start(
-                        cameraId, 
-                        config,
-                        (decodedText) => { processarCodigoLido(decodedText); },
-                        (errorMessage) => {}
-                    );
-                    leitorEmExecucao = true;
-                    msgStatus.textContent = "Câmara ativa!";
-                    return;
-                } else {
-                    throw new Error("Nenhuma câmara detetada.");
-                }
-            } catch (err2) {
-                leitorEmExecucao = false;
+                // Utiliza a API nativa do navegador (funciona perfeitamente em notebooks e telemóveis via HTTPS)
+                const constraints = {
+                    video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" }
+                };
+                
+                mediaStreamAtivo = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = mediaStreamAtivo;
+                msgStatus.textContent = "Câmara ativa!";
+            } catch (err) {
+                console.error("Erro na câmara nativa:", err);
                 msgStatus.textContent = "Erro ao aceder à câmara.";
-                alert("Não foi possível abrir a câmara. Verifique se:\n1. Permitiu o acesso à câmara no navegador.\n2. A página está aberta via HTTPS (GitHub Pages).\n3. O notebook possui webcam ligada e sem outra aplicação a usá-la em exclusivo.");
+                alert("Não foi possível abrir a câmara.\nVerifique se o navegador tem permissão para usar a webcam e se está a aceder via HTTPS.");
             }
         }
 
-        async function pararCameraLeitor() {
-            if (html5QrCode) {
-                try {
-                    if (html5QrCode.isScanning) {
-                        await html5QrCode.stop();
-                    }
-                    html5QrCode.clear();
-                } catch (e) {
-                    console.error("Erro ao parar câmara:", e);
-                }
+        function pararCameraNativa() {
+            if (mediaStreamAtivo) {
+                let tracks = mediaStreamAtivo.getTracks();
+                tracks.forEach(track => track.stop());
+                mediaStreamAtivo = null;
             }
-            leitorEmExecucao = false;
+            const videoElement = document.getElementById('video-cam');
+            if (videoElement) {
+                videoElement.srcObject = null;
+            }
             const msgStatus = document.getElementById('scanner-status-msg');
             if (msgStatus) {
                 msgStatus.textContent = "Câmara pausada.";
@@ -457,11 +394,23 @@
             let input = document.getElementById('codigo-manual');
             let codigo = input.value.trim();
             if (!codigo) {
-                alert("Digite um código válido.");
+                alert("Digite um código ou descrição válida.");
                 return;
             }
-            processarCodigoLido(codigo);
+            buscarEIdentificarProduto(codigo);
             input.value = '';
+        }
+
+        function buscarEIdentificarProduto(termo) {
+            let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === termo.toLowerCase() || p.desc.toLowerCase().includes(termo.toLowerCase()));
+
+            produtoSelecionadoAtual = produto ? produto : { codigo: termo, desc: "Item não cadastrado na base", unidade: "UN" };
+
+            document.getElementById('lido-codigo-desc').textContent = `${produtoSelecionadoAtual.codigo} - ${produtoSelecionadoAtual.desc}`;
+            document.getElementById('lido-unidade').textContent = produtoSelecionadoAtual.unidade;
+            document.getElementById('painel-item-lido').classList.remove('hidden');
+            document.getElementById('lido-quantidade').value = "";
+            document.getElementById('lido-quantidade').focus();
         }
 
         function renderizarCatalogo() {
@@ -534,29 +483,6 @@
             }
         }
 
-        function processarCodigoLido(codigo) {
-            let agora = Date.now();
-            if (codigo === ultimoCodigoLido && (agora - ultimaLeituraTimestamp) < 3000) {
-                return;
-            }
-            ultimoCodigoLido = codigo;
-            ultimaLeituraTimestamp = agora;
-            tocarBipeSucesso();
-
-            let produto = catalogoProdutos.find(p => p.codigo.toLowerCase() === codigo.toLowerCase() || p.desc.toLowerCase().includes(codigo.toLowerCase()));
-
-            produtoScaneadoAtual = produto ? produto : { codigo: codigo, desc: "Item não cadastrado na base", unidade: "UN" };
-
-            document.getElementById('lido-codigo-desc').textContent = `${produtoScaneadoAtual.codigo} - ${produtoScaneadoAtual.desc}`;
-            document.getElementById('lido-unidade').textContent = produtoScaneadoAtual.unidade;
-            document.getElementById('painel-item-lido').classList.remove('hidden');
-            document.getElementById('lido-quantidade').value = "";
-            document.getElementById('lido-quantidade').focus();
-
-            const msgStatus = document.getElementById('scanner-status-msg');
-            msgStatus.textContent = `Lido com sucesso: ${produtoScaneadoAtual.codigo}`;
-        }
-
         function salvarContagemItem() {
             let qtdInput = document.getElementById('lido-quantidade').value;
             let qtd = parseFloat(qtdInput);
@@ -566,11 +492,11 @@
                 return;
             }
 
-            if (!produtoScaneadoAtual) return;
+            if (!produtoSelecionadoAtual) return;
 
-            let codigo = produtoScaneadoAtual.codigo;
+            let codigo = produtoSelecionadoAtual.codigo;
             if (!registrosContagem[codigo]) {
-                registrosContagem[codigo] = { codigo: codigo, desc: produtoScaneadoAtual.desc, unidade: produtoScaneadoAtual.unidade, cont1: 0, cont2: 0 };
+                registrosContagem[codigo] = { codigo: codigo, desc: produtoSelecionadoAtual.desc, unidade: produtoSelecionadoAtual.unidade, cont1: 0, cont2: 0 };
             }
 
             if (faseAtualContagem === 1) {
@@ -581,8 +507,8 @@
 
             localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
             document.getElementById('painel-item-lido').classList.add('hidden');
-            alert(`Salvo! ${codigo} (${qtd} ${produtoScaneadoAtual.unidade}) registrado na ${faseAtualContagem}ª Contagem.`);
-            produtoScaneadoAtual = null;
+            alert(`Salvo! ${codigo} (${qtd} ${produtoSelecionadoAtual.unidade}) registrado na ${faseAtualContagem}ª Contagem.`);
+            produtoSelecionadoAtual = null;
         }
 
         function proximaContagem() {
