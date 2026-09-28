@@ -154,11 +154,11 @@
                         </div>
                         
                         <div id="scanner-status-msg" class="text-amber-400 font-bold text-[11px]">
-                            Toque em "Ligar Câmera" para iniciar
+                            Clique em "Ligar Câmara" para iniciar
                         </div>
                         
                         <div class="max-w-xs mx-auto flex gap-2">
-                            <button onclick="ligarCameraLeitor()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Ligar Câmera</button>
+                            <button onclick="ligarCameraLeitor()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Ligar Câmara</button>
                             <button onclick="pararCameraLeitor()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-3 rounded-xl text-xs shadow transition">Parar</button>
                         </div>
 
@@ -377,7 +377,7 @@
             const msgStatus = document.getElementById('scanner-status-msg');
             if (leitorEmExecucao) return;
 
-            msgStatus.textContent = "A procurar câmaras disponíveis...";
+            msgStatus.textContent = "A iniciar câmara...";
 
             if (!html5QrCode) {
                 html5QrCode = new Html5Qrcode("reader");
@@ -386,10 +386,25 @@
             const config = { fps: 10, qrbox: { width: 200, height: 120 } };
 
             try {
-                // Tenta encontrar as câmeras disponíveis no dispositivo (computador ou telemóvel)
+                // Tenta ligar diretamente com a câmara traseira em telemóveis ou webcam principal no PC
+                await html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    config,
+                    (decodedText) => { processarCodigoLido(decodedText); },
+                    (errorMessage) => {}
+                );
+                leitorEmExecucao = true;
+                msgStatus.textContent = "Câmara ativa! Aponte para o código.";
+                return;
+            } catch (err1) {
+                console.warn("Tentativa facingMode falhou, a tentar listar dispositivos...", err1);
+            }
+
+            // Segunda tentativa: listar dispositivos disponíveis (ideal para notebooks)
+            try {
                 const devices = await Html5Qrcode.getCameras();
-                if (devices && devices.length) {
-                    // Escolhe a primeira câmara disponível (webcam no note ou traseira no telemóvel)
+                if (devices && devices.length > 0) {
+                    // Pega a primeira câmara da lista (webcam do note)
                     const cameraId = devices[0].id;
                     await html5QrCode.start(
                         cameraId, 
@@ -398,27 +413,15 @@
                         (errorMessage) => {}
                     );
                     leitorEmExecucao = true;
-                    msgStatus.textContent = "Câmara ativa! Aponte para o código.";
+                    msgStatus.textContent = "Câmara ativa!";
                     return;
+                } else {
+                    throw new Error("Nenhuma câmara detetada.");
                 }
-            } catch (err) {
-                console.warn("Método de lista de câmaras falhou, a tentar modo genérico...", err);
-            }
-
-            // Fallback universal caso getCameras() não retorne direto
-            try {
-                await html5QrCode.start(
-                    { facingMode: { ideal: "environment" } }, 
-                    config,
-                    (decodedText) => { processarCodigoLido(decodedText); },
-                    (err) => {}
-                );
-                leitorEmExecucao = true;
-                msgStatus.textContent = "Câmara ativa!";
-            } catch (ex) {
+            } catch (err2) {
                 leitorEmExecucao = false;
-                msgStatus.textContent = "Erro ao abrir câmara.";
-                alert("Não foi possível aceder à câmara. Certifique-se de que permitiu o uso da câmara no navegador e que está a usar HTTPS.");
+                msgStatus.textContent = "Erro ao aceder à câmara.";
+                alert("Não foi possível abrir a câmara. Certifique-se de:\n1. Permitir o acesso à câmara no navegador.\n2. Estar a usar uma ligação segura (HTTPS / GitHub Pages).\n3. O dispositivo ter uma webcam ligada.");
             }
         }
 
@@ -426,7 +429,7 @@
             if (html5QrCode && leitorEmExecucao) {
                 try {
                     await html5QrCode.stop();
-                    html5QrCode.clear();
+                    await html5QrCode.clear();
                 } catch (e) {
                     console.error("Erro ao parar câmara:", e);
                 }
