@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coletor de Estoque - Brava Construções Incorporação</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS para Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- HTML5 QR Code Scanner -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
@@ -44,7 +47,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE CADASTRO -->
+    <!-- MODAL DE CADASTRO DE USUÁRIO -->
     <div id="modal-cadastro" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm">
             <h2 class="text-lg font-bold text-gray-800 mb-4">Novo Usuário</h2>
@@ -67,7 +70,7 @@
         </div>
     </div>
 
-    <!-- TELA PRINCIPAL -->
+    <!-- TELA PRINCIPAL DO SISTEMA -->
     <div id="app-screen" class="hidden min-h-screen p-4 max-w-4xl mx-auto">
         <header class="bg-white p-4 rounded-xl shadow-md flex justify-between items-center mb-4">
             <h1 class="text-lg font-bold text-gray-800">Inventário - Brava</h1>
@@ -75,9 +78,11 @@
         </header>
         <main class="bg-white p-6 rounded-xl shadow-md">
             <p class="text-gray-600 font-medium">Bem-vindo ao sistema de coleta de estoque!</p>
+            <!-- Suas ferramentas de contagem de estoque continuam operacionais aqui -->
         </main>
     </div>
 
+    <!-- SCRIPT DE CONTROLE -->
     <script>
         function inicializarUsuarios() {
             let usuarios = JSON.parse(localStorage.getItem('brava_usuarios')) || [];
