@@ -148,7 +148,7 @@
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <!-- Contentor da Câmara Nativo do Html5Qrcode -->
+                        <!-- Contentor da Câmara -->
                         <div class="scanner-container">
                             <div id="reader"></div>
                         </div>
@@ -377,7 +377,7 @@
             const msgStatus = document.getElementById('scanner-status-msg');
             if (leitorEmExecucao) return;
 
-            msgStatus.textContent = "A iniciar a câmara...";
+            msgStatus.textContent = "A procurar câmaras disponíveis...";
 
             if (!html5QrCode) {
                 html5QrCode = new Html5Qrcode("reader");
@@ -386,34 +386,39 @@
             const config = { fps: 10, qrbox: { width: 200, height: 120 } };
 
             try {
-                await html5QrCode.start(
-                    { facingMode: "environment" }, 
-                    config,
-                    (decodedText) => {
-                        processarCodigoLido(decodedText);
-                    },
-                    (errorMessage) => {
-                        // Erros de leitura frame a frame são normais, ignorados de propósito
-                    }
-                );
-                leitorEmExecucao = true;
-                msgStatus.textContent = "Câmara ativa! Aponte para o código.";
-            } catch (err) {
-                console.warn("Falha com câmara traseira, a tentar câmara padrão...", err);
-                try {
+                // Tenta encontrar as câmeras disponíveis no dispositivo (computador ou telemóvel)
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length) {
+                    // Escolhe a primeira câmara disponível (webcam no note ou traseira no telemóvel)
+                    const cameraId = devices[0].id;
                     await html5QrCode.start(
-                        { facingMode: "user" }, 
+                        cameraId, 
                         config,
                         (decodedText) => { processarCodigoLido(decodedText); },
-                        (err) => {}
+                        (errorMessage) => {}
                     );
                     leitorEmExecucao = true;
-                    msgStatus.textContent = "Câmara frontal ativa!";
-                } catch (ex) {
-                    leitorEmExecucao = false;
-                    msgStatus.textContent = "Erro ao abrir câmara.";
-                    alert("Não foi possível aceder à câmara. Certifique-se de que está a abrir o site no GitHub Pages via HTTPS e permitiu o uso da câmara.");
+                    msgStatus.textContent = "Câmara ativa! Aponte para o código.";
+                    return;
                 }
+            } catch (err) {
+                console.warn("Método de lista de câmaras falhou, a tentar modo genérico...", err);
+            }
+
+            // Fallback universal caso getCameras() não retorne direto
+            try {
+                await html5QrCode.start(
+                    { facingMode: { ideal: "environment" } }, 
+                    config,
+                    (decodedText) => { processarCodigoLido(decodedText); },
+                    (err) => {}
+                );
+                leitorEmExecucao = true;
+                msgStatus.textContent = "Câmara ativa!";
+            } catch (ex) {
+                leitorEmExecucao = false;
+                msgStatus.textContent = "Erro ao abrir câmara.";
+                alert("Não foi possível aceder à câmara. Certifique-se de que permitiu o uso da câmara no navegador e que está a usar HTTPS.");
             }
         }
 
