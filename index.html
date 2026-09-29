@@ -181,7 +181,7 @@
                                 </button>
                             </div>
 
-                            <!-- LEITURA VIA FOTO (GARANTIDA PARA CELULARES) -->
+                            <!-- BOTAO AMARELO PARA TIRAR FOTO DA ETIQUETA NO CELULAR -->
                             <label class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-xs shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer border border-amber-300">
                                 <i class="fa-solid fa-camera text-base"></i>
                                 <span>TIRAR FOTO DA ETIQUETA / GALERIA</span>
@@ -335,7 +335,7 @@
         function fazerLogout() {
             pararCameraNativa();
             document.getElementById('user-info-header').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
             carregarDadosLoginSalvos();
         }
@@ -366,8 +366,8 @@
             pararCameraNativa();
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                status.textContent = "Seu navegador não suporta vídeo ao vivo. Use o botão amarelo de tirar foto abaixo!";
-                alert("Para ler a etiqueta no seu aparelho, utilize o botão amarelo 'TIRAR FOTO DA ETIQUETA / GALERIA'.");
+                status.textContent = "Navegador não suporta vídeo ao vivo. Use o botão amarelo de foto abaixo!";
+                alert("Para ler no seu celular, utilize o botão amarelo 'TIRAR FOTO DA ETIQUETA / GALERIA'.");
                 return;
             }
 
@@ -398,8 +398,8 @@
                     });
                 })
                 .catch((err) => {
-                    status.textContent = "Câmera ao vivo indisponível. Use o botão amarelo abaixo para tirar foto!";
-                    alert("A câmera ao vivo foi recusada pelo navegador ou o site está em HTTP. Use a opção 'TIRAR FOTO DA ETIQUETA / GALERIA' para ler pelo celular.");
+                    status.textContent = "Câmera ao vivo bloqueada. Use o botão amarelo abaixo para tirar foto!";
+                    alert("A câmera ao vivo foi recusada pelo celular. Use o botão amarelo 'TIRAR FOTO DA ETIQUETA / GALERIA'.");
                 });
         }
 
@@ -482,7 +482,7 @@
             if (!file) return;
 
             const status = document.getElementById('status-camera');
-            status.textContent = "Processando imagem do QR Code...";
+            status.textContent = "Lendo imagem do QR Code...";
 
             const img = new Image();
             const reader = new FileReader();
@@ -505,7 +505,7 @@
                         processarCodigoLido(code.data);
                     } else {
                         status.textContent = "Erro na leitura da imagem.";
-                        alert("Não foi possível identificar o QR Code na foto. Fotografe mais de perto e focado no código.");
+                        alert("Não foi possível ler o QR Code na foto. Fotografe mais perto do código.");
                     }
                 };
                 img.src = e.target.result;
@@ -620,7 +620,7 @@
                         alert("Nenhum material válido encontrado na planilha.");
                     }
                 } catch (err) {
-                    alert("Erro ao ler o ficheiro Excel.");
+                    alert("Erro ao ler a planilha Excel.");
                 }
             };
             reader.readAsArrayBuffer(file);
