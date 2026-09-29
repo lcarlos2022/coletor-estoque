@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Brava Enterprise - Sienge Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,12 +19,6 @@
             .nao-imprimir { display: none !important; }
             #area-impressao-etiquetas { display: grid !important; grid-template-columns: repeat(2, 101.6mm) !important; grid-auto-rows: 36mm !important; gap: 4mm 4mm !important; background: white !important; border: none !important; max-height: none !important; overflow: visible !important; padding: 0 !important; justify-content: start !important; }
             .etiqueta-card { width: 101.6mm !important; height: 33.9mm !important; background: #16a34a !important; border: 0.5px solid #14532d !important; box-shadow: none !important; break-inside: avoid; page-break-inside: avoid; padding: 3mm 4mm !important; border-radius: 2px !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: space-between !important; overflow: hidden !important; box-sizing: border-box !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
-        #reader video {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-            border-radius: 0.75rem;
         }
     </style>
 </head>
@@ -151,20 +145,16 @@
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <div class="space-y-2">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Selecione a Câmera</label>
-                            <select id="select-camera" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-2.5 focus:outline-none">
-                                <option value="">Carregando câmeras...</option>
-                            </select>
+                        <div class="relative w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black min-h-[240px] flex items-center justify-center">
+                            <video id="webcam-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                            <canvas id="qr-canvas" class="hidden"></canvas>
                         </div>
-
-                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black min-h-[220px]"></div>
                         
-                        <div id="status-camera" class="text-xs text-amber-400 font-semibold"></div>
+                        <div id="status-camera" class="text-xs text-amber-400 font-semibold min-h-[1rem]"></div>
 
                         <div class="flex justify-center gap-2">
-                            <button onclick="iniciarCameraSelecionada()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Ligar Câmera</button>
-                            <button onclick="pararHtml5Scanner()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Desligar Câmera</button>
+                            <button onclick="iniciarCameraNativa()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Ligar Câmera</button>
+                            <button onclick="pararCameraNativa()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Desligar Câmera</button>
                         </div>
                     </div>
 
@@ -238,7 +228,8 @@
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
-        let html5QrCode = null;
+        let streamVideoAtual = null;
+        let animacaoFrameId = null;
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
 
@@ -300,7 +291,7 @@
         }
 
         function fazerLogout() {
-            pararHtml5Scanner();
+            pararCameraNativa();
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
@@ -320,86 +311,88 @@
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
 
             if (aba === 'scanner') {
-                carregarListaDeCameras();
+                iniciarCameraNativa();
             } else {
-                pararHtml5Scanner();
+                pararCameraNativa();
             }
 
             if (aba === 'divergencias') calcularDivergencias();
         }
 
-        function carregarListaDeCameras() {
+        function iniciarCameraNativa() {
             const status = document.getElementById('status-camera');
-            const select = document.getElementById('select-camera');
-            status.textContent = "Solicitando acesso à câmera...";
+            const video = document.getElementById('webcam-video');
+            status.textContent = "Conectando à câmera...";
 
-            Html5Qrcode.getCameras().then(devices => {
-                if (devices && devices.length) {
-                    select.innerHTML = '';
-                    devices.forEach((device, index) => {
-                        let option = document.createElement('option');
-                        option.value = device.id;
-                        option.text = device.label || `Câmera ${index + 1}`;
-                        select.appendChild(option);
-                    });
-                    
-                    // Seleciona preferencialmente a última câmera (normalmente a traseira em celulares)
-                    select.selectedIndex = devices.length - 1;
-                    status.textContent = "";
-                    iniciarCameraSelecionada();
-                } else {
-                    status.textContent = "Nenhuma câmera encontrada no dispositivo.";
+            pararCameraNativa();
+
+            const constraints = {
+                video: {
+                    facingMode: { ideal: "environment" },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
                 }
-            }).catch(err => {
-                status.textContent = "Erro de permissão! Verifique se a câmera está autorizada no navegador.";
-            });
-        }
+            };
 
-        function iniciarCameraSelecionada() {
-            const select = document.getElementById('select-camera');
-            const cameraId = select.value;
-            const status = document.getElementById('status-camera');
-
-            if (!cameraId) {
-                status.textContent = "Selecione uma câmera na lista acima.";
-                return;
-            }
-
-            pararHtml5Scanner().then(() => {
-                html5QrCode = new Html5Qrcode("reader");
-                const config = { fps: 10, qrbox: { width: 220, height: 220 } };
-
-                html5QrCode.start(
-                    cameraId,
-                    config,
-                    (decodedText) => processarCodigoLido(decodedText),
-                    (errorMessage) => {}
-                ).then(() => {
-                    status.textContent = "";
-                }).catch(err => {
-                    status.textContent = "Erro ao ligar esta câmera específica.";
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then((stream) => {
+                    streamVideoAtual = stream;
+                    video.srcObject = stream;
+                    video.setAttribute("playsinline", true);
+                    video.play();
+                    status.textContent = "Aponte para a etiqueta";
+                    animacaoFrameId = requestAnimationFrame(processarFrameVideo);
+                })
+                .catch((err) => {
+                    status.textContent = "Erro ao acessar a câmera. Verifique se a permissão do navegador está ativa.";
                 });
-            });
         }
 
-        function pararHtml5Scanner() {
-            return new Promise((resolve) => {
-                if (html5QrCode && html5QrCode.isScanning) {
-                    html5QrCode.stop().then(() => {
-                        document.getElementById('reader').innerHTML = '';
-                        resolve();
-                    }).catch(() => resolve());
-                } else {
-                    resolve();
+        function processarFrameVideo() {
+            const video = document.getElementById('webcam-video');
+            const canvas = document.getElementById('qr-canvas');
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (code && code.data) {
+                    processarCodigoLido(code.data);
                 }
-            });
+            }
+            
+            if (streamVideoAtual) {
+                animacaoFrameId = requestAnimationFrame(processarFrameVideo);
+            }
+        }
+
+        function pararCameraNativa() {
+            if (animacaoFrameId) {
+                cancelAnimationFrame(animacaoFrameId);
+                animacaoFrameId = null;
+            }
+            if (streamVideoAtual) {
+                streamVideoAtual.getTracks().forEach(track => track.stop());
+                streamVideoAtual = null;
+            }
+            const video = document.getElementById('webcam-video');
+            if (video) video.srcObject = null;
+            const status = document.getElementById('status-camera');
+            if (status) status.textContent = "";
         }
 
         function processarCodigoLido(codigo) {
             let codigoLimpo = String(codigo).trim();
             let agora = Date.now();
             
-            if (codigoLimpo === ultimoCodigoLido && (agora - ultimaLeituraTimestamp) < 2000) return;
+            if (codigoLimpo === ultimoCodigoLido && (agora - ultimaLeituraTimestamp) < 2500) return;
 
             let produto = catalogoProdutos.find(p => String(p.codigo).trim().toLowerCase() === codigoLimpo.toLowerCase());
             
@@ -415,8 +408,6 @@
                 let inputQtd = document.getElementById('lido-quantidade');
                 inputQtd.value = '';
                 inputQtd.focus();
-            } else {
-                alert(`Código Lido: "${codigoLimpo}" não encontrado no catálogo Sienge.`);
             }
         }
 
