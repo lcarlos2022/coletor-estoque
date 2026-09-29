@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brava Enterprise - Sienge Edition</title>
+    <title>Brava Enterprise - Coletor Mobile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -42,10 +42,11 @@
 
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-center">
 
+        <!-- TELA DE LOGIN -->
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2">Entre com seu CPF e senha cadastrada.</p>
+                <p class="text-xs text-slate-400 leading-relaxed px-2">Entre com seu CPF e senha para usar no celular/tablet.</p>
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
@@ -67,6 +68,7 @@
             </div>
         </section>
 
+        <!-- DASHBOARD PRINCIPAL -->
         <section id="dashboard-section" class="hidden flex-1 flex flex-col space-y-4">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <button onclick="mudarAba('catalogo')" id="btn-aba-catalogo" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
@@ -88,6 +90,8 @@
             </div>
 
             <div class="flex-1 bg-[#111c38] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
+                
+                <!-- ABA CATALOGO -->
                 <div id="conteudo-catalogo" class="space-y-4">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
@@ -136,46 +140,77 @@
                     </div>
                 </div>
 
+                <!-- ABA LEITOR QR / CÂMERA -->
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Celular / Tablet</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <div class="relative w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black min-h-[240px] flex items-center justify-center">
-                            <video id="webcam-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                        
+                        <!-- SELETOR DE CÂMERAS -->
+                        <div class="text-left space-y-1">
+                            <label class="text-[10px] text-slate-400 uppercase font-bold">Selecione a Câmera Traseira:</label>
+                            <select id="select-cameras" class="w-full bg-slate-800 border border-slate-700 text-white text-xs p-2.5 rounded-xl focus:outline-none focus:border-amber-400">
+                                <option value="">Toque em "Ligar Câmera Ao Vivo" para listar...</option>
+                            </select>
+                        </div>
+
+                        <!-- DISPLAY DO VÍDEO AO VIVO -->
+                        <div class="relative w-full max-w-sm mx-auto overflow-hidden rounded-xl border-2 border-slate-700 bg-black min-h-[220px] flex items-center justify-center">
+                            <video id="webcam-video" autoplay playsinline muted class="w-full h-56 object-cover"></video>
                             <canvas id="qr-canvas" class="hidden"></canvas>
                         </div>
                         
-                        <div id="status-camera" class="text-xs text-amber-400 font-semibold min-h-[1rem]"></div>
+                        <div id="status-camera" class="text-xs text-amber-400 font-semibold min-h-[1.25rem]">
+                            Escolha uma das opções abaixo para ler a etiqueta:
+                        </div>
 
-                        <div class="flex justify-center gap-2">
-                            <button onclick="iniciarCameraNativa()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Ligar Câmera</button>
-                            <button onclick="pararCameraNativa()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Desligar Câmera</button>
+                        <!-- BOTOES DE ACAO DA CAMERA -->
+                        <div class="flex flex-col gap-2.5">
+                            <div class="flex justify-center gap-2">
+                                <button onclick="solicitarPermissaoEIniciar()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-3 rounded-xl text-xs shadow-lg transition flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-video"></i>
+                                    <span>LIGAR CÂMERA AO VIVO</span>
+                                </button>
+                                <button onclick="pararCameraNativa()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-3 rounded-xl text-xs transition">
+                                    <span>Desligar</span>
+                                </button>
+                            </div>
+
+                            <!-- LEITURA VIA FOTO (GARANTIDA PARA CELULARES) -->
+                            <label class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-xs shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer border border-amber-300">
+                                <i class="fa-solid fa-camera text-base"></i>
+                                <span>TIRAR FOTO DA ETIQUETA / GALERIA</span>
+                                <input type="file" id="input-foto-qr" accept="image/*" capture="environment" class="hidden" onchange="lerQRCodeDeFoto(event)">
+                            </label>
                         </div>
                     </div>
 
-                    <div id="painel-item-lido" class="hidden bg-[#0b1329] p-3.5 rounded-xl border border-slate-800 space-y-2">
+                    <!-- RESPOSTA DO SCAN -->
+                    <div id="painel-item-lido" class="hidden bg-[#0b1329] p-4 rounded-xl border border-emerald-500 space-y-2">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-[10px] text-amber-400 font-bold uppercase">Item Identificado</p>
+                                <p class="text-[10px] text-amber-400 font-bold uppercase">Item Identificado com Sucesso!</p>
                                 <h4 id="lido-codigo-desc" class="text-sm font-bold text-white">--</h4>
                             </div>
                             <span id="lido-unidade" class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded font-mono">UN</span>
                         </div>
-                        <div class="flex space-x-2 pt-1">
-                            <input type="number" id="lido-quantidade" step="any" placeholder="Quantidade" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:outline-none">
-                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs">Salvar</button>
+                        <div class="flex space-x-2 pt-2">
+                            <input type="number" id="lido-quantidade" step="any" placeholder="Quantidade" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-400 font-bold">
+                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-3 rounded-xl text-xs">Salvar</button>
                         </div>
                     </div>
+
                     <div class="flex justify-between pt-2">
                         <button onclick="proximaContagem()" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs px-3 py-2 rounded-xl">Avançar 2ª Contagem</button>
                     </div>
                 </div>
 
+                <!-- ABA DIVERGÊNCIAS -->
                 <div id="conteudo-divergencias" class="hidden space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                         <h3 class="text-sm font-bold text-white uppercase">Cruzamento Sienge</h3>
@@ -199,6 +234,7 @@
                     </div>
                 </div>
 
+                <!-- ABA RELATÓRIOS -->
                 <div id="conteudo-relatorios" class="hidden space-y-4">
                     <div class="border-b border-slate-800 pb-3">
                         <h3 class="text-sm font-bold text-white uppercase">Relatórios e Envio</h3>
@@ -255,6 +291,12 @@
                 localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioPadrao));
             }
             carregarDadosLoginSalvos();
+
+            document.getElementById('select-cameras').addEventListener('change', (e) => {
+                if (e.target.value) {
+                    iniciarStreamComDeviceId(e.target.value);
+                }
+            });
         });
 
         function carregarDadosLoginSalvos() {
@@ -310,25 +352,65 @@
             if (alvo) alvo.classList.remove('hidden');
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
 
-            if (aba === 'scanner') {
-                iniciarCameraNativa();
-            } else {
+            if (aba !== 'scanner') {
                 pararCameraNativa();
             }
 
             if (aba === 'divergencias') calcularDivergencias();
         }
 
-        function iniciarCameraNativa() {
+        function solicitarPermissaoEIniciar() {
             const status = document.getElementById('status-camera');
-            const video = document.getElementById('webcam-video');
-            status.textContent = "Conectando à câmera...";
+            status.textContent = "Solicitando permissão da câmera ao vivo...";
 
             pararCameraNativa();
 
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                status.textContent = "Seu navegador não suporta vídeo ao vivo. Use o botão amarelo de tirar foto abaixo!";
+                alert("Para ler a etiqueta no seu aparelho, utilize o botão amarelo 'TIRAR FOTO DA ETIQUETA / GALERIA'.");
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
+                .then((stream) => {
+                    streamVideoAtual = stream;
+                    
+                    navigator.mediaDevices.enumerateDevices().then(devices => {
+                        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                        const select = document.getElementById('select-cameras');
+                        select.innerHTML = '';
+
+                        videoDevices.forEach((device, idx) => {
+                            const option = document.createElement('option');
+                            option.value = device.deviceId;
+                            option.text = device.label || `Câmera Traseira ${idx + 1}`;
+                            select.appendChild(option);
+                        });
+
+                        const cameraTraseira = videoDevices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('traseira')) || videoDevices[videoDevices.length - 1];
+                        
+                        if (cameraTraseira) {
+                            select.value = cameraTraseira.deviceId;
+                            iniciarStreamComDeviceId(cameraTraseira.deviceId);
+                        } else {
+                            iniciarComStreamProvisorio(stream);
+                        }
+                    });
+                })
+                .catch((err) => {
+                    status.textContent = "Câmera ao vivo indisponível. Use o botão amarelo abaixo para tirar foto!";
+                    alert("A câmera ao vivo foi recusada pelo navegador ou o site está em HTTP. Use a opção 'TIRAR FOTO DA ETIQUETA / GALERIA' para ler pelo celular.");
+                });
+        }
+
+        function iniciarStreamComDeviceId(deviceId) {
+            pararCameraNativa();
+            const status = document.getElementById('status-camera');
+            status.textContent = "Conectando à câmera selecionada...";
+
             const constraints = {
                 video: {
-                    facingMode: { ideal: "environment" },
+                    deviceId: { exact: deviceId },
                     width: { ideal: 1280 },
                     height: { ideal: 720 }
                 }
@@ -336,23 +418,30 @@
 
             navigator.mediaDevices.getUserMedia(constraints)
                 .then((stream) => {
-                    streamVideoAtual = stream;
-                    video.srcObject = stream;
-                    video.setAttribute("playsinline", true);
-                    video.play();
-                    status.textContent = "Aponte para a etiqueta";
-                    animacaoFrameId = requestAnimationFrame(processarFrameVideo);
+                    iniciarComStreamProvisorio(stream);
                 })
-                .catch((err) => {
-                    status.textContent = "Erro ao acessar a câmera. Verifique se a permissão do navegador está ativa.";
+                .catch(() => {
+                    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                        .then(stream => iniciarComStreamProvisorio(stream));
                 });
+        }
+
+        function iniciarComStreamProvisorio(stream) {
+            const video = document.getElementById('webcam-video');
+            const status = document.getElementById('status-camera');
+            streamVideoAtual = stream;
+            video.srcObject = stream;
+            video.setAttribute("playsinline", true);
+            video.play();
+            status.textContent = "Câmera Ativa. Aponte para a etiqueta!";
+            animacaoFrameId = requestAnimationFrame(processarFrameVideo);
         }
 
         function processarFrameVideo() {
             const video = document.getElementById('webcam-video');
             const canvas = document.getElementById('qr-canvas');
 
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
                 canvas.height = video.videoHeight;
                 canvas.width = video.videoWidth;
                 const ctx = canvas.getContext('2d');
@@ -385,7 +474,43 @@
             const video = document.getElementById('webcam-video');
             if (video) video.srcObject = null;
             const status = document.getElementById('status-camera');
-            if (status) status.textContent = "";
+            if (status) status.textContent = "Câmera Desligada.";
+        }
+
+        function lerQRCodeDeFoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const status = document.getElementById('status-camera');
+            status.textContent = "Processando imagem do QR Code...";
+
+            const img = new Image();
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert",
+                    });
+
+                    if (code && code.data) {
+                        status.textContent = "QR Code Lido com Sucesso!";
+                        processarCodigoLido(code.data);
+                    } else {
+                        status.textContent = "Erro na leitura da imagem.";
+                        alert("Não foi possível identificar o QR Code na foto. Fotografe mais de perto e focado no código.");
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
 
         function processarCodigoLido(codigo) {
@@ -408,6 +533,8 @@
                 let inputQtd = document.getElementById('lido-quantidade');
                 inputQtd.value = '';
                 inputQtd.focus();
+            } else {
+                alert(`Código lido (${codigoLimpo}), mas ele não foi encontrado na sua lista do Catálogo Sienge.`);
             }
         }
 
