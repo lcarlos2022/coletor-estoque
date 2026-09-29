@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Brava Enterprise - Sienge Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Nova biblioteca de leitura de QR Code para navegadores mobile -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -21,7 +20,6 @@
             #area-impressao-etiquetas { display: grid !important; grid-template-columns: repeat(2, 101.6mm) !important; grid-auto-rows: 36mm !important; gap: 4mm 4mm !important; background: white !important; border: none !important; max-height: none !important; overflow: visible !important; padding: 0 !important; justify-content: start !important; }
             .etiqueta-card { width: 101.6mm !important; height: 33.9mm !important; background: #16a34a !important; border: 0.5px solid #14532d !important; box-shadow: none !important; break-inside: avoid; page-break-inside: avoid; padding: 3mm 4mm !important; border-radius: 2px !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: space-between !important; overflow: hidden !important; box-sizing: border-box !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
-        /* Ajuste do leitor html5-qrcode */
         #reader video {
             width: 100% !important;
             height: 100% !important;
@@ -153,11 +151,19 @@
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
-                        <!-- Conteiner do Leitor -->
-                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black min-h-[250px]"></div>
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Selecione a Câmera</label>
+                            <select id="select-camera" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-2.5 focus:outline-none">
+                                <option value="">Carregando câmeras...</option>
+                            </select>
+                        </div>
+
+                        <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700 bg-black min-h-[220px]"></div>
                         
+                        <div id="status-camera" class="text-xs text-amber-400 font-semibold"></div>
+
                         <div class="flex justify-center gap-2">
-                            <button onclick="iniciarHtml5Scanner()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Ligar Câmera</button>
+                            <button onclick="iniciarCameraSelecionada()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Ligar Câmera</button>
                             <button onclick="pararHtml5Scanner()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">Desligar Câmera</button>
                         </div>
                     </div>
@@ -314,7 +320,7 @@
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
 
             if (aba === 'scanner') {
-                iniciarHtml5Scanner();
+                carregarListaDeCameras();
             } else {
                 pararHtml5Scanner();
             }
@@ -322,51 +328,77 @@
             if (aba === 'divergencias') calcularDivergencias();
         }
 
-        // LÓGICA DE INICIALIZAÇÃO DA CÂMERA MOBILE
-        function iniciarHtml5Scanner() {
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("reader");
+        function carregarListaDeCameras() {
+            const status = document.getElementById('status-camera');
+            const select = document.getElementById('select-camera');
+            status.textContent = "Solicitando acesso à câmera...";
+
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    select.innerHTML = '';
+                    devices.forEach((device, index) => {
+                        let option = document.createElement('option');
+                        option.value = device.id;
+                        option.text = device.label || `Câmera ${index + 1}`;
+                        select.appendChild(option);
+                    });
+                    
+                    // Seleciona preferencialmente a última câmera (normalmente a traseira em celulares)
+                    select.selectedIndex = devices.length - 1;
+                    status.textContent = "";
+                    iniciarCameraSelecionada();
+                } else {
+                    status.textContent = "Nenhuma câmera encontrada no dispositivo.";
+                }
+            }).catch(err => {
+                status.textContent = "Erro de permissão! Verifique se a câmera está autorizada no navegador.";
+            });
+        }
+
+        function iniciarCameraSelecionada() {
+            const select = document.getElementById('select-camera');
+            const cameraId = select.value;
+            const status = document.getElementById('status-camera');
+
+            if (!cameraId) {
+                status.textContent = "Selecione uma câmera na lista acima.";
+                return;
             }
 
-            const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+            pararHtml5Scanner().then(() => {
+                html5QrCode = new Html5Qrcode("reader");
+                const config = { fps: 10, qrbox: { width: 220, height: 220 } };
 
-            // Tenta forçar a câmera traseira ("environment")
-            html5QrCode.start(
-                { facingMode: "environment" },
-                config,
-                (decodedText) => {
-                    processarCodigoLido(decodedText);
-                },
-                (errorMessage) => {
-                    // Ignora erros normais de busca por QR Code nos frames
-                }
-            ).catch(err => {
-                // Fallback: Se não conseguir forçar a traseira, abre qualquer câmera disponível
                 html5QrCode.start(
-                    { facingMode: "user" },
+                    cameraId,
                     config,
-                    (decodedText) => {
-                        processarCodigoLido(decodedText);
-                    }
-                ).catch(e => {
-                    alert("Não foi possível acessar a câmera. Verifique se o endereço no navegador possui 'https://' ou se deu permissão de câmera ao site.");
+                    (decodedText) => processarCodigoLido(decodedText),
+                    (errorMessage) => {}
+                ).then(() => {
+                    status.textContent = "";
+                }).catch(err => {
+                    status.textContent = "Erro ao ligar esta câmera específica.";
                 });
             });
         }
 
         function pararHtml5Scanner() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().then(() => {
-                    document.getElementById('reader').innerHTML = '';
-                }).catch(err => console.log(err));
-            }
+            return new Promise((resolve) => {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop().then(() => {
+                        document.getElementById('reader').innerHTML = '';
+                        resolve();
+                    }).catch(() => resolve());
+                } else {
+                    resolve();
+                }
+            });
         }
 
         function processarCodigoLido(codigo) {
             let codigoLimpo = String(codigo).trim();
             let agora = Date.now();
             
-            // Trava para evitar leituras duplicadas seguidas
             if (codigoLimpo === ultimoCodigoLido && (agora - ultimaLeituraTimestamp) < 2000) return;
 
             let produto = catalogoProdutos.find(p => String(p.codigo).trim().toLowerCase() === codigoLimpo.toLowerCase());
