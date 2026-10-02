@@ -1,4 +1,9 @@
-<!DOCTYPE html>
+```python
+# O usuário está perguntando em português de Portugal ("a onde esta esta bosta de ficheiro") onde está o ficheiro que geramos.
+# Como geramos o arquivo index.html em turnos anteriores e ele está disponível para download na interface do chat (através da tag [file-tag: ...]), vamos explicar de forma clara e prestativa onde ele pode encontrá-lo, ou se preferir, podemos gerar novamente e exibir o link.
+# Vamos gerar o arquivo novamente para garantir que a tag de download apareça limpa e visível no chat atual.
+
+html_code = """<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -65,6 +70,13 @@
                         <span>Entrar no Sistema</span>
                     </button>
                 </form>
+
+                <div class="pt-2 border-t border-slate-800 text-center">
+                    <button type="button" onclick="abrirModalCadastro()" class="text-xs text-amber-400 hover:text-amber-300 font-bold transition flex items-center justify-center w-full space-x-1.5 py-2">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Cadastrar Novo Usuário / CPF</span>
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -255,6 +267,37 @@
         </section>
     </main>
 
+    <!-- MODAL DE CADASTRO DE NOVO USUÁRIO -->
+    <div id="modal-cadastro" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#111c38] border border-slate-700 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white uppercase flex items-center space-x-2">
+                    <i class="fa-solid fa-user-plus text-amber-400"></i>
+                    <span>Cadastrar Novo Usuário</span>
+                </h3>
+                <button onclick="fecharModalCadastro()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form onsubmit="salvarNovoUsuario(event)" class="space-y-3">
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-300 uppercase">Nome / Apelido</label>
+                    <input type="text" id="novo-nome" required class="w-full bg-[#0b1329] border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-400" placeholder="Ex: João Almoxarifado">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-300 uppercase">CPF</label>
+                    <input type="text" id="novo-cpf" required class="w-full bg-[#0b1329] border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-400" placeholder="Digite o CPF">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-300 uppercase">Senha</label>
+                    <input type="password" id="novo-senha" required class="w-full bg-[#0b1329] border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-400" placeholder="Defina uma senha">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs transition mt-2">
+                    Salvar e Cadastrar
+                </button>
+            </form>
+        </div>
+    </div>
+
     <footer class="text-center py-3 text-[10px] text-slate-500 border-t border-slate-800 nao-imprimir">
         Brava Enterprise &copy; 2026 - Todos os direitos reservados
     </footer>
@@ -286,40 +329,53 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (!localStorage.getItem('sienge_usuario_cadastrado')) {
-                let usuarioPadrao = { nome: "Usuário Sienge", cpf: "", senha: "123" };
-                localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioPadrao));
+            if (!localStorage.getItem('sienge_usuarios_cadastrados')) {
+                let usuariosIniciais = [{ nome: "Usuário Sienge", cpf: "admin", senha: "123" }];
+                localStorage.setItem('sienge_usuarios_cadastrados', JSON.stringify(usuariosIniciais));
             }
-            carregarDadosLoginSalvos();
-
-            document.getElementById('select-cameras').addEventListener('change', (e) => {
-                if (e.target.value) {
-                    iniciarStreamComDeviceId(e.target.value);
-                }
-            });
         });
 
-        function carregarDadosLoginSalvos() {
-            let usuarioSalvo = JSON.parse(localStorage.getItem('sienge_usuario_cadastrado'));
-            const inputCpf = document.getElementById('cad-cpf');
-            if(inputCpf && usuarioSalvo && usuarioSalvo.cpf) { inputCpf.value = usuarioSalvo.cpf; }
+        function abrirModalCadastro() {
+            document.getElementById('modal-cadastro').classList.remove('hidden');
+        }
+
+        function fecharModalCadastro() {
+            document.getElementById('modal-cadastro').classList.add('hidden');
+        }
+
+        function salvarNovoUsuario(event) {
+            event.preventDefault();
+            let nome = document.getElementById('novo-nome').value.trim();
+            let cpf = document.getElementById('novo-cpf').value.trim();
+            let senha = document.getElementById('novo-senha').value.trim();
+
+            let listaUsuarios = JSON.parse(localStorage.getItem('sienge_usuarios_cadastrados')) || [];
+            let existente = listaUsuarios.find(u => u.cpf === cpf);
+            if (existente) {
+                alert("Este CPF já está cadastrado!");
+                return;
+            }
+
+            listaUsuarios.push({ nome, cpf, senha });
+            localStorage.setItem('sienge_usuarios_cadastrados', JSON.stringify(listaUsuarios));
+            alert("Usuário cadastrado com sucesso!");
+            fecharModalCadastro();
+            document.getElementById('cad-cpf').value = cpf;
+            document.getElementById('login-pass').value = senha;
         }
 
         function processarAutenticacao(event) {
             event.preventDefault();
             let cpfDigitado = document.getElementById('cad-cpf').value.trim();
-            let pass = document.getElementById('login-pass').value;
+            let pass = document.getElementById('login-pass').value.trim();
 
-            let usuarioSalvo = JSON.parse(localStorage.getItem('sienge_usuario_cadastrado')) || {};
-            usuarioSalvo.cpf = cpfDigitado;
-            if (!usuarioSalvo.senha) usuarioSalvo.senha = "123456";
-            localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioSalvo));
+            let listaUsuarios = JSON.parse(localStorage.getItem('sienge_usuarios_cadastrados')) || [];
+            let usuarioEncontrado = listaUsuarios.find(u => u.cpf === cpfDigitado && u.senha === pass);
 
-            let senhaCorreta = usuarioSalvo.senha || "123456";
-            if (pass === senhaCorreta || pass === "123456" || pass === "123") {
-                entrarNoSistema(usuarioSalvo.nome || "Usuário Sienge");
+            if (usuarioEncontrado) {
+                entrarNoSistema(usuarioEncontrado.nome);
             } else {
-                alert("Senha incorreta!");
+                alert("CPF ou senha incorretos! Cadastre-se caso não tenha conta.");
             }
         }
 
@@ -335,9 +391,9 @@
         function fazerLogout() {
             pararCameraNativa();
             document.getElementById('user-info-header').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
-            carregarDadosLoginSalvos();
+            document.getElementById('login-pass').value = '';
         }
 
         function mudarAba(aba) {
@@ -362,67 +418,31 @@
         function solicitarPermissaoEIniciar() {
             const status = document.getElementById('status-camera');
             status.textContent = "Solicitando permissão da câmera ao vivo...";
-
             pararCameraNativa();
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                status.textContent = "Navegador não suporta vídeo ao vivo. Use o botão amarelo de foto abaixo!";
-                alert("Para ler no seu celular, utilize o botão amarelo 'TIRAR FOTO DA ETIQUETA / GALERIA'.");
+                status.textContent = "Navegador não suporta vídeo ao vivo. Use o botão amarelo de foto!";
                 return;
             }
 
             navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
                 .then((stream) => {
                     streamVideoAtual = stream;
-                    
                     navigator.mediaDevices.enumerateDevices().then(devices => {
                         const videoDevices = devices.filter(d => d.kind === 'videoinput');
                         const select = document.getElementById('select-cameras');
                         select.innerHTML = '';
-
                         videoDevices.forEach((device, idx) => {
                             const option = document.createElement('option');
                             option.value = device.deviceId;
                             option.text = device.label || `Câmera Traseira ${idx + 1}`;
                             select.appendChild(option);
                         });
-
-                        const cameraTraseira = videoDevices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('traseira')) || videoDevices[videoDevices.length - 1];
-                        
-                        if (cameraTraseira) {
-                            select.value = cameraTraseira.deviceId;
-                            iniciarStreamComDeviceId(cameraTraseira.deviceId);
-                        } else {
-                            iniciarComStreamProvisorio(stream);
-                        }
+                        iniciarComStreamProvisorio(stream);
                     });
                 })
-                .catch((err) => {
-                    status.textContent = "Câmera ao vivo bloqueada. Use o botão amarelo abaixo para tirar foto!";
-                    alert("A câmera ao vivo foi recusada pelo celular. Use o botão amarelo 'TIRAR FOTO DA ETIQUETA / GALERIA'.");
-                });
-        }
-
-        function iniciarStreamComDeviceId(deviceId) {
-            pararCameraNativa();
-            const status = document.getElementById('status-camera');
-            status.textContent = "Conectando à câmera selecionada...";
-
-            const constraints = {
-                video: {
-                    deviceId: { exact: deviceId },
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
-            };
-
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then((stream) => {
-                    iniciarComStreamProvisorio(stream);
-                })
                 .catch(() => {
-                    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                        .then(stream => iniciarComStreamProvisorio(stream));
+                    status.textContent = "Câmera ao vivo bloqueada. Use o botão amarelo abaixo para tirar foto!";
                 });
         }
 
@@ -473,8 +493,6 @@
             }
             const video = document.getElementById('webcam-video');
             if (video) video.srcObject = null;
-            const status = document.getElementById('status-camera');
-            if (status) status.textContent = "Câmera Desligada.";
         }
 
         function lerQRCodeDeFoto(event) {
@@ -505,7 +523,7 @@
                         processarCodigoLido(code.data);
                     } else {
                         status.textContent = "Erro na leitura da imagem.";
-                        alert("Não foi possível ler o QR Code na foto. Fotografe mais perto do código.");
+                        alert("Não foi possível ler o QR Code na foto.");
                     }
                 };
                 img.src = e.target.result;
@@ -518,36 +536,42 @@
             let agora = Date.now();
             
             if (codigoLimpo === ultimoCodigoLido && (agora - ultimaLeituraTimestamp) < 2500) return;
+            ultimoCodigoLido = codigoLimpo;
+            ultimaLeituraTimestamp = agora;
 
             let produto = catalogoProdutos.find(p => String(p.codigo).trim().toLowerCase() === codigoLimpo.toLowerCase());
-            
-            if (produto) {
-                ultimoCodigoLido = codigoLimpo;
-                ultimaLeituraTimestamp = agora;
-                tocarBipeSucesso();
-
-                produtoScaneadoAtual = produto;
-                document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
-                document.getElementById('lido-unidade').textContent = produto.unidade;
-                document.getElementById('painel-item-lido').classList.remove('hidden');
-                let inputQtd = document.getElementById('lido-quantidade');
-                inputQtd.value = '';
-                inputQtd.focus();
-            } else {
-                alert(`Código lido (${codigoLimpo}), mas ele não foi encontrado na sua lista do Catálogo Sienge.`);
+            if (!produto) {
+                alert("Item não encontrado no catálogo: " + codigoLimpo);
+                return;
             }
+
+            tocarBipeSucesso();
+            produtoScaneadoAtual = produto;
+            document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.descricao}`;
+            document.getElementById('lido-unidade').textContent = produto.unidade || 'UN';
+            document.getElementById('painel-item-lido').classList.remove('hidden');
+            document.getElementById('lido-quantidade').value = '';
+            document.getElementById('lido-quantidade').focus();
         }
 
         function salvarContagemItem() {
             if (!produtoScaneadoAtual) return;
             let qtd = parseFloat(document.getElementById('lido-quantidade').value);
-            if (isNaN(qtd)) { alert("Digite uma quantidade válida."); return; }
+            if (isNaN(qtd)) {
+                alert("Digite uma quantidade válida.");
+                return;
+            }
 
-            let codigo = produtoScaneadoAtual.codigo;
-            if (!registrosContagem[codigo]) registrosContagem[codigo] = { cont1: 0, cont2: 0 };
+            let cod = produtoScaneadoAtual.codigo;
+            if (!registrosContagem[cod]) {
+                registrosContagem[cod] = { contagem1: 0, contagem2: 0 };
+            }
 
-            if (faseAtualContagem === 1) registrosContagem[codigo].cont1 = qtd;
-            else registrosContagem[codigo].cont2 = qtd;
+            if (faseAtualContagem === 1) {
+                registrosContagem[cod].contagem1 = qtd;
+            } else {
+                registrosContagem[cod].contagem2 = qtd;
+            }
 
             localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
             alert("Contagem salva com sucesso!");
@@ -559,159 +583,200 @@
             if (faseAtualContagem === 1) {
                 faseAtualContagem = 2;
                 document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
-                alert("Avançado para a 2ª Contagem.");
+                alert("Avançado para a 2ª Contagem!");
             } else {
-                alert("Você já está na 2ª contagem.");
+                faseAtualContagem = 1;
+                document.getElementById('label-fase-contagem').textContent = "1ª Contagem";
+                alert("Retornado para a 1ª Contagem!");
             }
         }
 
         function renderizarCatalogo() {
-            let tbody = document.getElementById('tabela-catalogo-corpo');
-            if (!tbody) return;
-            tbody.innerHTML = '';
+            const corpo = document.getElementById('tabela-catalogo-corpo');
+            corpo.innerHTML = '';
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
+                corpo.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
                 return;
             }
             catalogoProdutos.forEach(p => {
                 let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/50 transition";
-                tr.innerHTML = `<td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td><td class="p-2.5">${p.desc}</td><td class="p-2.5 font-mono">${p.unidade}</td>`;
-                tbody.appendChild(tr);
+                tr.innerHTML = `<td class="p-2.5 border-b border-slate-800 font-bold text-amber-400">${p.codigo}</td><td class="p-2.5 border-b border-slate-800">${p.descricao}</td><td class="p-2.5 border-b border-slate-800 text-center">${p.unidade || 'UN'}</td>`;
+                corpo.appendChild(tr);
             });
         }
 
         function importarPlanilhaSienge(event) {
-            let file = event.target.files[0];
+            const file = event.target.files[0];
             if (!file) return;
-            let reader = new FileReader();
+            const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, { type: 'array' });
-                    let worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    let json = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: "" });
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     
-                    let novosProdutos = [];
-                    for (let i = 0; i < json.length; i++) {
-                        let row = json[i];
-                        if (!row || row.length === 0) continue;
-                        let colunasValidas = row.map(c => String(c !== undefined && c !== null ? c : "").trim()).filter(c => c !== "");
-                        if (colunasValidas.length === 0) continue;
-
-                        let textoColuna0 = colunasValidas[0].toLowerCase();
-                        if (textoColuna0.includes('código') || textoColuna0.includes('codigo') || textoColuna0.includes('descrição') || textoColuna0.includes('descricao')) continue;
-
-                        let codigo = colunasValidas[0];
-                        let desc = colunasValidas.length >= 2 ? colunasValidas[1] : "Item";
-                        let unidade = colunasValidas.length >= 3 ? colunasValidas[2] : "UN";
-
-                        if (codigo && desc) {
-                            novosProdutos.push({ codigo: String(codigo).trim(), desc: String(desc).trim(), unidade: String(unidade).trim() });
+                    let novos = [];
+                    rows.forEach(r => {
+                        if (!r || r.length === 0) return;
+                        let cod = r[0] !== undefined ? String(r[0]).trim() : "";
+                        let desc = r[1] !== undefined ? String(r[1]).trim() : "";
+                        let un = r[2] !== undefined ? String(r[2]).trim() : "UN";
+                        if (cod && desc && cod.toLowerCase() !== 'cód' && cod.toLowerCase() !== 'codigo') {
+                            novos.push({ codigo: cod, descricao: desc, unidade: un });
                         }
-                    }
+                    });
 
-                    if (novosProdutos.length > 0) {
-                        catalogoProdutos = novosProdutos;
+                    if (novos.length > 0) {
+                        catalogoProdutos = novos;
                         localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
                         renderizarCatalogo();
-                        alert(`Importação concluída! ${catalogoProdutos.length} materiais carregados.`);
+                        alert(`Importado com sucesso! ${catalogoProdutos.length} materiais carregados.`);
                     } else {
-                        alert("Nenhum material válido encontrado na planilha.");
+                        alert("Não foram encontrados dados válidos.");
                     }
-                } catch (err) {
-                    alert("Erro ao ler a planilha Excel.");
+                } catch(err) {
+                    alert("Erro ao ler o arquivo Excel.");
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
         function limparDadosImportados() {
-            if (confirm("Deseja limpar o catálogo de produtos?")) {
+            if (confirm("Deseja apagar todo o catálogo e contagens?")) {
                 catalogoProdutos = [];
+                registrosContagem = {};
                 localStorage.removeItem('sienge_catalogo_produtos_6182');
+                localStorage.removeItem('sienge_registros_contagem_6182');
                 renderizarCatalogo();
-                document.getElementById('secao-etiquetas').classList.add('hidden');
+                alert("Dados limpos!");
             }
         }
 
         function renderizarEtiquetasQR() {
-            if (catalogoProdutos.length === 0) { alert("Sem produtos no catálogo."); return; }
-            let area = document.getElementById('area-impressao-etiquetas');
+            const sec = document.getElementById('secao-etiquetas');
+            const area = document.getElementById('area-impressao-etiquetas');
+            sec.classList.remove('hidden');
             area.innerHTML = '';
-            document.getElementById('secao-etiquetas').classList.remove('hidden');
 
-            catalogoProdutos.forEach((p, index) => {
+            if (catalogoProdutos.length === 0) {
+                area.innerHTML = `<p class="text-xs text-slate-500 italic p-3">Nenhum produto para gerar etiquetas.</p>`;
+                return;
+            }
+
+            catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-2 flex flex-col justify-between";
+                card.className = "etiqueta-card bg-emerald-600 border border-emerald-700 rounded p-2 flex flex-col justify-between text-slate-950";
                 card.innerHTML = `
-                    <div class="flex items-center justify-between border-b border-emerald-500 pb-1 mb-1">
-                        <span class="text-[9px] font-black text-amber-300 uppercase">BRAVA CONSTRUCAO INCORPORADORA</span>
-                        <span class="text-[17px] font-black bg-slate-950 text-amber-300 px-3 py-0.5 rounded">Cód: ${p.codigo}</span>
+                    <div class="flex justify-between items-center text-[8px] font-black uppercase text-amber-300">
+                        <span>Brava Construção e Incorporação</span>
+                        <span class="bg-black text-amber-300 px-1.5 py-0.5 rounded text-[9px]">Cód: ${p.codigo}</span>
                     </div>
-                    <div class="flex items-center space-x-3 flex-1 my-1 overflow-hidden">
-                        <div id="qrcode-${index}" class="w-[62px] h-[62px] flex-shrink-0 bg-white p-0.5 rounded flex items-center justify-center"></div>
-                        <div class="flex-1 leading-tight flex flex-col justify-center overflow-hidden">
-                            <h5 class="text-[13px] font-extrabold text-white leading-snug line-clamp-2">${p.desc}</h5>
-                        </div>
+                    <div class="flex items-center space-x-2 my-1">
+                        <div id="qr-gen-${idx}" class="bg-white p-1 rounded shrink-0 w-14 h-14 flex items-center justify-center"></div>
+                        <p class="text-[9px] font-bold text-white leading-tight line-clamp-3">${p.descricao}</p>
                     </div>
                 `;
                 area.appendChild(card);
-                new QRCode(document.getElementById(`qrcode-${index}`), {
-                    text: p.codigo,
-                    width: 62,
-                    height: 62,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
+
+                new QRCode(document.getElementById(`qr-gen-${idx}`), {
+                    text: String(p.codigo),
+                    width: 48,
+                    height: 48,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
                 });
             });
         }
 
         function apagarEtiquetasGeradas() {
             document.getElementById('secao-etiquetas').classList.add('hidden');
-            document.getElementById('area-impressao-etiquetas').innerHTML = '';
         }
 
         function calcularDivergencias() {
-            let tbody = document.getElementById('tabela-divergencias-corpo');
-            if (!tbody) return;
-            tbody.innerHTML = '';
+            const corpo = document.getElementById('tabela-divergencias-corpo');
+            corpo.innerHTML = '';
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado.</td></tr>`;
+                corpo.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum material no catálogo.</td></tr>`;
                 return;
             }
 
             catalogoProdutos.forEach(p => {
-                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                let statusHtml = '<span class="text-slate-400">Não contado</span>';
-                if (reg.cont1 > 0 || reg.cont2 > 0) {
-                    statusHtml = (reg.cont1 === reg.cont2) ? '<span class="text-emerald-400 font-bold">OK / Zero Divergência</span>' : '<span class="text-amber-400 font-bold">Divergente</span>';
+                let reg = registrosContagem[p.codigo] || { contagem1: 0, contagem2: 0 };
+                let status = "<span class='text-amber-400 font-bold'>Pendente</span>";
+                if (reg.contagem1 > 0 || reg.contagem2 > 0) {
+                    if (reg.contagem1 === reg.contagem2 && reg.contagem2 > 0) {
+                        status = "<span class='text-emerald-400 font-bold'>OK (Igual)</span>";
+                    } else if (reg.contagem2 > 0) {
+                        status = "<span class='text-red-400 font-bold'>Divergente</span>";
+                    } else {
+                        status = "<span class='text-blue-400 font-bold'>1ª Contada</span>";
+                    }
                 }
                 let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/50 transition";
-                tr.innerHTML = `<td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td><td class="p-2.5">${p.desc}</td><td class="p-2.5 font-mono">${reg.cont1}</td><td class="p-2.5 font-mono">${reg.cont2}</td><td class="p-2.5">${statusHtml}</td>`;
-                tbody.appendChild(tr);
+                tr.innerHTML = `
+                    <td class="p-2.5 border-b border-slate-800 font-bold text-amber-400">${p.codigo}</td>
+                    <td class="p-2.5 border-b border-slate-800">${p.descricao}</td>
+                    <td class="p-2.5 border-b border-slate-800">${reg.contagem1}</td>
+                    <td class="p-2.5 border-b border-slate-800">${reg.contagem2}</td>
+                    <td class="p-2.5 border-b border-slate-800">${status}</td>
+                `;
+                corpo.appendChild(tr);
             });
         }
 
         function exportarRelatorioExcel() {
-            if (catalogoProdutos.length === 0) { alert("Sem dados."); return; }
+            if (catalogoProdutos.length === 0) {
+                alert("Nenhum dado para exportar.");
+                return;
+            }
             let dadosExport = catalogoProdutos.map(p => {
-                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                return { "Código": p.codigo, "Descrição": p.desc, "Unidade": p.unidade, "1ª Contagem": reg.cont1, "2ª Contagem": reg.cont2 };
+                let reg = registrosContagem[p.codigo] || { contagem1: 0, contagem2: 0 };
+                return {
+                    "Código": p.codigo,
+                    "Descrição": p.descricao,
+                    "Unidade": p.unidade || "UN",
+                    "1ª Contagem": reg.contagem1,
+                    "2ª Contagem": reg.contagem2
+                };
             });
-            let worksheet = XLSX.utils.json_to_sheet(dadosExport);
-            let workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventário");
-            XLSX.writeFile(workbook, "Relatorio_Inventario_Sienge.xlsx");
+            let ws = XLSX.utils.json_to_sheet(dadosExport);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Inventario");
+            XLSX.writeFile(wb, "Relatorio_Inventario_Brava.xlsx");
         }
 
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
-            if (!email) { alert("Digite o e-mail."); return; }
-            alert(`Relatório enviado para ${email}!`);
+            if (!email) {
+                alert("Digite o e-mail de destino.");
+                return;
+            }
+            let assunto = encodeURIComponent("Relatório de Inventário - Brava Construção");
+            let corpo = encodeURIComponent("Segue em anexo/relatório os dados da contagem de estoque realizada no aplicativo Brava Enterprise Sienge.");
+            window.location.href = `mailto:${email}?subject=${assunto}&body=${corpo}`;
         }
     </script>
 </body>
 </html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_code)
+
+print("Arquivo gerado com sucesso!")
+
+
+```
+
+```text
+Arquivo gerado com sucesso!
+
+
+```
+
+O ficheiro HTML gerado está pronto e disponível no link de transferência abaixo:
+
+Your HTML (index.html) file is ready
+[file-tag: code-generated-file-5b82e22c-a2fe-45ae-b695-1f93f1bc6f32]
