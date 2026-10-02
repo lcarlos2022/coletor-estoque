@@ -1,10 +1,9 @@
 ```python
-# O usuário está perguntando em português de Portugal ("a onde esta esta bosta de ficheiro") onde está o ficheiro que geramos.
-# Como geramos o arquivo index.html em turnos anteriores e ele está disponível para download na interface do chat (através da tag [file-tag: ...]), vamos explicar de forma clara e prestativa onde ele pode encontrá-lo, ou se preferir, podemos gerar novamente e exibir o link.
-# Vamos gerar o arquivo novamente para garantir que a tag de download apareça limpa e visível no chat atual.
+# Vamos conferir o código HTML do index.html para garantir que o botão e o modal de cadastro de novo usuário 
+# estão perfeitamente visíveis, destacados e funcionais na tela de login, respondendo diretamente ao usuário em português de Portugal.
 
 html_code = """<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -50,20 +49,20 @@ html_code = """<!DOCTYPE html>
         <!-- TELA DE LOGIN -->
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
-                <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2">Entre com seu CPF e senha para usar no celular/tablet.</p>
+                <h2 class="text-3xl font-black text-white tracking-tight">Controlo de Acesso</h2>
+                <p class="text-xs text-slate-400 leading-relaxed px-2">Entre com o seu CPF e senha para usar no telemóvel/tablet.</p>
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
-                        <input type="text" id="cad-cpf" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Digite seu CPF">
+                        <input type="text" id="cad-cpf" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Digite o seu CPF">
                     </div>
 
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Senha</label>
-                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
+                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite a sua senha">
                     </div>
 
                     <button type="submit" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
@@ -71,10 +70,11 @@ html_code = """<!DOCTYPE html>
                     </button>
                 </form>
 
+                <!-- BOTÃO DE CADASTRO DE NOVO UTILIZADOR / CPF NA TELA DE LOGIN -->
                 <div class="pt-2 border-t border-slate-800 text-center">
-                    <button type="button" onclick="abrirModalCadastro()" class="text-xs text-amber-400 hover:text-amber-300 font-bold transition flex items-center justify-center w-full space-x-1.5 py-2">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>Cadastrar Novo Usuário / CPF</span>
+                    <button type="button" onclick="abrirModalCadastro()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 hover:text-amber-300 text-xs font-bold py-3 rounded-xl transition flex items-center justify-center space-x-2 shadow-md">
+                        <i class="fa-solid fa-user-plus text-sm"></i>
+                        <span>Criar Novo Utilizador / CPF</span>
                     </button>
                 </div>
             </div>
@@ -273,7 +273,7 @@ html_code = """<!DOCTYPE html>
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-white uppercase flex items-center space-x-2">
                     <i class="fa-solid fa-user-plus text-amber-400"></i>
-                    <span>Cadastrar Novo Usuário</span>
+                    <span>Cadastrar Novo Utilizador</span>
                 </h3>
                 <button onclick="fecharModalCadastro()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
@@ -330,7 +330,7 @@ html_code = """<!DOCTYPE html>
 
         window.addEventListener('DOMContentLoaded', () => {
             if (!localStorage.getItem('sienge_usuarios_cadastrados')) {
-                let usuariosIniciais = [{ nome: "Usuário Sienge", cpf: "admin", senha: "123" }];
+                let usuariosIniciais = [{ nome: "Utilizador Sienge", cpf: "admin", senha: "123" }];
                 localStorage.setItem('sienge_usuarios_cadastrados', JSON.stringify(usuariosIniciais));
             }
         });
@@ -358,7 +358,7 @@ html_code = """<!DOCTYPE html>
 
             listaUsuarios.push({ nome, cpf, senha });
             localStorage.setItem('sienge_usuarios_cadastrados', JSON.stringify(listaUsuarios));
-            alert("Usuário cadastrado com sucesso!");
+            alert("Utilizador cadastrado com sucesso!");
             fecharModalCadastro();
             document.getElementById('cad-cpf').value = cpf;
             document.getElementById('login-pass').value = senha;
@@ -732,7 +732,7 @@ html_code = """<!DOCTYPE html>
                 return;
             }
             let dadosExport = catalogoProdutos.map(p => {
-                let reg = registrosContagem[p.codigo] || { contagem1: 0, contagem2: 0 };
+                let reg = registrosContagem[p.codigo] || { contagem1: 0, cmd: 0 };
                 return {
                     "Código": p.codigo,
                     "Descrição": p.descricao,
@@ -765,18 +765,17 @@ html_code = """<!DOCTYPE html>
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_code)
 
-print("Arquivo gerado com sucesso!")
+print("Gerado com sucesso!")
 
 
 ```
 
 ```text
-Arquivo gerado com sucesso!
+Gerado com sucesso!
 
 
 ```
 
-O ficheiro HTML gerado está pronto e disponível no link de transferência abaixo:
+O ficheiro `index.html` atualizado encontra-se pronto. O botão **"Criar Novo Utilizador / CPF"** está perfeitamente posicionado diretamente abaixo do formulário de acesso na tela inicial, pronto a abrir o modal de registo.
 
 Your HTML (index.html) file is ready
-[file-tag: code-generated-file-5b82e22c-a2fe-45ae-b695-1f93f1bc6f32]
