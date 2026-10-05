@@ -7,7 +7,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @page { size: letter; margin: 10mm 6mm; }
+        @media print {
+            body * { visibility: hidden; }
+            #secao-etiquetas, #secao-etiquetas * { visibility: visible; }
+            #secao-etiquetas { position: absolute; left: 0; top: 0; width: 100%; background: white !important; color: black !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+            .nao-imprimir { display: none !important; }
+            #area-impressao-etiquetas { display: grid !important; grid-template-columns: repeat(2, 101.6mm) !important; grid-auto-rows: 36mm !important; gap: 4mm 4mm !important; background: white !important; border: none !important; max-height: none !important; overflow: visible !important; padding: 0 !important; justify-content: start !important; }
+            .etiqueta-card { width: 101.6mm !important; height: 33.9mm !important; background: #16a34a !important; border: 0.5px solid #14532d !important; box-shadow: none !important; break-inside: avoid; page-break-inside: avoid; padding: 3mm 4mm !important; border-radius: 2px !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: space-between !important; overflow: hidden !important; box-sizing: border-box !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
 </head>
 <body class="bg-[#0b1329] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
 
@@ -129,6 +142,10 @@
                                 <span>Importar Planilha</span>
                                 <input type="file" id="input-excel" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarPlanilhaSienge(event)">
                             </label>
+                            <button onclick="renderizarEtiquetasQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-qrcode"></i>
+                                <span>Gerar Etiquetas</span>
+                            </button>
                             <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
                                 <i class="fa-solid fa-trash-can"></i>
                                 <span>Limpar Dados</span>
@@ -148,6 +165,16 @@
                                 <tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase">Etiquetas Customizadas</h4>
+                            <div class="flex space-x-2">
+                                <button onclick="window.print()" class="nao-imprimir bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-print"></i> Imprimir</button>
+                                <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-trash"></i> Apagar</button>
+                            </div>
+                        </div>
+                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-[#0b1329] p-3 rounded-xl border border-slate-800 max-h-80 overflow-y-auto"></div>
                     </div>
                 </div>
 
@@ -260,7 +287,7 @@
         </section>
     </main>
 
-    <footer class="text-center py-3 text-[10px] text-slate-500 border-t border-slate-800">
+    <footer class="text-center py-3 text-[10px] text-slate-500 border-t border-slate-800 nao-imprimir">
         Brava Enterprise &copy; 2026 - Todos os direitos reservados
     </footer>
 
@@ -366,17 +393,24 @@
 
         function solicitarPermissaoEIniciar() {
             const status = document.getElementById('status-camera');
-            status.textContent = "Solicitando permissão da câmera ao vivo...";
+            status.textContent = "A iniciar a câmara...";
 
             pararCameraNativa();
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                status.textContent = "Navegador não suporta vídeo ao vivo. Use o botão amarelo de foto abaixo!";
-                alert("Para ler no seu celular, utilize o botão amarelo 'TIRAR FOTO DA ETIQUETA / GALERIA'.");
+                status.textContent = "O seu navegador não suporta câmara direta. Use a opção de carregar foto.";
                 return;
             }
 
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
+            const constraints = {
+                video: {
+                    facingMode: { ideal: "environment" },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints)
                 .then((stream) => {
                     streamVideoAtual = stream;
                     
@@ -392,7 +426,7 @@
                             select.appendChild(option);
                         });
 
-                        const cameraTraseira = videoDevices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('traseira')) || videoDevices[videoDevices.length - 1];
+                        const cameraTraseira = videoDevices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('traseira') || d.label.toLowerCase().includes('rear')) || videoDevices[videoDevices.length - 1];
                         
                         if (cameraTraseira) {
                             select.value = cameraTraseira.deviceId;
@@ -403,15 +437,18 @@
                     });
                 })
                 .catch((err) => {
-                    status.textContent = "Câmera ao vivo bloqueada. Use o botão amarelo abaixo para tirar foto!";
-                    alert("A câmera ao vivo foi recusada pelo celular. Use o botão amarelo 'TIRAR FOTO DA ETIQUETA / GALERIA'.");
+                    navigator.mediaDevices.getUserMedia({ video: true })
+                        .then(stream => iniciarComStreamProvisorio(stream))
+                        .catch(() => {
+                            status.textContent = "Erro ao abrir câmara. Tente o botão de foto.";
+                        });
                 });
         }
 
         function iniciarStreamComDeviceId(deviceId) {
             pararCameraNativa();
             const status = document.getElementById('status-camera');
-            status.textContent = "Conectando à câmera selecionada...";
+            status.textContent = "A ligar à câmara...";
 
             const constraints = {
                 video: {
@@ -427,7 +464,10 @@
                 })
                 .catch(() => {
                     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                        .then(stream => iniciarComStreamProvisorio(stream));
+                        .then(stream => iniciarComStreamProvisorio(stream))
+                        .catch(() => {
+                            status.textContent = "Erro ao abrir câmara selecionada.";
+                        });
                 });
         }
 
@@ -437,9 +477,12 @@
             streamVideoAtual = stream;
             video.srcObject = stream;
             video.setAttribute("playsinline", true);
-            video.play();
-            status.textContent = "Câmera Ativa. Aponte para a etiqueta!";
-            animacaoFrameId = requestAnimationFrame(processarFrameVideo);
+            video.play().then(() => {
+                status.textContent = "Câmara Ativa. Aponte para o código!";
+                animacaoFrameId = requestAnimationFrame(processarFrameVideo);
+            }).catch(e => {
+                status.textContent = "Erro ao reproduzir o vídeo.";
+            });
         }
 
         function processarFrameVideo() {
@@ -449,7 +492,7 @@
             if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
                 canvas.height = video.videoHeight;
                 canvas.width = video.videoWidth;
-                const ctx = canvas.getContext('2d');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -479,7 +522,7 @@
             const video = document.getElementById('webcam-video');
             if (video) video.srcObject = null;
             const status = document.getElementById('status-camera');
-            if (status) status.textContent = "Câmera Desligada.";
+            if (status) status.textContent = "Câmara Desligada.";
         }
 
         function lerQRCodeDeFoto(event) {
@@ -487,7 +530,7 @@
             if (!file) return;
 
             const status = document.getElementById('status-camera');
-            status.textContent = "Lendo imagem do QR Code...";
+            status.textContent = "A ler imagem...";
 
             const img = new Image();
             const reader = new FileReader();
@@ -495,7 +538,7 @@
             reader.onload = function(e) {
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
                     canvas.width = img.width;
                     canvas.height = img.height;
                     ctx.drawImage(img, 0, 0);
@@ -506,11 +549,11 @@
                     });
 
                     if (code && code.data) {
-                        status.textContent = "QR Code Lido com Sucesso!";
+                        status.textContent = "Código Lido com Sucesso!";
                         processarCodigoLido(code.data);
                     } else {
-                        status.textContent = "Erro na leitura da imagem.";
-                        alert("Não foi possível ler o QR Code na foto. Fotografe mais perto do código.");
+                        status.textContent = "Não foi encontrado código na foto.";
+                        alert("Não foi encontrado QR Code válido nesta foto.");
                     }
                 };
                 img.src = e.target.result;
@@ -524,11 +567,7 @@
             
             if (codigoLimpo === ultimoCodigoLido && (agora - ultimaLeituraTimestamp) < 2500) return;
 
-            // Correção aprimorada: busca flexível por correspondência exata, ignorando maiúsculas/minúsculas e espaços
-            let produto = catalogoProdutos.find(p => {
-                let pCod = String(p.codigo).trim();
-                return pCod.toLowerCase() === codigoLimpo.toLowerCase() || codigoLimpo.toLowerCase().includes(pCod.toLowerCase());
-            });
+            let produto = catalogoProdutos.find(p => String(p.codigo).trim().toLowerCase() === codigoLimpo.toLowerCase());
             
             if (produto) {
                 ultimoCodigoLido = codigoLimpo;
@@ -543,7 +582,7 @@
                 inputQtd.value = '';
                 inputQtd.focus();
             } else {
-                alert(`Código lido (${codigoLimpo}), mas ele não foi encontrado na sua lista do Catálogo Sienge.`);
+                alert(`Código lido (${codigoLimpo}), mas não consta no Catálogo.`);
             }
         }
 
@@ -579,7 +618,7 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado.</td></tr>`;
                 return;
             }
             catalogoProdutos.forEach(p => {
@@ -640,7 +679,46 @@
                 catalogoProdutos = [];
                 localStorage.removeItem('sienge_catalogo_produtos_6182');
                 renderizarCatalogo();
+                document.getElementById('secao-etiquetas').classList.add('hidden');
             }
+        }
+
+        function renderizarEtiquetasQR() {
+            if (catalogoProdutos.length === 0) { alert("Sem produtos no catálogo."); return; }
+            let area = document.getElementById('area-impressao-etiquetas');
+            area.innerHTML = '';
+            document.getElementById('secao-etiquetas').classList.remove('hidden');
+
+            catalogoProdutos.forEach((p, index) => {
+                let card = document.createElement('div');
+                card.className = "etiqueta-card border border-emerald-700 bg-[#16a34a] text-white rounded p-2 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-emerald-500 pb-1 mb-1">
+                        <span class="text-[9px] font-black text-amber-300 uppercase">BRAVA CONSTRUCAO INCORPORADORA</span>
+                        <span class="text-[17px] font-black bg-slate-950 text-amber-300 px-3 py-0.5 rounded">Cód: ${p.codigo}</span>
+                    </div>
+                    <div class="flex items-center space-x-3 flex-1 my-1 overflow-hidden">
+                        <div id="qrcode-${index}" class="w-[62px] h-[62px] flex-shrink-0 bg-white p-0.5 rounded flex items-center justify-center"></div>
+                        <div class="flex-1 leading-tight flex flex-col justify-center overflow-hidden">
+                            <h5 class="text-[13px] font-extrabold text-white leading-snug line-clamp-2">${p.desc}</h5>
+                        </div>
+                    </div>
+                `;
+                area.appendChild(card);
+                new QRCode(document.getElementById(`qrcode-${index}`), {
+                    text: p.codigo,
+                    width: 62,
+                    height: 62,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            });
+        }
+
+        function apagarEtiquetasGeradas() {
+            document.getElementById('secao-etiquetas').classList.add('hidden');
+            document.getElementById('area-impressao-etiquetas').innerHTML = '';
         }
 
         function calcularDivergencias() {
@@ -711,7 +789,7 @@
             
             document.getElementById('cad-cpf').value = cpf;
             fecharModalNovoUsuario();
-            alert("Novo usuário e senha cadastrados com sucesso! Faça login com suas novas credenciais.");
+            alert("Novo usuário cadastrado com sucesso!");
         }
     </script>
 </body>
