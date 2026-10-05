@@ -562,15 +562,24 @@
         }
 
         function processarCodigoLido(codigo) {
-            let codigoLimpo = String(codigo).trim();
-            let agora = Date.now();
+            let codigoLidoBruto = String(codigo).trim();
             
-            if (codigoLimpo === ultimoCodigoLido && (agora - ultimaLeituraTimestamp) < 2500) return;
+            // Validação ajustada: aceita de 1 a 6 caracteres (números, letras ou zeros à esquerda, ex: "005", "5", etc.)
+            let regexValido = /^[0-9A-Za-z]{1,6}$/;
+            if (!regexValido.test(codigoLidoBruto)) return;
 
-            let produto = catalogoProdutos.find(p => String(p.codigo).trim().toLowerCase() === codigoLimpo.toLowerCase());
+            let agora = Date.now();
+            if (codigoLidoBruto === ultimoCodigoLido && (agora - ultimaLeituraTimestamp) < 2500) return;
+
+            // Tenta encontrar correspondência exata ou ignorando zeros à esquerda para garantir máxima flexibilidade
+            let produto = catalogoProdutos.find(p => {
+                let pCod = String(p.codigo).trim();
+                return pCod.toLowerCase() === codigoLidoBruto.toLowerCase() || 
+                       String(parseInt(pCod, 10)) === String(parseInt(codigoLidoBruto, 10));
+            });
             
             if (produto) {
-                ultimoCodigoLido = codigoLimpo;
+                ultimoCodigoLido = codigoLidoBruto;
                 ultimaLeituraTimestamp = agora;
                 tocarBipeSucesso();
 
@@ -582,7 +591,7 @@
                 inputQtd.value = '';
                 inputQtd.focus();
             } else {
-                alert(`Código lido (${codigoLimpo}), mas não consta no Catálogo.`);
+                alert(`Código lido (${codigoLidoBruto}), mas não consta no Catálogo Sienge.`);
             }
         }
 
