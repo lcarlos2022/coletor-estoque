@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brava Enterprise - Gestor de Etiquetas</title>
+    <title>Gestor de Etiquetas e Estoque</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -105,7 +105,7 @@
                 <i class="fa-solid fa-boxes-stacked text-base"></i>
             </div>
             <div>
-                <h1 class="text-xs font-black text-white tracking-widest uppercase">Brava Enterprise</h1>
+                <h1 id="header-empresa-titulo" class="text-xs font-black text-white tracking-widest uppercase">BRAVA CONSTRUÇÃO E INCORPORAÇÃO</h1>
                 <p class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Gestor Sienge Edition</p>
             </div>
         </div>
@@ -212,13 +212,13 @@
                     <div class="bg-[#0b1329] border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-2">
                         <span class="text-xs font-bold text-amber-400 uppercase flex items-center space-x-1.5">
                             <i class="fa-solid fa-building"></i>
-                            <span>Empresa para Etiquetas:</span>
+                            <span>Selecionar Empresa das Etiquetas:</span>
                         </span>
                         <div class="flex gap-2 w-full sm:w-auto">
-                            <button id="btn-empresa-brava" onclick="mudarEmpresa('BRAVA CONSTRUÇÃO E INCORPORAÇÃO')" class="flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition">
+                            <button id="btn-empresa-brava" onclick="mudarEmpresa('BRAVA CONSTRUÇÃO E INCORPORAÇÃO')" class="flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition">
                                 Brava
                             </button>
-                            <button id="btn-empresa-cliente" onclick="mudarEmpresa('VENTOS PATRIMONIAIS LTDA')" class="flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg font-bold transition">
+                            <button id="btn-empresa-cliente" onclick="mudarEmpresa('VENTOS PATRIMONIAIS LTDA')" class="flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-bold transition">
                                 Ventos Patrimoniais (Cliente)
                             </button>
                         </div>
@@ -253,11 +253,10 @@
                                     <th class="p-2.5 border-b border-slate-800">Código</th>
                                     <th class="p-2.5 border-b border-slate-800">Descrição do Material</th>
                                     <th class="p-2.5 border-b border-slate-800">Unidade</th>
-                                    <th class="p-2.5 border-b border-slate-800">Empresa</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-catalogo-corpo" class="divide-y divide-slate-800 text-slate-300">
-                                <tr><td colspan="4" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>
+                                <tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -352,7 +351,7 @@
     </main>
 
     <footer class="text-center py-3 text-[10px] text-slate-500 border-t border-slate-800 nao-imprimir">
-        Brava Enterprise &copy; 2026 - Todos os direitos reservados
+        Gestor de Estoque &copy; 2026 - Todos os direitos reservados
     </footer>
 
     <script>
@@ -371,19 +370,20 @@
             
             const btnBrava = document.getElementById('btn-empresa-brava');
             const btnCliente = document.getElementById('btn-empresa-cliente');
+            const headerTitulo = document.getElementById('header-empresa-titulo');
 
-            if (nomeEmpresa.includes("BRAVA")) {
-                btnBrava.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition";
-                btnCliente.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg font-bold transition";
-            } else {
-                btnCliente.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition";
-                btnBrava.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg font-bold transition";
+            if (headerTitulo) {
+                headerTitulo.textContent = empresaAtual;
             }
 
-            // Atualiza a empresa de todos os produtos do catálogo
-            catalogoProdutos.forEach(p => p.empresa = empresaAtual);
-            localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
-            renderizarCatalogo();
+            if (nomeEmpresa.includes("BRAVA")) {
+                btnBrava.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition";
+                btnCliente.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-bold transition";
+            } else {
+                btnCliente.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition";
+                btnBrava.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-bold transition";
+            }
+
             if (!document.getElementById('secao-etiquetas').classList.contains('hidden')) {
                 renderizarEtiquetasQR();
             }
@@ -650,12 +650,11 @@
                         if (!id || id.toLowerCase() === 'cód' || id.toLowerCase() === 'codigo' || id.toLowerCase() === 'insumo') return;
                         
                         if (id && desc) {
-                            // Verifica se o código já existe no catálogo para atualizar ou adicionar
                             let idxExistente = catalogoProdutos.findIndex(p => String(p.id).trim() === id);
                             if (idxExistente !== -1) {
-                                catalogoProdutos[idxExistente] = { id, descricao: desc, un, empresa: empresaAtual };
+                                catalogoProdutos[idxExistente] = { id, descricao: desc, un };
                             } else {
-                                catalogoProdutos.push({ id, descricao: desc, un, empresa: empresaAtual });
+                                catalogoProdutos.push({ id, descricao: desc, un });
                                 adicionadosCount++;
                             }
                         }
@@ -676,7 +675,7 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
                 return;
             }
             catalogoProdutos.forEach(p => {
@@ -685,7 +684,6 @@
                     <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
                     <td class="p-2.5 border-b border-slate-800">${p.descricao}</td>
                     <td class="p-2.5 border-b border-slate-800">${p.un || 'UN'}</td>
-                    <td class="p-2.5 border-b border-slate-800 text-[10px] uppercase text-emerald-400 font-semibold">${p.empresa || empresaAtual}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -722,8 +720,7 @@
                 let card = document.createElement('div');
                 card.className = 'etiqueta-card';
                 
-                // Nome exato conforme a empresa selecionada
-                let nomeEmpresaExibicao = p.empresa || empresaAtual;
+                let nomeEmpresaExibicao = empresaAtual;
 
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
@@ -792,7 +789,7 @@
                 "Código": p.id,
                 "Descrição": p.descricao,
                 "Unidade": p.un || "UN",
-                "Empresa": p.empresa || empresaAtual,
+                "Empresa": empresaAtual,
                 "1ª Contagem": registrosContagem[`${p.id}_fase_1`] !== undefined ? registrosContagem[`${p.id}_fase_1`] : "",
                 "2ª Contagem": registrosContagem[`${p.id}_fase_2`] !== undefined ? registrosContagem[`${p.id}_fase_2`] : ""
             }));
