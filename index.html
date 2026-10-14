@@ -342,6 +342,13 @@
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
 
+        // Função para tratar e limpar a descrição removendo unidades que venham no começo
+        function limparDescricao(desc) {
+            if (!desc) return "";
+            // Remove prefixos como [und], (und), [un], (un), etc.
+            return desc.replace(/^\s*[\(\[]?\s*(und\vert{}un\vert{}pc\vert{}kg\vert{}m\vert{}l)\s*[\)\]]?\s*/i, '').trim();
+        }
+
         function obterCatalogoCorrente() {
             return modoEmpresa === "BRAVA" ? dbBrava : dbCliente;
         }
@@ -605,7 +612,8 @@
             tocarBipeSucesso();
             produtoScaneadoAtual = produto;
 
-            document.getElementById('lido-codigo-desc').textContent = `${produto.id} - ${produto.descricao}`;
+            let descLimpa = limparDescricao(produto.descricao);
+            document.getElementById('lido-codigo-desc').textContent = `${produto.id} - ${descLimpa}`;
             document.getElementById('lido-unidade').textContent = produto.un || 'UN';
             
             let campoQtd = document.getElementById('lido-quantidade');
@@ -660,11 +668,13 @@
                     rows.forEach(r => {
                         if (!r || r.length === 0) return;
                         let id = r[0] !== undefined ? String(r[0]).trim() : "";
-                        let desc = r[1] !== undefined ? String(r[1]).trim() : "";
+                        let descBruta = r[1] !== undefined ? String(r[1]).trim() : "";
                         let un = r[2] !== undefined ? String(r[2]).trim() : "UN";
 
                         if (!id || id.toLowerCase() === 'cód' || id.toLowerCase() === 'codigo' || id.toLowerCase() === 'insumo') return;
                         
+                        let desc = limparDescricao(descBruta);
+
                         if (id && desc) {
                             let idxExistente = catalogoAtivo.findIndex(p => String(p.id).trim() === id);
                             if (idxExistente !== -1) {
@@ -704,9 +714,10 @@
             }
             catalogoAtivo.forEach(p => {
                 let tr = document.createElement('tr');
+                let descLimpa = limparDescricao(p.descricao);
                 tr.innerHTML = `
                     <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
-                    <td class="p-2.5 border-b border-slate-800">${p.descricao}</td>
+                    <td class="p-2.5 border-b border-slate-800">${descLimpa}</td>
                     <td class="p-2.5 border-b border-slate-800">${p.un || 'UN'}</td>
                 `;
                 tbody.appendChild(tr);
@@ -727,7 +738,7 @@
             }
         }
 
-        // RENDERIZAÇÃO CORRIGIDA DAS ETIQUETAS: DESCRICAO + ESPAÇO + UNIDADE
+        // RENDERIZAÇÃO DAS ETIQUETAS: LIMPA A FRENTE E COLOCA APENAS NO FINAL
         function renderizarEtiquetasQR() {
             let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
@@ -755,6 +766,7 @@
                 card.className = 'etiqueta-card';
                 
                 let unidadeTexto = p.un ? p.un : "UN";
+                let descFinal = limparDescricao(p.descricao);
                 
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
@@ -763,7 +775,7 @@
                     </div>
                     <div class="flex items-center space-x-3">
                         <div id="qr-gen-${idx}" class="qr-code-container"></div>
-                        <p class="text-[11px] font-bold text-white leading-tight line-clamp-3">${p.descricao} ${unidadeTexto}</p>
+                        <p class="text-[11px] font-bold text-white leading-tight line-clamp-3">${descFinal} ${unidadeTexto}</p>
                     </div>
                 `;
                 area.appendChild(card);
@@ -807,9 +819,10 @@
                 }
 
                 let tr = document.createElement('tr');
+                let descLimpa = limparDescricao(p.descricao);
                 tr.innerHTML = `
                     <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
-                    <td class="p-2.5 border-b border-slate-800">${p.descricao}</td>
+                    <td class="p-2.5 border-b border-slate-800">${descLimpa}</td>
                     <td class="p-2.5 border-b border-slate-800">${c1}</td>
                     <td class="p-2.5 border-b border-slate-800">${c2}</td>
                     <td class="p-2.5 border-b border-slate-800">${statusBadge}</td>
@@ -824,7 +837,7 @@
             let nomeEmpresaExtenso = obterNomeEmpresaExtenso();
             let dadosExport = catalogoAtivo.map(p => ({
                 "Código": p.id,
-                "Descrição": p.descricao,
+                "Descrição": limparDescricao(p.descricao),
                 "Unidade": p.un || "UN",
                 "Empresa": nomeEmpresaExtenso,
                 "1ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "",
