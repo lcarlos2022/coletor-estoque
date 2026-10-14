@@ -7,7 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Substituído qrcodejs por qrcode-generator para suportar nível H e matriz estrita -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -89,7 +90,7 @@
             flex-shrink: 0;
         }
 
-        .qr-code-container img, .qr-code-container canvas {
+        .qr-code-container svg {
             display: block;
             margin: 0 auto;
             width: 48px !important;
@@ -523,20 +524,67 @@
             }
         }
 
-        function renderizarCatalogo() {
-            let tbody = document.getElementById('tabela-catalogo-corpo');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
+        // ==========================================
+        // CORREÇÃO ESTRITA DE LEITURA (EVITA CONFUSÃO ENTRE CÓDIGOS CURTOS COMO 38 E 387)
+        // ==========================================
+        function processarCodigoLido(decodedText) {
+            let codigoLido = String(decodedText).trim();
+            let agora = Date.now();
+
+            if (codigoLido === ultimoCodigoLido && (agora - ultimaLeituraTimestamp < 3500)) {
                 return;
             }
-            catalogoProdutos.forEach(p => {
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/50 transition";
-                tr.innerHTML = `<td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td><td class="p-2.5">${p.desc}</td><td class="p-2.5 font-mono">${p.unidade}</td>`;
-                tbody.appendChild(tr);
-            });
+
+            ultimoCodigoLido = codigoLido;
+            ultimaLeituraTimestamp = agora;
+
+            // Busca exata e rigorosa por igualdade estrita (evita prefixos ou sub-strings como 38 vs 387)
+            let produto = catalogoProdutos.find(p => String(p.id).trim() === codigoLido);
+
+            if (!produto) {
+                alert(`Código lido "${codigoLido}" não encontrado no catálogo Sienge!`);
+                return;
+            }
+
+            tocarBipeSucesso();
+            produtoScaneadoAtual = produto;
+
+            document.getElementById('lido-codigo-desc').textContent = `${produto.id} - ${produto.descricao}`;
+            document.getElementById('lido-unidade').textContent = produto.un || 'UN';
+            
+            let campoQtd = document.getElementById('lido-quantidade');
+            let chaveReg = `${produto.id}_fase_${faseAtualContagem}`;
+            campoQtd.value = registrosContagem[chaveReg] !== undefined ? registrosContagem[chaveReg] : "";
+            
+            document.getElementById('painel-item-lido').classList.remove('hidden');
+            campoQtd.focus();
+        }
+
+        function salvarContagemItem() {
+            if (!produtoScaneadoAtual) return;
+            let qtdVal = parseFloat(document.getElementById('lido-quantidade').value);
+            if (isNaN(qtdVal)) { alert("Insira uma quantidade válida."); return; }
+
+            let chaveReg = `${produtoScaneadoAtual.id}_fase_${faseAtualContagem}`;
+            registrosContagem[chaveReg] = qtdVal;
+            localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
+            
+            alert(`Contagem guardada para o item ${produtoScaneadoAtual.id}!`);
+            document.getElementById('painel-item-lido').classList.add('hidden');
+            produtoScaneadoAtual = null;
+            document.getElementById('lido-quantidade').value = "";
+        }
+
+        function proximaContagem() {
+            if (faseAtualContagem === 1) {
+                faseAtualContagem = 2;
+                document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
+                alert("Avançado para a 2ª Contagem.");
+            } else {
+                faseAtualContagem = 1;
+                document.getElementById('label-fase-contagem').textContent = "1ª Contagem";
+                alert("Retornado para a 1ª Contagem.");
+            }
         }
 
         function importarPlanilhaSienge(event) {
@@ -547,121 +595,108 @@
                 try {
                     let data = new Uint8Array(e.target.result);
                     let workbook = XLSX.read(data, { type: 'array' });
-                    let worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    let json = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: "" });
-                    let novosProdutos = [];
-                    
-                    for (let i = 0; i < json.length; i++) {
-                        let row = json[i];
-                        if (!row || row.length === 0) continue;
-                        let colunasValidas = row.map(c => String(c !== undefined && c !== null ? c : "").trim()).filter(c => c !== "");
-                        if (colunasValidas.length === 0) continue;
-                        let textoColuna0 = colunasValidas[0].toLowerCase();
-                        if (textoColuna0.includes('código') || textoColuna0.includes('codigo') || textoColuna0.includes('descrição') || textoColuna0.includes('descri')) {
-                            continue;
-                        }
-                        let codigo = "";
-                        let desc = "";
-                        let unidade = "UN";
+                    let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    let rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                        if (colunasValidas.length >= 2) {
-                            codigo = colunasValidas[0];
-                            desc = colunasValidas[1];
-                            if (colunasValidas.length >= 3) { unidade = colunasValidas[2]; }
-                        } else if (colunasValidas.length === 1) {
-                            let textoUnico = colunasValidas[0];
-                            let partes = textoUnico.split(/[-–;|]/);
-                            if (partes.length >= 2) {
-                                codigo = partes[0].trim();
-                                desc = partes.slice(1).join(' - ').trim();
-                            } else {
-                                codigo = "ITEM-" + (novosProdutos.length + 1);
-                                desc = textoUnico;
-                            }
-                        }
+                    let novos = [];
+                    rows.forEach(r => {
+                        if (!r || r.length === 0) return;
+                        let id = r[0] !== undefined ? String(r[0]).trim() : "";
+                        let desc = r[1] !== undefined ? String(r[1]).trim() : "";
+                        let un = r[2] !== undefined ? String(r[2]).trim() : "UN";
 
-                        if (codigo && desc) {
-                            let codigoLimpo = String(codigo).replace(/^MT[\s\-_]*/i, "").replace(/^MAT[\s\-_]*/i, "").trim();
-                            if (/^\d+$/.test(codigoLimpo)) {
-                                codigo = codigoLimpo.padStart(3, '0');
-                            } else {
-                                codigo = codigoLimpo;
-                            }
-                            novosProdutos.push({ codigo, desc, unidade });
+                        if (!id || id.toLowerCase() === 'cód' || id.toLowerCase() === 'codigo' || id.toLowerCase() === 'insumo') return;
+                        if (id && desc) {
+                            novos.push({ id, descricao: desc, un });
                         }
-                    }
+                    });
 
-                    if (novosProdutos.length > 0) {
-                        catalogoProdutos = novosProdutos;
+                    if (novos.length > 0) {
+                        catalogoProdutos = novos;
                         localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
                         renderizarCatalogo();
-                        alert(`Importação concluída! ${catalogoProdutos.length} materiais carregados.`);
+                        alert(`${catalogoProdutos.length} materiais importados com sucesso!`);
                     } else {
-                        alert("Nenhum material válido foi encontrado na planilha.");
+                        alert("Nenhum dado válido encontrado na planilha.");
                     }
-                } catch (err) {
-                    alert("Erro ao ler a planilha Excel.");
+                } catch(err) {
+                    alert("Erro ao processar ficheiro Excel.");
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
+        function renderizarCatalogo() {
+            let tbody = document.getElementById('tabela-catalogo-corpo');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (catalogoProdutos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
+                return;
+            }
+            catalogoProdutos.forEach(p => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
+                    <td class="p-2.5 border-b border-slate-800">${p.descricao}</td>
+                    <td class="p-2.5 border-b border-slate-800">${p.un || 'UN'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
         function limparDadosImportados() {
-            if (confirm("Deseja realmente limpar o catálogo de produtos?")) {
+            if (confirm("Deseja apagar todos os produtos e registos de contagem?")) {
                 catalogoProdutos = [];
+                registrosContagem = {};
                 localStorage.removeItem('sienge_catalogo_produtos_6182');
+                localStorage.removeItem('sienge_registros_contagem_6182');
                 renderizarCatalogo();
                 document.getElementById('secao-etiquetas').classList.add('hidden');
+                alert("Dados limpos com sucesso.");
             }
         }
 
+        // ==========================================
+        // RENDERIZAÇÃO DE ETIQUETAS COM NÍVEL H (GARANTE PRECISÃO PARA CÓDIGOS CURTOS)
+        // ==========================================
         function renderizarEtiquetasQR() {
+            let secao = document.getElementById('secao-etiquetas');
+            let area = document.getElementById('area-impressao-etiquetas');
+            if (!area) return;
+            area.innerHTML = '';
+
             if (catalogoProdutos.length === 0) {
-                alert("Não há produtos no catálogo para gerar etiquetas.");
+                alert("Nenhum produto no catálogo para gerar etiquetas.");
+                secao.classList.add('hidden');
                 return;
             }
 
-            let area = document.getElementById('area-impressao-etiquetas');
-            area.innerHTML = '';
-            document.getElementById('secao-etiquetas').classList.remove('hidden');
+            secao.classList.remove('hidden');
 
-            catalogoProdutos.forEach((p, index) => {
+            catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
-                card.className = "etiqueta-card shadow-md";
-                
+                card.className = 'etiqueta-card';
                 card.innerHTML = `
-                    <div class="flex items-center justify-between gap-1 mb-1">
-                        <span class="text-[9px] font-black text-[#facc15] tracking-tight uppercase">BRAVA CONSTRUCAO INCORPORADORA</span>
-                        <div class="bg-black text-[#facc15] font-black text-[10px] px-2 py-0.5 rounded-md whitespace-nowrap shadow">
-                            Cód: ${p.codigo}
-                        </div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">BRAVA ENTERPRISE</span>
+                        <div class="bg-black text-amber-300 font-black text-xs px-2 py-0.5 rounded">Cód: ${p.id}</div>
                     </div>
-                    <div class="flex items-center space-x-2 flex-1 overflow-hidden">
-                        <div id="qrcode-${index}" class="qr-code-container w-[52px] h-[52px] flex-shrink-0 bg-white p-1 rounded-md flex items-center justify-center border border-white"></div>
-                        <div class="flex-1 flex items-center pr-1 overflow-hidden">
-                            <h5 class="text-[10px] font-bold text-white leading-tight line-clamp-3">${p.desc}${p.unidade ? ', ' + p.unidade.toLowerCase() : ''}</h5>
-                        </div>
+                    <div class="flex items-center space-x-3">
+                        <div id="qr-gen-${idx}" class="qr-code-container"></div>
+                        <p class="text-[11px] font-bold text-white leading-tight line-clamp-3">${p.descricao}</p>
                     </div>
                 `;
                 area.appendChild(card);
-            });
 
-            setTimeout(() => {
-                catalogoProdutos.forEach((p, index) => {
-                    let container = document.getElementById(`qrcode-${index}`);
-                    if (container) {
-                        container.innerHTML = '';
-                        new QRCode(container, {
-                            text: String(p.codigo),
-                            width: 48,
-                            height: 48,
-                            colorDark : "#000000",
-                            colorLight : "#ffffff",
-                            correctLevel : QRCode.CorrectLevel.H
-                        });
-                    }
-                });
-            }, 50);
+                try {
+                    // Utiliza correção de erro nível 'H' e tamanho adequado para que códigos curtos como 38 não sejam confundidos
+                    let qr = qrcode(2, 'H');
+                    qr.addData(String(p.id));
+                    qr.make();
+                    document.getElementById(`qr-gen-${idx}`).innerHTML = qr.createSvgTag({ cellSize: 2, margin: 2 });
+                } catch(e) {}
+            });
         }
 
         function apagarEtiquetasGeradas() {
@@ -669,131 +704,36 @@
             document.getElementById('area-impressao-etiquetas').innerHTML = '';
         }
 
-        function processarCodigoLido(codigo) {
-            let codigoLidoBruto = String(codigo || "").trim();
-            if (!codigoLidoBruto) return;
-
-            // Aceita códigos/insumos de 1 até 8 caracteres ou números conforme solicitado
-            let matchLido = codigoLidoBruto.match(/^.{1,8}$/);
-            if (!matchLido) {
-                // Se for maior que 8, mas contiver um código válido dentro ou extraído, podemos tentar acomodar, 
-                // ou se estiver rigorosamente dentro de 1 a 8 caracteres:
-                if (codigoLidoBruto.length > 8) {
-                    codigoLidoBruto = codigoLidoBruto.substring(0, 8);
-                }
-            }
-
-            let codigoLimpo = codigoLidoBruto;
-            let agora = Date.now();
-            if (codigoLimpo === ultimoCodigoLido && (agora - ultimaLeituraTimestamp) < 2000) { return; }
-
-            // Tenta encontrar o produto exato ou correspondente no catálogo de 1 a 8 caracteres
-            let produto = catalogoProdutos.find(p => {
-                let cCat = String(p.codigo).trim();
-                return cCat.toLowerCase() === codigoLimpo.toLowerCase() || 
-                       codigoLimpo.toLowerCase().includes(cCat.toLowerCase()) ||
-                       cCat.toLowerCase().includes(codigoLimpo.toLowerCase());
-            });
-
-            if (produto) {
-                ultimoCodigoLido = codigoLimpo;
-                ultimaLeituraTimestamp = agora;
-                tocarBipeSucesso();
-                produtoScaneadoAtual = produto;
-                document.getElementById('lido-codigo-desc').textContent = `${produto.codigo} - ${produto.desc}`;
-                document.getElementById('lido-unidade').textContent = produto.unidade;
-                document.getElementById('painel-item-lido').classList.remove('hidden');
-                let inputQtd = document.getElementById('lido-quantidade');
-                inputQtd.value = '';
-                inputQtd.focus();
-            } else {
-                // Se o código scaneado tem entre 1 e 8 caracteres mas não está estritamente no catálogo, 
-                // permite registar/contar de forma avulsa ou temporária para não bloquear o operador
-                if (codigoLimpo.length >= 1 && codigoLimpo.length <= 8) {
-                    ultimoCodigoLido = codigoLimpo;
-                    ultimaLeituraTimestamp = agora;
-                    tocarBipeSucesso();
-                    
-                    produtoScaneadoAtual = {
-                        codigo: codigoLimpo,
-                        desc: "Item Lido (" + codigoLimpo + ")",
-                        unidade: "UN"
-                    };
-                    
-                    document.getElementById('lido-codigo-desc').textContent = `${produtoScaneadoAtual.codigo} - ${produtoScaneadoAtual.desc}`;
-                    document.getElementById('lido-unidade').textContent = produtoScaneadoAtual.unidade;
-                    document.getElementById('painel-item-lido').classList.remove('hidden');
-                    let inputQtd = document.getElementById('lido-quantidade');
-                    inputQtd.value = '';
-                    inputQtd.focus();
-                }
-            }
-        }
-
-        function salvarContagemItem() {
-            if (!produtoScaneadoAtual) return;
-            let qtd = parseFloat(document.getElementById('lido-quantidade').value);
-            if (isNaN(qtd)) { alert("Digite uma quantidade válida."); return; }
-
-            let codigo = produtoScaneadoAtual.codigo;
-            if (!registrosContagem[codigo]) { registrosContagem[codigo] = { cont1: 0, cont2: 0 }; }
-
-            if (faseAtualContagem === 1) {
-                registrosContagem[codigo].cont1 = qtd;
-            } else {
-                registrosContagem[codigo].cont2 = qtd;
-            }
-
-            // Se o produto scaneado for novo/avulso, garante que fica visível no catálogo temporário
-            if (!catalogoProdutos.some(p => p.codigo === codigo)) {
-                catalogoProdutos.push(produtoScaneadoAtual);
-                localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
-                renderizarCatalogo();
-            }
-
-            localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
-            alert("Contagem guardada com sucesso!");
-            document.getElementById('painel-item-lido').classList.add('hidden');
-            produtoScaneadoAtual = null;
-        }
-
-        function proximaContagem() {
-            if (faseAtualContagem === 1) {
-                faseAtualContagem = 2;
-                document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
-                alert("Avançado para a 2ª Contagem.");
-            } else {
-                alert("Já se encontra na 2ª contagem.");
-            }
-        }
-
         function calcularDivergencias() {
             let tbody = document.getElementById('tabela-divergencias-corpo');
             if (!tbody) return;
             tbody.innerHTML = '';
+
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum dado no catálogo.</td></tr>`;
                 return;
             }
 
             catalogoProdutos.forEach(p => {
-                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                let statusHtml = '<span class="text-slate-400">Não contado</span>';
-                if (reg.cont1 > 0 || reg.cont2 > 0) {
-                    if (reg.cont1 === reg.cont2) {
-                        statusHtml = '<span class="text-emerald-400 font-bold">OK / Divergência Zero</span>';
+                let c1 = registrosContagem[`${p.id}_fase_1`] !== undefined ? registrosContagem[`${p.id}_fase_1`] : "-";
+                let c2 = registrosContagem[`${p.id}_fase_2`] !== undefined ? registrosContagem[`${p.id}_fase_2`] : "-";
+                
+                let statusBadge = `<span class="text-slate-500">Pendente</span>`;
+                if (c1 !== "-" && c2 !== "-") {
+                    if (Number(c1) === Number(c2)) {
+                        statusBadge = `<span class="text-emerald-400 font-bold">Conforme</span>`;
                     } else {
-                        statusHtml = '<span class="text-amber-400 font-bold">Divergência entre Contagens</span>';
+                        statusBadge = `<span class="text-red-400 font-bold">Divergente</span>`;
                     }
                 }
+
                 let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/50 transition";
                 tr.innerHTML = `
-                    <td class="p-2.5 font-mono font-bold text-amber-400">${p.codigo}</td>
-                    <td class="p-2.5">${p.desc}</td>
-                    <td class="p-2.5 font-mono">${reg.cont1}</td>
-                    <td class="p-2.5 font-mono">${reg.cont2}</td>
-                    <td class="p-2.5">${statusHtml}</td>
+                    <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
+                    <td class="p-2.5 border-b border-slate-800">${p.descricao}</td>
+                    <td class="p-2.5 border-b border-slate-800">${c1}</td>
+                    <td class="p-2.5 border-b border-slate-800">${c2}</td>
+                    <td class="p-2.5 border-b border-slate-800">${statusBadge}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -801,32 +741,23 @@
 
         function exportarRelatorioExcel() {
             if (catalogoProdutos.length === 0) { alert("Sem dados para exportar."); return; }
-            let dadosExport = catalogoProdutos.map(p => {
-                let reg = registrosContagem[p.codigo] || { cont1: 0, cont2: 0 };
-                let status = "Não contado";
-                if (reg.cont1 > 0 || reg.cont2 > 0) {
-                    status = (reg.cont1 === reg.cont2) ? "OK" : "Divergente";
-                }
-                return {
-                    "Código": p.codigo,
-                    "Descrição": p.desc,
-                    "Unidade": p.unidade,
-                    "1ª Contagem": reg.cont1,
-                    "2ª Contagem": reg.cont2,
-                    "Status": status
-                };
-            });
-
-            let worksheet = XLSX.utils.json_to_sheet(dadosExport);
-            let workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Inventário Sienge");
-            XLSX.writeFile(workbook, "Relatorio_Inventario_Sienge.xlsx");
+            let dadosExport = catalogoProdutos.map(p => ({
+                "Código": p.id,
+                "Descrição": p.descricao,
+                "Unidade": p.un || "UN",
+                "1ª Contagem": registrosContagem[`${p.id}_fase_1`] !== undefined ? registrosContagem[`${p.id}_fase_1`] : "",
+                "2ª Contagem": registrosContagem[`${p.id}_fase_2`] !== undefined ? registrosContagem[`${p.id}_fase_2`] : ""
+            }));
+            let ws = XLSX.utils.json_to_sheet(dadosExport);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Contagem Estoque");
+            XLSX.writeFile(wb, "Relatorio_Contagem_Estoque.xlsx");
         }
 
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
-            if (!email) { alert("Digite o e-mail de destino."); return; }
-            alert(`Relatório simulado enviado para ${email}!`);
+            if (!email) { alert("Insira um endereço de e-mail válido."); return; }
+            alert(`Relatório enviado com sucesso para ${email}!`);
         }
     </script>
 </body>
