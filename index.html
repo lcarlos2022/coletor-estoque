@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Etiquetas e Estoque</title>
+    <title>Gestor de Etiquetas e Contagem de Estoque</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -99,13 +99,14 @@
 </head>
 <body class="bg-[#0b1329] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
 
+    <!-- TOPO COM O NOME DA BRAVA FIXO -->
     <header class="bg-[#111c38] border-b border-slate-800 shadow-lg p-4 flex justify-between items-center z-20">
         <div class="flex items-center space-x-3">
             <div class="bg-amber-400 text-slate-950 p-2.5 rounded-xl font-bold shadow-md flex items-center justify-center">
                 <i class="fa-solid fa-boxes-stacked text-base"></i>
             </div>
             <div>
-                <h1 id="header-empresa-titulo" class="text-xs font-black text-white tracking-widest uppercase">BRAVA CONSTRUÇÃO E INCORPORAÇÃO</h1>
+                <h1 class="text-xs font-black text-white tracking-widest uppercase">BRAVA CONSTRUÇÃO E INCORPORAÇÃO</h1>
                 <p class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Gestor Sienge Edition</p>
             </div>
         </div>
@@ -117,6 +118,7 @@
 
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-center">
 
+        <!-- TELA DE LOGIN / NOVO UTILIZADOR -->
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controlo de Acesso</h2>
@@ -131,9 +133,14 @@
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
-                <div class="space-y-1">
-                    <h3 class="text-base font-bold text-white" id="titulo-form-auth">Identificação de Acesso</h3>
-                    <p class="text-xs text-slate-400">Preencha os campos abaixo para prosseguir.</p>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-bold text-white" id="titulo-form-auth">Identificação de Acesso</h3>
+                        <p class="text-xs text-slate-400">Preencha os campos abaixo para prosseguir.</p>
+                    </div>
+                    <button id="btn-alternar-novo-user" onclick="modoNovoUsuario()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3 py-1.5 rounded-xl font-bold transition">
+                        + Novo Utilizador
+                    </button>
                 </div>
 
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
@@ -144,7 +151,7 @@
 
                     <div class="space-y-1.5" id="campo-cpf-div">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
-                        <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
+                        <input type="text" id="cad-cpf" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
                     </div>
 
                     <div class="space-y-1.5">
@@ -153,7 +160,7 @@
                     </div>
 
                     <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
-                        <span id="texto-botao-auth">Entrar / Registar</span>
+                        <span id="texto-botao-auth">Entrar no Sistema</span>
                     </button>
                 </form>
             </div>
@@ -185,6 +192,7 @@
             </div>
         </section>
 
+        <!-- DASHBOARD (APÓS LOGIN) -->
         <section id="dashboard-section" class="hidden flex-1 flex flex-col space-y-4">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <button onclick="mudarAba('catalogo')" id="btn-aba-catalogo" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
@@ -208,18 +216,18 @@
             <div class="flex-1 bg-[#111c38] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
                 <div id="conteudo-catalogo" class="space-y-4">
                     
-                    <!-- SELETOR DE EMPRESA (BRAVA VS CLIENTE) -->
+                    <!-- SELETOR DE EMPRESA DAS ETIQUETAS (DEPOIS DA TELA DE LOGIN) -->
                     <div class="bg-[#0b1329] border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-2">
                         <span class="text-xs font-bold text-amber-400 uppercase flex items-center space-x-1.5">
                             <i class="fa-solid fa-building"></i>
-                            <span>Selecionar Empresa das Etiquetas:</span>
+                            <span>Empresa das Etiquetas:</span>
                         </span>
                         <div class="flex gap-2 w-full sm:w-auto">
-                            <button id="btn-empresa-brava" onclick="mudarEmpresa('BRAVA CONSTRUÇÃO E INCORPORAÇÃO')" class="flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition">
-                                Brava
+                            <button id="btn-empresa-brava" onclick="mudarEmpresa('BRAVA CONSTRUÇÃO E INCORPORAÇÃO')" class="flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition">
+                                BRAVA
                             </button>
-                            <button id="btn-empresa-cliente" onclick="mudarEmpresa('VENTOS PATRIMONIAIS LTDA')" class="flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-bold transition">
-                                Ventos Patrimoniais (Cliente)
+                            <button id="btn-empresa-cliente" onclick="mudarEmpresa('VENTOS PATRIMONIAIS LTDA')" class="flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition">
+                                VENTOS PATRIMONIAIS (CLIENTE)
                             </button>
                         </div>
                     </div>
@@ -351,18 +359,42 @@
     </main>
 
     <footer class="text-center py-3 text-[10px] text-slate-500 border-t border-slate-800 nao-imprimir">
-        Gestor de Estoque &copy; 2026 - Todos os direitos reservados
+        Brava Construção e Incorporação &copy; 2026 - Todos os direitos reservados
     </footer>
 
     <script>
         let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos_6182')) || [];
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
+        let usuariosCadastrados = JSON.parse(localStorage.getItem('sienge_usuarios_db_6182')) || {};
         let empresaAtual = localStorage.getItem('sienge_empresa_atual') || "BRAVA CONSTRUÇÃO E INCORPORAÇÃO";
+        let modoCadastro = false;
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
         let html5QrCode = null;
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
+
+        function modoNovoUsuario() {
+            modoCadastro = !modoCadastro;
+            const campoNome = document.getElementById('campo-nome-div');
+            const titulo = document.getElementById('titulo-form-auth');
+            const btnSubmit = document.getElementById('texto-botao-auth');
+            const btnAlternar = document.getElementById('btn-alternar-novo-user');
+            const descModo = document.getElementById('descricao-auth-modo');
+            const instrucao = document.getElementById('instrucao-dinamica');
+
+            if (modoCadastro) {
+                campoNome.style.display = 'block';
+                document.getElementById('cad-nome').required = true;
+                titulo.textContent = "Registo de Novo Utilizador";
+                btnSubmit.textContent = "Registar Utilizador";
+                btnAlternar.textContent = "Já tenho conta";
+                descModo.textContent = "Crie uma nova conta de acesso informando Nome, CPF e Palavra-passe.";
+                instrucao.innerHTML = "Preencha os seus dados para criar um novo utilizador no sistema.";
+            } else {
+                verificarEstadoSistema();
+            }
+        }
 
         function mudarEmpresa(nomeEmpresa) {
             empresaAtual = nomeEmpresa;
@@ -370,18 +402,13 @@
             
             const btnBrava = document.getElementById('btn-empresa-brava');
             const btnCliente = document.getElementById('btn-empresa-cliente');
-            const headerTitulo = document.getElementById('header-empresa-titulo');
-
-            if (headerTitulo) {
-                headerTitulo.textContent = empresaAtual;
-            }
 
             if (nomeEmpresa.includes("BRAVA")) {
-                btnBrava.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition";
-                btnCliente.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-bold transition";
+                btnBrava.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition";
+                btnCliente.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition";
             } else {
-                btnCliente.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition";
-                btnBrava.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-1.5 rounded-lg font-bold transition";
+                btnCliente.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition";
+                btnBrava.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition";
             }
 
             if (!document.getElementById('secao-etiquetas').classList.contains('hidden')) {
@@ -411,62 +438,52 @@
         });
 
         function verificarEstadoSistema() {
-            let usuarioCadastrado = localStorage.getItem('sienge_usuario_cadastrado');
-            if (!usuarioCadastrado) {
-                document.getElementById('campo-nome-div').style.display = 'block';
-                document.getElementById('campo-cpf-div').style.display = 'block';
-                document.getElementById('cad-nome').required = true;
-                document.getElementById('cad-cpf').required = true;
-                document.getElementById('descricao-auth-modo').textContent = "Faça o seu registo inicial utilizando a palavra-passe predefinida 12345678.";
-                document.getElementById('instrucao-dinamica').innerHTML = "Preencha o seu Nome, CPF e a palavra-passe predefinida <b>12345678</b>.";
-                document.getElementById('titulo-form-auth').textContent = "Primeiro Registo Obrigatório";
-                document.getElementById('texto-botao-auth').textContent = "Registar e Prosseguir";
-            } else {
-                document.getElementById('campo-nome-div').style.display = 'none';
-                document.getElementById('cad-nome').required = false;
-                document.getElementById('descricao-auth-modo').textContent = "Entre com o seu CPF e palavra-passe registada.";
-                document.getElementById('instrucao-dinamica').textContent = "Digite o seu CPF e a palavra-passe configurada.";
-                document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
-                document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
-            }
+            modoCadastro = false;
+            document.getElementById('campo-nome-div').style.display = 'none';
+            document.getElementById('cad-nome').required = false;
+            document.getElementById('descricao-auth-modo').textContent = "Entre com o seu CPF e palavra-passe registada.";
+            document.getElementById('instrucao-dinamica').textContent = "Digite o seu CPF e palavra-passe cadastrados.";
+            document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
+            document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
+            document.getElementById('btn-alternar-novo-user').textContent = "+ Novo Utilizador";
         }
 
         function processarAutenticacao(event) {
             event.preventDefault();
-            let usuarioCadastradoStr = localStorage.getItem('sienge_usuario_cadastrado');
-            let pass = document.getElementById('login-pass').value;
+            let cpfDigitado = document.getElementById('cad-cpf').value.trim();
+            let passDigitada = document.getElementById('login-pass').value;
 
-            if (!usuarioCadastradoStr) {
-                let nome = document.getElementById('cad-nome').value.trim();
-                let cpf = document.getElementById('cad-cpf').value.trim();
-                if (!nome || !cpf || !pass) { alert("Preencha todos os campos."); return; }
-                if (pass === "12345678") {
-                    localStorage.setItem('sienge_temp_user', JSON.stringify({ nome, cpf }));
-                    document.getElementById('modal-troca-senha').classList.remove('hidden');
-                } else {
-                    alert("A palavra-passe predefinida é: 12345678");
+            if (modoCadastro) {
+                let nomeDigitado = document.getElementById('cad-nome').value.trim();
+                if (!nomeDigitado || !cpfDigitado || !passDigitada) {
+                    alert("Preencha todos os campos para registar.");
+                    return;
                 }
+                usuariosCadastrados[cpfDigitado] = { nome: nomeDigitado, senha: passDigitada };
+                localStorage.setItem('sienge_usuarios_db_6182', JSON.stringify(usuariosCadastrados));
+                alert(`Utilizador ${nomeDigitado} registado com sucesso!`);
+                entrarNoSistema(nomeDigitado);
             } else {
-                let cpfDigitado = document.getElementById('cad-cpf').value.trim();
-                let usuarioSalvo = JSON.parse(usuarioCadastradoStr);
-                if (cpfDigitado !== usuarioSalvo.cpf) { alert("CPF não encontrado."); return; }
-                if (pass === usuarioSalvo.senha) { entrarNoSistema(usuarioSalvo.nome); } else { alert("Palavra-passe incorreta!"); }
-            }
-        }
+                let userEncontrado = usuariosCadastrados[cpfDigitado];
+                if (!userEncontrado) {
+                    // Se for o primeiro acesso do sistema antes de qualquer cadastro
+                    let antigoUser = localStorage.getItem('sienge_usuario_cadastrado');
+                    if (antigoUser) {
+                        let parsed = JSON.parse(antigoUser);
+                        if (parsed.cpf === cpfDigitado && parsed.senha === passDigitada) {
+                            entrarNoSistema(parsed.nome);
+                            return;
+                        }
+                    }
+                    alert("CPF não cadastrado. Clique no botão '+ Novo Utilizador' para se registar.");
+                    return;
+                }
 
-        function salvarNovaSenha(event) {
-            event.preventDefault();
-            let novaPass = document.getElementById('nova-senha').value;
-            let confirmaPass = document.getElementById('confirma-senha').value;
-            if (novaPass !== confirmaPass) { alert("As palavras-passe não coincidem."); return; }
-            let dadosTemp = JSON.parse(localStorage.getItem('sienge_temp_user'));
-            if (dadosTemp) {
-                let usuarioFinal = { nome: dadosTemp.nome, cpf: dadosTemp.cpf, senha: novaPass };
-                localStorage.setItem('sienge_usuario_cadastrado', JSON.stringify(usuarioFinal));
-                localStorage.removeItem('sienge_temp_user');
-                document.getElementById('modal-troca-senha').classList.add('hidden');
-                alert("Palavra-passe alterada com sucesso!");
-                entrarNoSistema(usuarioFinal.nome);
+                if (userEncontrado.senha === passDigitada) {
+                    entrarNoSistema(userEncontrado.nome);
+                } else {
+                    alert("Palavra-passe incorreta!");
+                }
             }
         }
 
