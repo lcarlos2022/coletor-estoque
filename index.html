@@ -235,10 +235,11 @@
                                     <th class="p-2.5 border-b border-slate-800">Código</th>
                                     <th class="p-2.5 border-b border-slate-800">Descrição do Material</th>
                                     <th class="p-2.5 border-b border-slate-800">Unidade</th>
+                                    <th class="p-2.5 border-b border-slate-800 text-center">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-catalogo-corpo" class="divide-y divide-slate-800 text-slate-300">
-                                <tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado neste catálogo. Importe sua planilha.</td></tr>
+                                <tr><td colspan="4" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado neste catálogo. Importe sua planilha.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -342,10 +343,8 @@
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
 
-        // Função para tratar e limpar a descrição removendo unidades que venham no começo
         function limparDescricao(desc) {
             if (!desc) return "";
-            // Remove prefixos como [und], (und), [un], (un), etc.
             return desc.replace(/^\s*[\(\[]?\s*(und\vert{}un\vert{}pc\vert{}kg\vert{}m\vert{}l)\s*[\)\]]?\s*/i, '').trim();
         }
 
@@ -702,6 +701,24 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // FUNÇÃO PARA EXCLUIR UM ITEM ESPECÍFICO DO CATÁLOGO
+        function excluirItemCatalogo(idItem) {
+            if (confirm(`Deseja remover o item ${idItem} deste catálogo?`)) {
+                if (modoEmpresa === "BRAVA") {
+                    dbBrava = dbBrava.filter(p => String(p.id).trim() !== String(idItem).trim());
+                } else {
+                    dbCliente = dbCliente.filter(p => String(p.id).trim() !== String(idItem).trim());
+                }
+                salvarCatalogoCorrente();
+                renderizarCatalogo();
+                
+                // Se a seção de etiquetas estiver aberta, atualiza-a também
+                if (!document.getElementById('secao-etiquetas').classList.contains('hidden')) {
+                    renderizarEtiquetasQR();
+                }
+            }
+        }
+
         function renderizarCatalogo() {
             let tbody = document.getElementById('tabela-catalogo-corpo');
             if (!tbody) return;
@@ -709,7 +726,7 @@
             
             let catalogoAtivo = obterCatalogoCorrente();
             if (catalogoAtivo.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado no catálogo de ${obterNomeEmpresaExtenso()}. Importe a planilha desta empresa.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado no catálogo de ${obterNomeEmpresaExtenso()}. Importe a planilha desta empresa.</td></tr>`;
                 return;
             }
             catalogoAtivo.forEach(p => {
@@ -719,6 +736,11 @@
                     <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
                     <td class="p-2.5 border-b border-slate-800">${descLimpa}</td>
                     <td class="p-2.5 border-b border-slate-800">${p.un || 'UN'}</td>
+                    <td class="p-2.5 border-b border-slate-800 text-center">
+                        <button onclick="excluirItemCatalogo('${p.id}')" class="bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs transition" title="Excluir este item">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -738,7 +760,6 @@
             }
         }
 
-        // RENDERIZAÇÃO DAS ETIQUETAS: LIMPA A FRENTE E COLOCA APENAS NO FINAL
         function renderizarEtiquetasQR() {
             let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
