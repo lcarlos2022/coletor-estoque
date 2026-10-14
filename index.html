@@ -190,7 +190,7 @@
             <div class="flex-1 bg-[#111c38] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
                 <div id="conteudo-catalogo" class="space-y-4">
                     
-                    <!-- BOTOES DE SELEÇÃO DA EMPRESA (ALTERA TODO O CATÁLOGO E IMPORTAÇÃO) -->
+                    <!-- BOTOES DE SELEÇÃO DA EMPRESA -->
                     <div class="bg-[#0b1329] border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-2">
                         <span class="text-xs font-bold text-amber-400 uppercase flex items-center space-x-1.5">
                             <i class="fa-solid fa-building"></i>
@@ -337,7 +337,6 @@
     </footer>
 
     <script>
-        // MODO SEPARADO DE EMPRESAS ("BRAVA" ou "CLIENTE")
         let modoEmpresa = localStorage.getItem('sienge_modo_empresa_v2') || "BRAVA";
         
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
@@ -389,7 +388,6 @@
                 if (subTitulo) subTitulo.textContent = "Gerencie os itens do Cliente (Ventos Patrimoniais Ltda).";
             }
 
-            // Oculta área de etiquetas ao alternar a empresa para evitar mistura visual
             document.getElementById('secao-etiquetas').classList.add('hidden');
             renderizarCatalogo();
         }
@@ -645,7 +643,6 @@
             }
         }
 
-        // IMPORTA PLANILHA APENAS PARA A EMPRESA ATIVA NO MOMENTO
         function importarPlanilhaSienge(event) {
             let file = event.target.files[0];
             if (!file) return;
@@ -730,7 +727,7 @@
             }
         }
 
-        // RENDERIZA ETIQUETAS DO CATÁLOGO DA EMPRESA SELECIONADA
+        // RENDERIZAÇÃO DAS ETIQUETAS COM A UNIDADE (Und.) NA FRENTE DA DESCRIÇÃO
         function renderizarEtiquetasQR() {
             let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
@@ -757,6 +754,8 @@
                 let card = document.createElement('div');
                 card.className = 'etiqueta-card';
                 
+                let unidadeTexto = p.un ? p.un : "UN";
+                
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">${nomeEmpresaExtenso}</span>
@@ -764,7 +763,7 @@
                     </div>
                     <div class="flex items-center space-x-3">
                         <div id="qr-gen-${idx}" class="qr-code-container"></div>
-                        <p class="text-[11px] font-bold text-white leading-tight line-clamp-3">${p.descricao}</p>
+                        <p class="text-[11px] font-bold text-white leading-tight line-clamp-3"><strong>[${unidadeTexto}]</strong> ${p.descricao}</p>
                     </div>
                 `;
                 area.appendChild(card);
