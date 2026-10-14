@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Substituído qrcodejs por qrcode-generator para suportar nível H e matriz estrita -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -208,6 +207,23 @@
 
             <div class="flex-1 bg-[#111c38] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
                 <div id="conteudo-catalogo" class="space-y-4">
+                    
+                    <!-- SELETOR DE EMPRESA (BRAVA VS CLIENTE) -->
+                    <div class="bg-[#0b1329] border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-2">
+                        <span class="text-xs font-bold text-amber-400 uppercase flex items-center space-x-1.5">
+                            <i class="fa-solid fa-building"></i>
+                            <span>Empresa para Etiquetas:</span>
+                        </span>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <button id="btn-empresa-brava" onclick="mudarEmpresa('BRAVA CONSTRUÇÃO E INCORPORAÇÃO')" class="flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition">
+                                Brava
+                            </button>
+                            <button id="btn-empresa-cliente" onclick="mudarEmpresa('VENTOS PATRIMONIAIS LTDA')" class="flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg font-bold transition">
+                                Ventos Patrimoniais (Cliente)
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-white uppercase">Base de Materiais (Sienge)</h3>
@@ -237,10 +253,11 @@
                                     <th class="p-2.5 border-b border-slate-800">Código</th>
                                     <th class="p-2.5 border-b border-slate-800">Descrição do Material</th>
                                     <th class="p-2.5 border-b border-slate-800">Unidade</th>
+                                    <th class="p-2.5 border-b border-slate-800">Empresa</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-catalogo-corpo" class="divide-y divide-slate-800 text-slate-300">
-                                <tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>
+                                <tr><td colspan="4" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -341,11 +358,36 @@
     <script>
         let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos_6182')) || [];
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
+        let empresaAtual = localStorage.getItem('sienge_empresa_atual') || "BRAVA CONSTRUÇÃO E INCORPORAÇÃO";
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
         let html5QrCode = null;
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
+
+        function mudarEmpresa(nomeEmpresa) {
+            empresaAtual = nomeEmpresa;
+            localStorage.setItem('sienge_empresa_atual', empresaAtual);
+            
+            const btnBrava = document.getElementById('btn-empresa-brava');
+            const btnCliente = document.getElementById('btn-empresa-cliente');
+
+            if (nomeEmpresa.includes("BRAVA")) {
+                btnBrava.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition";
+                btnCliente.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg font-bold transition";
+            } else {
+                btnCliente.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition";
+                btnBrava.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg font-bold transition";
+            }
+
+            // Atualiza a empresa de todos os produtos do catálogo
+            catalogoProdutos.forEach(p => p.empresa = empresaAtual);
+            localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
+            renderizarCatalogo();
+            if (!document.getElementById('secao-etiquetas').classList.contains('hidden')) {
+                renderizarEtiquetasQR();
+            }
+        }
 
         function tocarBipeSucesso() {
             try {
@@ -363,7 +405,10 @@
             } catch (e) {}
         }
 
-        window.addEventListener('DOMContentLoaded', () => { verificarEstadoSistema(); });
+        window.addEventListener('DOMContentLoaded', () => { 
+            verificarEstadoSistema(); 
+            mudarEmpresa(empresaAtual);
+        });
 
         function verificarEstadoSistema() {
             let usuarioCadastrado = localStorage.getItem('sienge_usuario_cadastrado');
@@ -524,9 +569,6 @@
             }
         }
 
-        // ==========================================
-        // CORREÇÃO ESTRITA DE LEITURA (EVITA CONFUSÃO ENTRE CÓDIGOS CURTOS COMO 38 E 387)
-        // ==========================================
         function processarCodigoLido(decodedText) {
             let codigoLido = String(decodedText).trim();
             let agora = Date.now();
@@ -538,7 +580,6 @@
             ultimoCodigoLido = codigoLido;
             ultimaLeituraTimestamp = agora;
 
-            // Busca exata e rigorosa por igualdade estrita (evita prefixos ou sub-strings como 38 vs 387)
             let produto = catalogoProdutos.find(p => String(p.id).trim() === codigoLido);
 
             if (!produto) {
@@ -587,6 +628,7 @@
             }
         }
 
+        // ACUMULA OS NOVOS PRODUTOS SEM APAGAR OS ANTERIORES
         function importarPlanilhaSienge(event) {
             let file = event.target.files[0];
             if (!file) return;
@@ -598,7 +640,7 @@
                     let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     let rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                    let novos = [];
+                    let adicionadosCount = 0;
                     rows.forEach(r => {
                         if (!r || r.length === 0) return;
                         let id = r[0] !== undefined ? String(r[0]).trim() : "";
@@ -606,19 +648,22 @@
                         let un = r[2] !== undefined ? String(r[2]).trim() : "UN";
 
                         if (!id || id.toLowerCase() === 'cód' || id.toLowerCase() === 'codigo' || id.toLowerCase() === 'insumo') return;
+                        
                         if (id && desc) {
-                            novos.push({ id, descricao: desc, un });
+                            // Verifica se o código já existe no catálogo para atualizar ou adicionar
+                            let idxExistente = catalogoProdutos.findIndex(p => String(p.id).trim() === id);
+                            if (idxExistente !== -1) {
+                                catalogoProdutos[idxExistente] = { id, descricao: desc, un, empresa: empresaAtual };
+                            } else {
+                                catalogoProdutos.push({ id, descricao: desc, un, empresa: empresaAtual });
+                                adicionadosCount++;
+                            }
                         }
                     });
 
-                    if (novos.length > 0) {
-                        catalogoProdutos = novos;
-                        localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
-                        renderizarCatalogo();
-                        alert(`${catalogoProdutos.length} materiais importados com sucesso!`);
-                    } else {
-                        alert("Nenhum dado válido encontrado na planilha.");
-                    }
+                    localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
+                    renderizarCatalogo();
+                    alert(`Planilha importada com sucesso! Catálogo agora possui ${catalogoProdutos.length} materiais.`);
                 } catch(err) {
                     alert("Erro ao processar ficheiro Excel.");
                 }
@@ -631,7 +676,7 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
                 return;
             }
             catalogoProdutos.forEach(p => {
@@ -640,6 +685,7 @@
                     <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
                     <td class="p-2.5 border-b border-slate-800">${p.descricao}</td>
                     <td class="p-2.5 border-b border-slate-800">${p.un || 'UN'}</td>
+                    <td class="p-2.5 border-b border-slate-800 text-[10px] uppercase text-emerald-400 font-semibold">${p.empresa || empresaAtual}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -657,9 +703,7 @@
             }
         }
 
-        // ==========================================
-        // RENDERIZAÇÃO DE ETIQUETAS COM NÍVEL H (GARANTE PRECISÃO PARA CÓDIGOS CURTOS)
-        // ==========================================
+        // RENDERIZAÇÃO DAS ETIQUETAS COM IDENTIFICAÇÃO DA EMPRESA SELECIONADA
         function renderizarEtiquetasQR() {
             let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
@@ -677,9 +721,13 @@
             catalogoProdutos.forEach((p, idx) => {
                 let card = document.createElement('div');
                 card.className = 'etiqueta-card';
+                
+                // Nome exato conforme a empresa selecionada
+                let nomeEmpresaExibicao = p.empresa || empresaAtual;
+
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">BRAVA ENTERPRISE</span>
+                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">${nomeEmpresaExibicao}</span>
                         <div class="bg-black text-amber-300 font-black text-xs px-2 py-0.5 rounded">Cód: ${p.id}</div>
                     </div>
                     <div class="flex items-center space-x-3">
@@ -690,7 +738,6 @@
                 area.appendChild(card);
 
                 try {
-                    // Utiliza correção de erro nível 'H' e tamanho adequado para que códigos curtos como 38 não sejam confundidos
                     let qr = qrcode(2, 'H');
                     qr.addData(String(p.id));
                     qr.make();
@@ -745,6 +792,7 @@
                 "Código": p.id,
                 "Descrição": p.descricao,
                 "Unidade": p.un || "UN",
+                "Empresa": p.empresa || empresaAtual,
                 "1ª Contagem": registrosContagem[`${p.id}_fase_1`] !== undefined ? registrosContagem[`${p.id}_fase_1`] : "",
                 "2ª Contagem": registrosContagem[`${p.id}_fase_2`] !== undefined ? registrosContagem[`${p.id}_fase_2`] : ""
             }));
