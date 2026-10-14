@@ -727,7 +727,7 @@
             }
         }
 
-        // RENDERIZAÇÃO DAS ETIQUETAS COM A UNIDADE NA FRENTE DA DESCRIÇÃO
+        // RENDERIZAÇÃO DAS ETIQUETAS COM A UNIDADE (Und. [un]) DEPOIS DA DESCRIÇÃO
         function renderizarEtiquetasQR() {
             let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
@@ -763,7 +763,7 @@
                     </div>
                     <div class="flex items-center space-x-3">
                         <div id="qr-gen-${idx}" class="qr-code-container"></div>
-                        <p class="text-[11px] font-bold text-white leading-tight line-clamp-3"><strong>[${unidadeTexto}]</strong> ${p.descricao}</p>
+                        <p class="text-[11px] font-bold text-white leading-tight line-clamp-3">${p.descricao} &nbsp;<span class="text-amber-300 font-black">Und. ${unidadeTexto}</span></p>
                     </div>
                 `;
                 area.appendChild(card);
