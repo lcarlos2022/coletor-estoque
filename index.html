@@ -99,7 +99,7 @@
 </head>
 <body class="bg-[#0b1329] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
 
-    <!-- TOPO COM O NOME DA BRAVA FIXO -->
+    <!-- TOPO FIXO DA BRAVA -->
     <header class="bg-[#111c38] border-b border-slate-800 shadow-lg p-4 flex justify-between items-center z-20">
         <div class="flex items-center space-x-3">
             <div class="bg-amber-400 text-slate-950 p-2.5 rounded-xl font-bold shadow-md flex items-center justify-center">
@@ -166,33 +166,7 @@
             </div>
         </section>
 
-        <section id="modal-troca-senha" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-5">
-                <div class="space-y-1 text-center">
-                    <div class="inline-block bg-amber-400 text-slate-950 p-3 rounded-2xl mb-1">
-                        <i class="fa-solid fa-key text-lg"></i>
-                    </div>
-                    <h3 class="text-lg font-black text-white">Alteração de Palavra-passe Obrigatória</h3>
-                    <p class="text-xs text-slate-400">Por segurança, altere a palavra-passe predefinida para continuar.</p>
-                </div>
-
-                <form onsubmit="salvarNovaSenha(event)" class="space-y-4">
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nova Palavra-passe</label>
-                        <input type="password" id="nova-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Digite a nova palavra-passe">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Confirme a Nova Palavra-passe</label>
-                        <input type="password" id="confirma-senha" required class="w-full bg-[#0b1329] border border-slate-700 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none" placeholder="Repita a nova palavra-passe">
-                    </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-sm shadow-lg transition">
-                        Guardar e Libertar Acesso
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- DASHBOARD (APÓS LOGIN) -->
+        <!-- DASHBOARD DA APLICAÇÃO -->
         <section id="dashboard-section" class="hidden flex-1 flex flex-col space-y-4">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <button onclick="mudarAba('catalogo')" id="btn-aba-catalogo" class="bg-[#111c38] border border-slate-800 hover:bg-slate-800 p-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition">
@@ -216,17 +190,17 @@
             <div class="flex-1 bg-[#111c38] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
                 <div id="conteudo-catalogo" class="space-y-4">
                     
-                    <!-- SELETOR DE EMPRESA (SEPARA AS IMPORTAÇÕES E ETIQUETAS) -->
+                    <!-- BOTOES DE SELEÇÃO DA EMPRESA (ALTERA TODO O CATÁLOGO E IMPORTAÇÃO) -->
                     <div class="bg-[#0b1329] border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-2">
                         <span class="text-xs font-bold text-amber-400 uppercase flex items-center space-x-1.5">
                             <i class="fa-solid fa-building"></i>
-                            <span>Empresa Ativa:</span>
+                            <span>Catálogo Ativo:</span>
                         </span>
                         <div class="flex gap-2 w-full sm:w-auto">
-                            <button id="btn-empresa-brava" onclick="mudarEmpresa('BRAVA CONSTRUÇÃO E INCORPORAÇÃO')" class="flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition">
+                            <button id="btn-empresa-brava" onclick="mudarEmpresa('BRAVA')" class="flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition">
                                 BRAVA
                             </button>
-                            <button id="btn-empresa-cliente" onclick="mudarEmpresa('VENTOS PATRIMONIAIS LTDA')" class="flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition">
+                            <button id="btn-empresa-cliente" onclick="mudarEmpresa('CLIENTE')" class="flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition">
                                 VENTOS PATRIMONIAIS (CLIENTE)
                             </button>
                         </div>
@@ -234,8 +208,8 @@
 
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
-                            <h3 class="text-sm font-bold text-white uppercase" id="titulo-secao-catalogo">Base de Materiais (Sienge)</h3>
-                            <p class="text-xs text-slate-400" id="subtitulo-secao-catalogo">Gerencie os itens do inventário da Brava.</p>
+                            <h3 class="text-sm font-bold text-white uppercase" id="titulo-secao-catalogo">Base de Materiais</h3>
+                            <p class="text-xs text-slate-400" id="subtitulo-secao-catalogo">A carregar...</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <label class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition flex items-center space-x-1.5">
@@ -264,7 +238,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tabela-catalogo-corpo" class="divide-y divide-slate-800 text-slate-300">
-                                <tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado para esta empresa. Importe sua planilha.</td></tr>
+                                <tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado neste catálogo. Importe sua planilha.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -363,26 +337,29 @@
     </footer>
 
     <script>
-        let empresaAtual = localStorage.getItem('sienge_empresa_ativa') || "BRAVA CONSTRUÇÃO E INCORPORAÇÃO";
+        // MODO SEPARADO DE EMPRESAS ("BRAVA" ou "CLIENTE")
+        let modoEmpresa = localStorage.getItem('sienge_modo_empresa_v2') || "BRAVA";
         
-        // Carrega catálogos separados para cada empresa
-        let catalogoBrava = JSON.parse(localStorage.getItem('sienge_catalogo_brava_6182')) || [];
-        let catalogoCliente = JSON.parse(localStorage.getItem('sienge_catalogo_cliente_6182')) || [];
-        
-        // Retorna o catálogo da empresa atualmente selecionada
-        function obterCatalogoAtual() {
-            return empresaAtual.includes("BRAVA") ? catalogoBrava : catalogoCliente;
+        let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
+        let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
+
+        function obterCatalogoCorrente() {
+            return modoEmpresa === "BRAVA" ? dbBrava : dbCliente;
         }
 
-        function salvarCatalogoAtual() {
-            if (empresaAtual.includes("BRAVA")) {
-                localStorage.setItem('sienge_catalogo_brava_6182', JSON.stringify(catalogoBrava));
+        function obterNomeEmpresaExtenso() {
+            return modoEmpresa === "BRAVA" ? "BRAVA CONSTRUÇÃO E INCORPORAÇÃO" : "VENTOS PATRIMONIAIS LTDA";
+        }
+
+        function salvarCatalogoCorrente() {
+            if (modoEmpresa === "BRAVA") {
+                localStorage.setItem('sienge_db_brava_v2', JSON.stringify(dbBrava));
             } else {
-                localStorage.setItem('sienge_catalogo_cliente_6182', JSON.stringify(catalogoCliente));
+                localStorage.setItem('sienge_db_cliente_v2', JSON.stringify(dbCliente));
             }
         }
 
-        let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
+        let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_v2')) || {};
         let usuariosCadastrados = JSON.parse(localStorage.getItem('sienge_usuarios_db_6182')) || {};
         let modoCadastro = false;
         let faseAtualContagem = 1;
@@ -391,28 +368,30 @@
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
 
-        function mudarEmpresa(nomeEmpresa) {
-            empresaAtual = nomeEmpresa;
-            localStorage.setItem('sienge_empresa_ativa', empresaAtual);
+        function mudarEmpresa(empresa) {
+            modoEmpresa = empresa;
+            localStorage.setItem('sienge_modo_empresa_v2', modoEmpresa);
             
             const btnBrava = document.getElementById('btn-empresa-brava');
             const btnCliente = document.getElementById('btn-empresa-cliente');
+            const tituloSecao = document.getElementById('titulo-secao-catalogo');
             const subTitulo = document.getElementById('subtitulo-secao-catalogo');
 
-            if (nomeEmpresa.includes("BRAVA")) {
+            if (modoEmpresa === "BRAVA") {
                 btnBrava.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition";
                 btnCliente.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition";
-                if (subTitulo) subTitulo.textContent = "Gerencie os itens do inventário da Brava.";
+                if (tituloSecao) tituloSecao.textContent = "Base de Materiais - Brava";
+                if (subTitulo) subTitulo.textContent = "Gerencie os itens da Brava Construção e Incorporação.";
             } else {
                 btnCliente.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition";
                 btnBrava.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition";
-                if (subTitulo) subTitulo.textContent = "Gerencie os itens do inventário da Ventos Patrimoniais.";
+                if (tituloSecao) tituloSecao.textContent = "Base de Materiais - Ventos Patrimoniais";
+                if (subTitulo) subTitulo.textContent = "Gerencie os itens do Cliente (Ventos Patrimoniais Ltda).";
             }
 
+            // Oculta área de etiquetas ao alternar a empresa para evitar mistura visual
+            document.getElementById('secao-etiquetas').classList.add('hidden');
             renderizarCatalogo();
-            if (!document.getElementById('secao-etiquetas').classList.contains('hidden')) {
-                renderizarEtiquetasQR();
-            }
         }
 
         function modoNovoUsuario() {
@@ -455,7 +434,7 @@
 
         window.addEventListener('DOMContentLoaded', () => { 
             verificarEstadoSistema(); 
-            mudarEmpresa(empresaAtual);
+            mudarEmpresa(modoEmpresa);
         });
 
         function verificarEstadoSistema() {
@@ -617,11 +596,11 @@
             ultimoCodigoLido = codigoLido;
             ultimaLeituraTimestamp = agora;
 
-            let catalogoAtivo = obterCatalogoAtual();
+            let catalogoAtivo = obterCatalogoCorrente();
             let produto = catalogoAtivo.find(p => String(p.id).trim() === codigoLido);
 
             if (!produto) {
-                alert(`Código lido "${codigoLido}" não encontrado no catálogo da empresa ativa (${empresaAtual})!`);
+                alert(`Código lido "${codigoLido}" não pertence ao catálogo ativo (${modoEmpresa === "BRAVA" ? "Brava" : "Ventos Patrimoniais"})!`);
                 return;
             }
 
@@ -632,7 +611,7 @@
             document.getElementById('lido-unidade').textContent = produto.un || 'UN';
             
             let campoQtd = document.getElementById('lido-quantidade');
-            let chaveReg = `${empresaAtual}_${produto.id}_fase_${faseAtualContagem}`;
+            let chaveReg = `${modoEmpresa}_${produto.id}_fase_${faseAtualContagem}`;
             campoQtd.value = registrosContagem[chaveReg] !== undefined ? registrosContagem[chaveReg] : "";
             
             document.getElementById('painel-item-lido').classList.remove('hidden');
@@ -644,11 +623,11 @@
             let qtdVal = parseFloat(document.getElementById('lido-quantidade').value);
             if (isNaN(qtdVal)) { alert("Insira uma quantidade válida."); return; }
 
-            let chaveReg = `${empresaAtual}_${produtoScaneadoAtual.id}_fase_${faseAtualContagem}`;
+            let chaveReg = `${modoEmpresa}_${produtoScaneadoAtual.id}_fase_${faseAtualContagem}`;
             registrosContagem[chaveReg] = qtdVal;
-            localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
+            localStorage.setItem('sienge_registros_contagem_v2', JSON.stringify(registrosContagem));
             
-            alert(`Contagem guardada para o item ${produtoScaneadoAtual.id} (${empresaAtual})!`);
+            alert(`Contagem guardada para o item ${produtoScaneadoAtual.id} (${modoEmpresa})!`);
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
             document.getElementById('lido-quantidade').value = "";
@@ -666,7 +645,7 @@
             }
         }
 
-        // IMPORTAÇÃO SEPARADA PARA A EMPRESA ATIVA (BRAVA OU CLIENTE)
+        // IMPORTA PLANILHA APENAS PARA A EMPRESA ATIVA NO MOMENTO
         function importarPlanilhaSienge(event) {
             let file = event.target.files[0];
             if (!file) return;
@@ -678,7 +657,7 @@
                     let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     let rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                    let catalogoAtivo = obterCatalogoAtual();
+                    let catalogoAtivo = obterCatalogoCorrente();
                     let adicionadosCount = 0;
 
                     rows.forEach(r => {
@@ -700,15 +679,15 @@
                         }
                     });
 
-                    if (empresaAtual.includes("BRAVA")) {
-                        catalogoBrava = catalogoAtivo;
+                    if (modoEmpresa === "BRAVA") {
+                        dbBrava = catalogoAtivo;
                     } else {
-                        catalogoCliente = catalogoAtivo;
+                        dbCliente = catalogoAtivo;
                     }
-                    salvarCatalogoAtual();
+                    salvarCatalogoCorrente();
 
                     renderizarCatalogo();
-                    alert(`Planilha importada com sucesso para ${empresaAtual}! Catálogo atual possui ${catalogoAtivo.length} materiais.`);
+                    alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens no catálogo: ${catalogoAtivo.length}`);
                 } catch(err) {
                     alert("Erro ao processar ficheiro Excel.");
                 }
@@ -721,9 +700,9 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             
-            let catalogoAtivo = obterCatalogoAtual();
+            let catalogoAtivo = obterCatalogoCorrente();
             if (catalogoAtivo.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado para ${empresaAtual}. Importe sua planilha.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado no catálogo de ${obterNomeEmpresaExtenso()}. Importe a planilha desta empresa.</td></tr>`;
                 return;
             }
             catalogoAtivo.forEach(p => {
@@ -738,20 +717,20 @@
         }
 
         function limparDadosImportados() {
-            if (confirm(`Deseja apagar todos os produtos e registos de ${empresaAtual}?`)) {
-                if (empresaAtual.includes("BRAVA")) {
-                    catalogoBrava = [];
+            if (confirm(`Deseja apagar todos os produtos do catálogo de ${obterNomeEmpresaExtenso()}?`)) {
+                if (modoEmpresa === "BRAVA") {
+                    dbBrava = [];
                 } else {
-                    catalogoCliente = [];
+                    dbCliente = [];
                 }
-                salvarCatalogoAtual();
+                salvarCatalogoCorrente();
                 renderizarCatalogo();
                 document.getElementById('secao-etiquetas').classList.add('hidden');
-                alert("Dados limpos com sucesso.");
+                alert("Catálogo limpo com sucesso.");
             }
         }
 
-        // RENDERIZAÇÃO DAS ETIQUETAS COM A EMPRESA ATIVA SELECIONADA
+        // RENDERIZA ETIQUETAS DO CATÁLOGO DA EMPRESA SELECIONADA
         function renderizarEtiquetasQR() {
             let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
@@ -759,15 +738,17 @@
             if (!area) return;
             area.innerHTML = '';
 
-            let catalogoAtivo = obterCatalogoAtual();
+            let catalogoAtivo = obterCatalogoCorrente();
+            let nomeEmpresaExtenso = obterNomeEmpresaExtenso();
+
             if (catalogoAtivo.length === 0) {
-                alert(`Nenhum produto no catálogo de ${empresaAtual} para gerar etiquetas.`);
+                alert(`Nenhum produto no catálogo de ${nomeEmpresaExtenso} para gerar etiquetas.`);
                 secao.classList.add('hidden');
                 return;
             }
 
             if (tituloEtiquetas) {
-                tituloEtiquetas.textContent = `ETIQUETAS - ${empresaAtual}`;
+                tituloEtiquetas.textContent = `ETIQUETAS - ${nomeEmpresaExtenso}`;
             }
 
             secao.classList.remove('hidden');
@@ -778,7 +759,7 @@
                 
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">${empresaAtual}</span>
+                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">${nomeEmpresaExtenso}</span>
                         <div class="bg-black text-amber-300 font-black text-xs px-2 py-0.5 rounded">Cód: ${p.id}</div>
                     </div>
                     <div class="flex items-center space-x-3">
@@ -807,15 +788,15 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            let catalogoAtivo = obterCatalogoAtual();
+            let catalogoAtivo = obterCatalogoCorrente();
             if (catalogoAtivo.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum dado no catálogo de ${empresaAtual}.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum dado apurado para ${obterNomeEmpresaExtenso()}.</td></tr>`;
                 return;
             }
 
             catalogoAtivo.forEach(p => {
-                let c1 = registrosContagem[`${empresaAtual}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${empresaAtual}_${p.id}_fase_1`] : "-";
-                let c2 = registrosContagem[`${empresaAtual}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${empresaAtual}_${p.id}_fase_2`] : "-";
+                let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "-";
+                let c2 = registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "-";
                 
                 let statusBadge = `<span class="text-slate-500">Pendente</span>`;
                 if (c1 !== "-" && c2 !== "-") {
@@ -839,26 +820,27 @@
         }
 
         function exportarRelatorioExcel() {
-            let catalogoAtivo = obterCatalogoAtual();
+            let catalogoAtivo = obterCatalogoCorrente();
             if (catalogoAtivo.length === 0) { alert("Sem dados para exportar."); return; }
+            let nomeEmpresaExtenso = obterNomeEmpresaExtenso();
             let dadosExport = catalogoAtivo.map(p => ({
                 "Código": p.id,
                 "Descrição": p.descricao,
                 "Unidade": p.un || "UN",
-                "Empresa": empresaAtual,
-                "1ª Contagem": registrosContagem[`${empresaAtual}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${empresaAtual}_${p.id}_fase_1`] : "",
-                "2ª Contagem": registrosContagem[`${empresaAtual}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${empresaAtual}_${p.id}_fase_2`] : ""
+                "Empresa": nomeEmpresaExtenso,
+                "1ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "",
+                "2ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : ""
             }));
             let ws = XLSX.utils.json_to_sheet(dadosExport);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Contagem Estoque");
-            XLSX.writeFile(wb, `Relatorio_Contagem_${empresaAtual.includes("BRAVA") ? "Brava" : "Cliente"}.xlsx`);
+            XLSX.writeFile(wb, `Relatorio_Contagem_${modoEmpresa}.xlsx`);
         }
 
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
             if (!email) { alert("Insira um endereço de e-mail válido."); return; }
-            alert(`Relatório de ${empresaAtual} enviado com sucesso para ${email}!`);
+            alert(`Relatório de ${obterNomeEmpresaExtenso()} enviado com sucesso para ${email}!`);
         }
     </script>
 </body>
