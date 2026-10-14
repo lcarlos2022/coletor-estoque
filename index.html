@@ -216,11 +216,11 @@
             <div class="flex-1 bg-[#111c38] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
                 <div id="conteudo-catalogo" class="space-y-4">
                     
-                    <!-- SELETOR DE EMPRESA DAS ETIQUETAS (DEPOIS DA TELA DE LOGIN) -->
+                    <!-- SELETOR DE EMPRESA (SEPARA AS IMPORTAÇÕES E ETIQUETAS) -->
                     <div class="bg-[#0b1329] border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-2">
                         <span class="text-xs font-bold text-amber-400 uppercase flex items-center space-x-1.5">
                             <i class="fa-solid fa-building"></i>
-                            <span>Empresa das Etiquetas:</span>
+                            <span>Empresa Ativa:</span>
                         </span>
                         <div class="flex gap-2 w-full sm:w-auto">
                             <button id="btn-empresa-brava" onclick="mudarEmpresa('BRAVA CONSTRUÇÃO E INCORPORAÇÃO')" class="flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition">
@@ -234,8 +234,8 @@
 
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
-                            <h3 class="text-sm font-bold text-white uppercase">Base de Materiais (Sienge)</h3>
-                            <p class="text-xs text-slate-400">Gerencie os itens do inventário.</p>
+                            <h3 class="text-sm font-bold text-white uppercase" id="titulo-secao-catalogo">Base de Materiais (Sienge)</h3>
+                            <p class="text-xs text-slate-400" id="subtitulo-secao-catalogo">Gerencie os itens do inventário da Brava.</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <label class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition flex items-center space-x-1.5">
@@ -264,14 +264,14 @@
                                 </tr>
                             </thead>
                             <tbody id="tabela-catalogo-corpo" class="divide-y divide-slate-800 text-slate-300">
-                                <tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>
+                                <tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado para esta empresa. Importe sua planilha.</td></tr>
                             </tbody>
                         </table>
                     </div>
 
                     <div id="secao-etiquetas" class="hidden border-t border-slate-800 pt-4 space-y-3">
                         <div class="flex justify-between items-center flex-wrap gap-2">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase">ETIQUETAS CUSTOMIZADAS (FORMATO A4 OTIMIZADO)</h4>
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase" id="titulo-etiquetas-geradas">ETIQUETAS CUSTOMIZADAS</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
@@ -363,16 +363,57 @@
     </footer>
 
     <script>
-        let catalogoProdutos = JSON.parse(localStorage.getItem('sienge_catalogo_produtos_6182')) || [];
+        let empresaAtual = localStorage.getItem('sienge_empresa_ativa') || "BRAVA CONSTRUÇÃO E INCORPORAÇÃO";
+        
+        // Carrega catálogos separados para cada empresa
+        let catalogoBrava = JSON.parse(localStorage.getItem('sienge_catalogo_brava_6182')) || [];
+        let catalogoCliente = JSON.parse(localStorage.getItem('sienge_catalogo_cliente_6182')) || [];
+        
+        // Retorna o catálogo da empresa atualmente selecionada
+        function obterCatalogoAtual() {
+            return empresaAtual.includes("BRAVA") ? catalogoBrava : catalogoCliente;
+        }
+
+        function salvarCatalogoAtual() {
+            if (empresaAtual.includes("BRAVA")) {
+                localStorage.setItem('sienge_catalogo_brava_6182', JSON.stringify(catalogoBrava));
+            } else {
+                localStorage.setItem('sienge_catalogo_cliente_6182', JSON.stringify(catalogoCliente));
+            }
+        }
+
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_6182')) || {};
         let usuariosCadastrados = JSON.parse(localStorage.getItem('sienge_usuarios_db_6182')) || {};
-        let empresaAtual = localStorage.getItem('sienge_empresa_atual') || "BRAVA CONSTRUÇÃO E INCORPORAÇÃO";
         let modoCadastro = false;
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
         let html5QrCode = null;
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
+
+        function mudarEmpresa(nomeEmpresa) {
+            empresaAtual = nomeEmpresa;
+            localStorage.setItem('sienge_empresa_ativa', empresaAtual);
+            
+            const btnBrava = document.getElementById('btn-empresa-brava');
+            const btnCliente = document.getElementById('btn-empresa-cliente');
+            const subTitulo = document.getElementById('subtitulo-secao-catalogo');
+
+            if (nomeEmpresa.includes("BRAVA")) {
+                btnBrava.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition";
+                btnCliente.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition";
+                if (subTitulo) subTitulo.textContent = "Gerencie os itens do inventário da Brava.";
+            } else {
+                btnCliente.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition";
+                btnBrava.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition";
+                if (subTitulo) subTitulo.textContent = "Gerencie os itens do inventário da Ventos Patrimoniais.";
+            }
+
+            renderizarCatalogo();
+            if (!document.getElementById('secao-etiquetas').classList.contains('hidden')) {
+                renderizarEtiquetasQR();
+            }
+        }
 
         function modoNovoUsuario() {
             modoCadastro = !modoCadastro;
@@ -393,26 +434,6 @@
                 instrucao.innerHTML = "Preencha os seus dados para criar um novo utilizador no sistema.";
             } else {
                 verificarEstadoSistema();
-            }
-        }
-
-        function mudarEmpresa(nomeEmpresa) {
-            empresaAtual = nomeEmpresa;
-            localStorage.setItem('sienge_empresa_atual', empresaAtual);
-            
-            const btnBrava = document.getElementById('btn-empresa-brava');
-            const btnCliente = document.getElementById('btn-empresa-cliente');
-
-            if (nomeEmpresa.includes("BRAVA")) {
-                btnBrava.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition";
-                btnCliente.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition";
-            } else {
-                btnCliente.className = "flex-1 sm:flex-initial bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition";
-                btnBrava.className = "flex-1 sm:flex-initial bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-lg font-bold transition";
-            }
-
-            if (!document.getElementById('secao-etiquetas').classList.contains('hidden')) {
-                renderizarEtiquetasQR();
             }
         }
 
@@ -466,7 +487,6 @@
             } else {
                 let userEncontrado = usuariosCadastrados[cpfDigitado];
                 if (!userEncontrado) {
-                    // Se for o primeiro acesso do sistema antes de qualquer cadastro
                     let antigoUser = localStorage.getItem('sienge_usuario_cadastrado');
                     if (antigoUser) {
                         let parsed = JSON.parse(antigoUser);
@@ -597,10 +617,11 @@
             ultimoCodigoLido = codigoLido;
             ultimaLeituraTimestamp = agora;
 
-            let produto = catalogoProdutos.find(p => String(p.id).trim() === codigoLido);
+            let catalogoAtivo = obterCatalogoAtual();
+            let produto = catalogoAtivo.find(p => String(p.id).trim() === codigoLido);
 
             if (!produto) {
-                alert(`Código lido "${codigoLido}" não encontrado no catálogo Sienge!`);
+                alert(`Código lido "${codigoLido}" não encontrado no catálogo da empresa ativa (${empresaAtual})!`);
                 return;
             }
 
@@ -611,7 +632,7 @@
             document.getElementById('lido-unidade').textContent = produto.un || 'UN';
             
             let campoQtd = document.getElementById('lido-quantidade');
-            let chaveReg = `${produto.id}_fase_${faseAtualContagem}`;
+            let chaveReg = `${empresaAtual}_${produto.id}_fase_${faseAtualContagem}`;
             campoQtd.value = registrosContagem[chaveReg] !== undefined ? registrosContagem[chaveReg] : "";
             
             document.getElementById('painel-item-lido').classList.remove('hidden');
@@ -623,11 +644,11 @@
             let qtdVal = parseFloat(document.getElementById('lido-quantidade').value);
             if (isNaN(qtdVal)) { alert("Insira uma quantidade válida."); return; }
 
-            let chaveReg = `${produtoScaneadoAtual.id}_fase_${faseAtualContagem}`;
+            let chaveReg = `${empresaAtual}_${produtoScaneadoAtual.id}_fase_${faseAtualContagem}`;
             registrosContagem[chaveReg] = qtdVal;
             localStorage.setItem('sienge_registros_contagem_6182', JSON.stringify(registrosContagem));
             
-            alert(`Contagem guardada para o item ${produtoScaneadoAtual.id}!`);
+            alert(`Contagem guardada para o item ${produtoScaneadoAtual.id} (${empresaAtual})!`);
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
             document.getElementById('lido-quantidade').value = "";
@@ -645,7 +666,7 @@
             }
         }
 
-        // ACUMULA OS NOVOS PRODUTOS SEM APAGAR OS ANTERIORES
+        // IMPORTAÇÃO SEPARADA PARA A EMPRESA ATIVA (BRAVA OU CLIENTE)
         function importarPlanilhaSienge(event) {
             let file = event.target.files[0];
             if (!file) return;
@@ -657,7 +678,9 @@
                     let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     let rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
+                    let catalogoAtivo = obterCatalogoAtual();
                     let adicionadosCount = 0;
+
                     rows.forEach(r => {
                         if (!r || r.length === 0) return;
                         let id = r[0] !== undefined ? String(r[0]).trim() : "";
@@ -667,19 +690,25 @@
                         if (!id || id.toLowerCase() === 'cód' || id.toLowerCase() === 'codigo' || id.toLowerCase() === 'insumo') return;
                         
                         if (id && desc) {
-                            let idxExistente = catalogoProdutos.findIndex(p => String(p.id).trim() === id);
+                            let idxExistente = catalogoAtivo.findIndex(p => String(p.id).trim() === id);
                             if (idxExistente !== -1) {
-                                catalogoProdutos[idxExistente] = { id, descricao: desc, un };
+                                catalogoAtivo[idxExistente] = { id, descricao: desc, un };
                             } else {
-                                catalogoProdutos.push({ id, descricao: desc, un });
+                                catalogoAtivo.push({ id, descricao: desc, un });
                                 adicionadosCount++;
                             }
                         }
                     });
 
-                    localStorage.setItem('sienge_catalogo_produtos_6182', JSON.stringify(catalogoProdutos));
+                    if (empresaAtual.includes("BRAVA")) {
+                        catalogoBrava = catalogoAtivo;
+                    } else {
+                        catalogoCliente = catalogoAtivo;
+                    }
+                    salvarCatalogoAtual();
+
                     renderizarCatalogo();
-                    alert(`Planilha importada com sucesso! Catálogo agora possui ${catalogoProdutos.length} materiais.`);
+                    alert(`Planilha importada com sucesso para ${empresaAtual}! Catálogo atual possui ${catalogoAtivo.length} materiais.`);
                 } catch(err) {
                     alert("Erro ao processar ficheiro Excel.");
                 }
@@ -691,11 +720,13 @@
             let tbody = document.getElementById('tabela-catalogo-corpo');
             if (!tbody) return;
             tbody.innerHTML = '';
-            if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado. Importe sua planilha.</td></tr>`;
+            
+            let catalogoAtivo = obterCatalogoAtual();
+            if (catalogoAtivo.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado para ${empresaAtual}. Importe sua planilha.</td></tr>`;
                 return;
             }
-            catalogoProdutos.forEach(p => {
+            catalogoAtivo.forEach(p => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
@@ -707,41 +738,47 @@
         }
 
         function limparDadosImportados() {
-            if (confirm("Deseja apagar todos os produtos e registos de contagem?")) {
-                catalogoProdutos = [];
-                registrosContagem = {};
-                localStorage.removeItem('sienge_catalogo_produtos_6182');
-                localStorage.removeItem('sienge_registros_contagem_6182');
+            if (confirm(`Deseja apagar todos os produtos e registos de ${empresaAtual}?`)) {
+                if (empresaAtual.includes("BRAVA")) {
+                    catalogoBrava = [];
+                } else {
+                    catalogoCliente = [];
+                }
+                salvarCatalogoAtual();
                 renderizarCatalogo();
                 document.getElementById('secao-etiquetas').classList.add('hidden');
                 alert("Dados limpos com sucesso.");
             }
         }
 
-        // RENDERIZAÇÃO DAS ETIQUETAS COM IDENTIFICAÇÃO DA EMPRESA SELECIONADA
+        // RENDERIZAÇÃO DAS ETIQUETAS COM A EMPRESA ATIVA SELECIONADA
         function renderizarEtiquetasQR() {
             let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
+            let tituloEtiquetas = document.getElementById('titulo-etiquetas-geradas');
             if (!area) return;
             area.innerHTML = '';
 
-            if (catalogoProdutos.length === 0) {
-                alert("Nenhum produto no catálogo para gerar etiquetas.");
+            let catalogoAtivo = obterCatalogoAtual();
+            if (catalogoAtivo.length === 0) {
+                alert(`Nenhum produto no catálogo de ${empresaAtual} para gerar etiquetas.`);
                 secao.classList.add('hidden');
                 return;
             }
 
+            if (tituloEtiquetas) {
+                tituloEtiquetas.textContent = `ETIQUETAS - ${empresaAtual}`;
+            }
+
             secao.classList.remove('hidden');
 
-            catalogoProdutos.forEach((p, idx) => {
+            catalogoAtivo.forEach((p, idx) => {
                 let card = document.createElement('div');
                 card.className = 'etiqueta-card';
                 
-                let nomeEmpresaExibicao = empresaAtual;
-
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">${nomeEmpresaExibicao}</span>
+                        <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">${empresaAtual}</span>
                         <div class="bg-black text-amber-300 font-black text-xs px-2 py-0.5 rounded">Cód: ${p.id}</div>
                     </div>
                     <div class="flex items-center space-x-3">
@@ -770,14 +807,15 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            if (catalogoProdutos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum dado no catálogo.</td></tr>`;
+            let catalogoAtivo = obterCatalogoAtual();
+            if (catalogoAtivo.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum dado no catálogo de ${empresaAtual}.</td></tr>`;
                 return;
             }
 
-            catalogoProdutos.forEach(p => {
-                let c1 = registrosContagem[`${p.id}_fase_1`] !== undefined ? registrosContagem[`${p.id}_fase_1`] : "-";
-                let c2 = registrosContagem[`${p.id}_fase_2`] !== undefined ? registrosContagem[`${p.id}_fase_2`] : "-";
+            catalogoAtivo.forEach(p => {
+                let c1 = registrosContagem[`${empresaAtual}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${empresaAtual}_${p.id}_fase_1`] : "-";
+                let c2 = registrosContagem[`${empresaAtual}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${empresaAtual}_${p.id}_fase_2`] : "-";
                 
                 let statusBadge = `<span class="text-slate-500">Pendente</span>`;
                 if (c1 !== "-" && c2 !== "-") {
@@ -801,25 +839,26 @@
         }
 
         function exportarRelatorioExcel() {
-            if (catalogoProdutos.length === 0) { alert("Sem dados para exportar."); return; }
-            let dadosExport = catalogoProdutos.map(p => ({
+            let catalogoAtivo = obterCatalogoAtual();
+            if (catalogoAtivo.length === 0) { alert("Sem dados para exportar."); return; }
+            let dadosExport = catalogoAtivo.map(p => ({
                 "Código": p.id,
                 "Descrição": p.descricao,
                 "Unidade": p.un || "UN",
                 "Empresa": empresaAtual,
-                "1ª Contagem": registrosContagem[`${p.id}_fase_1`] !== undefined ? registrosContagem[`${p.id}_fase_1`] : "",
-                "2ª Contagem": registrosContagem[`${p.id}_fase_2`] !== undefined ? registrosContagem[`${p.id}_fase_2`] : ""
+                "1ª Contagem": registrosContagem[`${empresaAtual}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${empresaAtual}_${p.id}_fase_1`] : "",
+                "2ª Contagem": registrosContagem[`${empresaAtual}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${empresaAtual}_${p.id}_fase_2`] : ""
             }));
             let ws = XLSX.utils.json_to_sheet(dadosExport);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Contagem Estoque");
-            XLSX.writeFile(wb, "Relatorio_Contagem_Estoque.xlsx");
+            XLSX.writeFile(wb, `Relatorio_Contagem_${empresaAtual.includes("BRAVA") ? "Brava" : "Cliente"}.xlsx`);
         }
 
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
             if (!email) { alert("Insira um endereço de e-mail válido."); return; }
-            alert(`Relatório enviado com sucesso para ${email}!`);
+            alert(`Relatório de ${empresaAtual} enviado com sucesso para ${email}!`);
         }
     </script>
 </body>
