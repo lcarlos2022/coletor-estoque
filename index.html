@@ -217,9 +217,13 @@
                                 <span>Importar Planilha</span>
                                 <input type="file" id="input-excel" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarPlanilhaSienge(event)">
                             </label>
-                            <button onclick="renderizarEtiquetasQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
+                            <button onclick="gerarEtiquetasSelecionadas()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Gerar etiquetas dos itens marcados na tabela">
+                                <i class="fa-solid fa-check-double"></i>
+                                <span>Gerar Selecionadas</span>
+                            </button>
+                            <button onclick="renderizarEtiquetasQR('todas')" class="bg-teal-600 hover:bg-teal-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Gerar etiquetas de todo o catálogo">
                                 <i class="fa-solid fa-qrcode"></i>
-                                <span>Gerar Etiquetas</span>
+                                <span>Gerar Todas</span>
                             </button>
                             <button onclick="limparDadosImportados()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
                                 <i class="fa-solid fa-trash-can"></i>
@@ -232,6 +236,9 @@
                         <table class="w-full text-left border-collapse text-xs">
                             <thead class="bg-[#0b1329] text-slate-400 sticky top-0">
                                 <tr>
+                                    <th class="p-2.5 border-b border-slate-800 text-center w-10">
+                                        <input type="checkbox" id="chk-selecionar-todos" onclick="alternarSelecaoTodos(this)" class="accent-emerald-500 cursor-pointer w-4 h-4 rounded">
+                                    </th>
                                     <th class="p-2.5 border-b border-slate-800">Código</th>
                                     <th class="p-2.5 border-b border-slate-800">Descrição do Material</th>
                                     <th class="p-2.5 border-b border-slate-800">Unidade</th>
@@ -239,7 +246,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tabela-catalogo-corpo" class="divide-y divide-slate-800 text-slate-300">
-                                <tr><td colspan="4" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado neste catálogo. Importe sua planilha.</td></tr>
+                                <tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado neste catálogo. Importe sua planilha.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -343,7 +350,6 @@
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
 
-        // REMOVE QUALQUER PADRÃO DE UNIDADE DO INÍCIO DA DESCRIÇÃO EX: [und], (und), und, etc.
         function limparDescricao(desc) {
             if (!desc) return "";
             return desc.replace(/^[\s\(\[]*(und\vert{}un\vert{}pc\vert{}kg\vert{}m\vert{}l)[\s\)\]]*/i, '').trim();
@@ -663,7 +669,9 @@
                     let rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
                     let catalogoAtivo = obterCatalogoCorrente();
-                    let adicionadosCount = 0;
+                    
+                    // Marca os itens recém-importados para virem marcados por padrão
+                    let novosIds = [];
 
                     rows.forEach(r => {
                         if (!r || r.length === 0) return;
@@ -676,12 +684,12 @@
                         let desc = limparDescricao(descBruta);
 
                         if (id && desc) {
+                            novosIds.push(id);
                             let idxExistente = catalogoAtivo.findIndex(p => String(p.id).trim() === id);
                             if (idxExistente !== -1) {
                                 catalogoAtivo[idxExistente] = { id, descricao: desc, un };
                             } else {
                                 catalogoAtivo.push({ id, descricao: desc, un });
-                                adicionadosCount++;
                             }
                         }
                     });
@@ -693,8 +701,8 @@
                     }
                     salvarCatalogoCorrente();
 
-                    renderizarCatalogo();
-                    alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens no catálogo: ${catalogoAtivo.length}`);
+                    renderizarCatalogo(novosIds);
+                    alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens no catálogo: ${catalogoAtivo.length}\n\nOs novos itens já vieram marcados para gerar etiquetas.`);
                 } catch(err) {
                     alert("Erro ao processar ficheiro Excel.");
                 }
@@ -713,25 +721,39 @@
                 renderizarCatalogo();
                 
                 if (!document.getElementById('secao-etiquetas').classList.contains('hidden')) {
-                    renderizarEtiquetasQR();
+                    renderizarEtiquetasQR('todas');
                 }
             }
         }
 
-        function renderizarCatalogo() {
+        function alternarSelecaoTodos(masterChk) {
+            let chks = document.querySelectorAll('.chk-item-catalogo');
+            chks.forEach(c => c.checked = masterChk.checked);
+        }
+
+        function renderizarCatalogo(idsParaMarcar = null) {
             let tbody = document.getElementById('tabela-catalogo-corpo');
             if (!tbody) return;
             tbody.innerHTML = '';
             
             let catalogoAtivo = obterCatalogoCorrente();
             if (catalogoAtivo.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado no catálogo de ${obterNomeEmpresaExtenso()}. Importe a planilha desta empresa.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">Nenhum produto cadastrado no catálogo de ${obterNomeEmpresaExtenso()}. Importe a planilha desta empresa.</td></tr>`;
                 return;
             }
+
+            let chkMaster = document.getElementById('chk-selecionar-todos');
+            if (chkMaster) chkMaster.checked = false;
+
             catalogoAtivo.forEach(p => {
                 let tr = document.createElement('tr');
                 let descLimpa = limparDescricao(p.descricao);
+                let estaMarcado = (idsParaMarcar && idsParaMarcar.includes(String(p.id))) ? 'checked' : '';
+
                 tr.innerHTML = `
+                    <td class="p-2.5 border-b border-slate-800 text-center">
+                        <input type="checkbox" value="${p.id}" ${estaMarcado} class="chk-item-catalogo accent-emerald-500 cursor-pointer w-4 h-4 rounded">
+                    </td>
                     <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
                     <td class="p-2.5 border-b border-slate-800">${descLimpa}</td>
                     <td class="p-2.5 border-b border-slate-800">${p.un || 'UN'}</td>
@@ -743,6 +765,17 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function gerarEtiquetasSelecionadas() {
+            let chks = document.querySelectorAll('.chk-item-catalogo:checked');
+            if (chks.length === 0) {
+                alert("Por favor, selecione ao menos um produto na tabela (marcando a caixinha) para gerar as etiquetas.");
+                return;
+            }
+
+            let idsSelecionados = Array.from(chks).map(c => String(c.value).trim());
+            renderizarEtiquetasQR('selecionadas', idsSelecionados);
         }
 
         function limparDadosImportados() {
@@ -759,8 +792,7 @@
             }
         }
 
-        // RENDERIZA A ETIQUETA FORMATADA: DESCRICAO + ESPAÇO + UNIDADE
-        function renderizarEtiquetasQR() {
+        function renderizarEtiquetasQR(modo = 'todas', idsFiltro = []) {
             let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
             let tituloEtiquetas = document.getElementById('titulo-etiquetas-geradas');
@@ -768,21 +800,31 @@
             area.innerHTML = '';
 
             let catalogoAtivo = obterCatalogoCorrente();
+            let listaParaGerar = [];
+
+            if (modo === 'selecionadas') {
+                listaParaGerar = catalogoAtivo.filter(p => idsFiltro.includes(String(p.id).trim()));
+            } else {
+                listaParaGerar = catalogoAtivo;
+            }
+
             let nomeEmpresaExtenso = obterNomeEmpresaExtenso();
 
-            if (catalogoAtivo.length === 0) {
-                alert(`Nenhum produto no catálogo de ${nomeEmpresaExtenso} para gerar etiquetas.`);
+            if (listaParaGerar.length === 0) {
+                alert(`Nenhum produto selecionado ou disponível em ${nomeEmpresaExtenso} para gerar etiquetas.`);
                 secao.classList.add('hidden');
                 return;
             }
 
             if (tituloEtiquetas) {
-                tituloEtiquetas.textContent = `ETIQUETAS - ${nomeEmpresaExtenso}`;
+                tituloEtiquetas.textContent = modo === 'selecionadas' 
+                    ? `ETIQUETAS SELECIONADAS (${listaParaGerar.length}) - ${nomeEmpresaExtenso}` 
+                    : `TODAS AS ETIQUETAS (${listaParaGerar.length}) - ${nomeEmpresaExtenso}`;
             }
 
             secao.classList.remove('hidden');
 
-            catalogoAtivo.forEach((p, idx) => {
+            listaParaGerar.forEach((p, idx) => {
                 let card = document.createElement('div');
                 card.className = 'etiqueta-card';
                 
