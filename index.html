@@ -235,7 +235,7 @@
                                     <th class="p-2.5 border-b border-slate-800">Código</th>
                                     <th class="p-2.5 border-b border-slate-800">Descrição do Material</th>
                                     <th class="p-2.5 border-b border-slate-800">Unidade</th>
-                                    <th class="p-2.5 border-b border-slate-800 text-center">Ações</th>
+                                    <th class="p-2.5 border-b border-slate-800 text-center">Excluir</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-catalogo-corpo" class="divide-y divide-slate-800 text-slate-300">
@@ -343,9 +343,10 @@
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
 
+        // REMOVE QUALQUER PADRÃO DE UNIDADE DO INÍCIO DA DESCRIÇÃO EX: [und], (und), und, etc.
         function limparDescricao(desc) {
             if (!desc) return "";
-            return desc.replace(/^\s*[\(\[]?\s*(und\vert{}un\vert{}pc\vert{}kg\vert{}m\vert{}l)\s*[\)\]]?\s*/i, '').trim();
+            return desc.replace(/^[\s\(\[]*(und\vert{}un\vert{}pc\vert{}kg\vert{}m\vert{}l)[\s\)\]]*/i, '').trim();
         }
 
         function obterCatalogoCorrente() {
@@ -701,7 +702,6 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // FUNÇÃO PARA EXCLUIR UM ITEM ESPECÍFICO DO CATÁLOGO
         function excluirItemCatalogo(idItem) {
             if (confirm(`Deseja remover o item ${idItem} deste catálogo?`)) {
                 if (modoEmpresa === "BRAVA") {
@@ -712,7 +712,6 @@
                 salvarCatalogoCorrente();
                 renderizarCatalogo();
                 
-                // Se a seção de etiquetas estiver aberta, atualiza-a também
                 if (!document.getElementById('secao-etiquetas').classList.contains('hidden')) {
                     renderizarEtiquetasQR();
                 }
@@ -760,6 +759,7 @@
             }
         }
 
+        // RENDERIZA A ETIQUETA FORMATADA: DESCRICAO + ESPAÇO + UNIDADE
         function renderizarEtiquetasQR() {
             let secao = document.getElementById('secao-etiquetas');
             let area = document.getElementById('area-impressao-etiquetas');
