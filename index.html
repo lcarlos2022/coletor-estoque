@@ -217,7 +217,7 @@
                                 <span>Importar Planilha</span>
                                 <input type="file" id="input-excel" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarPlanilhaSienge(event)">
                             </label>
-                            <button onclick="gerarEtiquetasSelecionadas()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Gerar etiquetas dos itens marcados na tabela">
+                            <button onclick="gerarEtiquetasSelecionadas()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Gerar etiquetas apenas dos itens selecionados na tabela">
                                 <i class="fa-solid fa-check-double"></i>
                                 <span>Gerar Selecionadas</span>
                             </button>
@@ -236,9 +236,7 @@
                         <table class="w-full text-left border-collapse text-xs">
                             <thead class="bg-[#0b1329] text-slate-400 sticky top-0">
                                 <tr>
-                                    <th class="p-2.5 border-b border-slate-800 text-center w-10">
-                                        <input type="checkbox" id="chk-selecionar-todos" onclick="alternarSelecaoTodos(this)" class="accent-emerald-500 cursor-pointer w-4 h-4 rounded">
-                                    </th>
+                                    <th class="p-2.5 border-b border-slate-800 text-center">Seleção</th>
                                     <th class="p-2.5 border-b border-slate-800">Código</th>
                                     <th class="p-2.5 border-b border-slate-800">Descrição do Material</th>
                                     <th class="p-2.5 border-b border-slate-800">Unidade</th>
@@ -349,6 +347,7 @@
         
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
+        let itensSelecionadosParaEtiqueta = new Set();
 
         function limparDescricao(desc) {
             if (!desc) return "";
@@ -402,6 +401,7 @@
             }
 
             document.getElementById('secao-etiquetas').classList.add('hidden');
+            itensSelecionadosParaEtiqueta.clear();
             renderizarCatalogo();
         }
 
@@ -669,9 +669,7 @@
                     let rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
                     let catalogoAtivo = obterCatalogoCorrente();
-                    
-                    // Marca os itens recém-importados para virem marcados por padrão
-                    let novosIds = [];
+                    itensSelecionadosParaEtiqueta.clear();
 
                     rows.forEach(r => {
                         if (!r || r.length === 0) return;
@@ -684,7 +682,7 @@
                         let desc = limparDescricao(descBruta);
 
                         if (id && desc) {
-                            novosIds.push(id);
+                            itensSelecionadosParaEtiqueta.add(id);
                             let idxExistente = catalogoAtivo.findIndex(p => String(p.id).trim() === id);
                             if (idxExistente !== -1) {
                                 catalogoAtivo[idxExistente] = { id, descricao: desc, un };
@@ -701,8 +699,8 @@
                     }
                     salvarCatalogoCorrente();
 
-                    renderizarCatalogo(novosIds);
-                    alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens no catálogo: ${catalogoAtivo.length}\n\nOs novos itens já vieram marcados para gerar etiquetas.`);
+                    renderizarCatalogo();
+                    alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens no catálogo: ${catalogoAtivo.length}\n\nOs novos itens da planilha já ficaram selecionados automaticamente.`);
                 } catch(err) {
                     alert("Erro ao processar ficheiro Excel.");
                 }
@@ -717,6 +715,7 @@
                 } else {
                     dbCliente = dbCliente.filter(p => String(p.id).trim() !== String(idItem).trim());
                 }
+                itensSelecionadosParaEtiqueta.delete(String(idItem).trim());
                 salvarCatalogoCorrente();
                 renderizarCatalogo();
                 
@@ -726,12 +725,17 @@
             }
         }
 
-        function alternarSelecaoTodos(masterChk) {
-            let chks = document.querySelectorAll('.chk-item-catalogo');
-            chks.forEach(c => c.checked = masterChk.checked);
+        function alternarSelecaoItem(idItem) {
+            let idStr = String(idItem).trim();
+            if (itensSelecionadosParaEtiqueta.has(idStr)) {
+                itensSelecionadosParaEtiqueta.delete(idStr);
+            } else {
+                itensSelecionadosParaEtiqueta.add(idStr);
+            }
+            renderizarCatalogo();
         }
 
-        function renderizarCatalogo(idsParaMarcar = null) {
+        function renderizarCatalogo() {
             let tbody = document.getElementById('tabela-catalogo-corpo');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -742,17 +746,22 @@
                 return;
             }
 
-            let chkMaster = document.getElementById('chk-selecionar-todos');
-            if (chkMaster) chkMaster.checked = false;
-
             catalogoAtivo.forEach(p => {
                 let tr = document.createElement('tr');
                 let descLimpa = limparDescricao(p.descricao);
-                let estaMarcado = (idsParaMarcar && idsParaMarcar.includes(String(p.id))) ? 'checked' : '';
+                let estaSelecionado = itensSelecionadosParaEtiqueta.has(String(p.id).trim());
+
+                let btnSelecaoClass = estaSelecionado 
+                    ? "bg-emerald-600 text-white font-bold px-2.5 py-1 rounded-lg text-xs shadow" 
+                    : "bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg text-xs border border-slate-700";
+
+                let btnSelecaoTexto = estaSelecionado ? '<i class="fa-solid fa-check mr-1"></i>Selecionado' : 'Selecionar';
 
                 tr.innerHTML = `
                     <td class="p-2.5 border-b border-slate-800 text-center">
-                        <input type="checkbox" value="${p.id}" ${estaMarcado} class="chk-item-catalogo accent-emerald-500 cursor-pointer w-4 h-4 rounded">
+                        <button onclick="alternarSelecaoItem('${p.id}')" class="${btnSelecaoClass}">
+                            ${btnSelecaoTexto}
+                        </button>
                     </td>
                     <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
                     <td class="p-2.5 border-b border-slate-800">${descLimpa}</td>
@@ -768,14 +777,12 @@
         }
 
         function gerarEtiquetasSelecionadas() {
-            let chks = document.querySelectorAll('.chk-item-catalogo:checked');
-            if (chks.length === 0) {
-                alert("Por favor, selecione ao menos um produto na tabela (marcando a caixinha) para gerar as etiquetas.");
+            if (itensSelecionadosParaEtiqueta.size === 0) {
+                alert("Por favor, clique no botão 'Selecionar' em ao menos um item da tabela para gerar a etiqueta.");
                 return;
             }
 
-            let idsSelecionados = Array.from(chks).map(c => String(c.value).trim());
-            renderizarEtiquetasQR('selecionadas', idsSelecionados);
+            renderizarEtiquetasQR('selecionadas', Array.from(itensSelecionadosParaEtiqueta));
         }
 
         function limparDadosImportados() {
@@ -785,6 +792,7 @@
                 } else {
                     dbCliente = [];
                 }
+                itensSelecionadosParaEtiqueta.clear();
                 salvarCatalogoCorrente();
                 renderizarCatalogo();
                 document.getElementById('secao-etiquetas').classList.add('hidden');
