@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Etiquetas (3,0cm x 1,2cm) | Notas Fiscais</title>
+    <title>Gerador de Etiquetas (3,0cm x 1,3cm) | Notas Fiscais</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -109,28 +109,27 @@
             background-color: #172554;
         }
 
-        /* Folha A4 rigorosamente dimensionada para 1 página com espaço entre etiquetas */
+        /* Folha A4 com etiquetas bem juntinhas para facilitar o corte */
         .sheet {
             width: 210mm;
-            height: 297mm;
+            min-height: 297mm;
             margin: 0 auto;
             background: white;
-            padding: 10mm 10mm;
+            padding: 5mm 5mm;
             box-shadow: 0 0 15px rgba(0,0,0,0.15);
             display: grid;
             grid-template-columns: repeat(5, 3.0cm);
-            grid-auto-rows: 1.2cm;
-            gap: 2mm; /* Espaço visível e separado entre uma etiqueta e outra */
+            grid-auto-rows: 1.3cm;
+            gap: 0.8mm; /* Espaçamento mínimo entre as etiquetas */
             justify-content: center;
             align-content: start;
-            overflow: hidden;
         }
 
         .tag {
             width: 3.0cm;
-            height: 1.2cm;
+            height: 1.3cm;
             border-radius: 2px;
-            padding: 0.8mm 1mm;
+            padding: 1mm 1.2mm;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -155,7 +154,7 @@
 
         /* Nome da Empresa em Amarelo Vivo */
         .tag-header {
-            font-size: 4.8px;
+            font-size: 5.2px;
             font-weight: 900;
             text-transform: uppercase;
             text-align: center;
@@ -167,7 +166,7 @@
             overflow: hidden;
             text-overflow: clip;
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            padding-bottom: 0.3px;
+            padding-bottom: 0.5px;
             letter-spacing: -0.2px;
             text-shadow: 0 1px 1px rgba(0,0,0,0.5);
         }
@@ -177,16 +176,16 @@
             align-items: center;
             justify-content: flex-start;
             flex-grow: 1;
-            gap: 3px;
-            padding: 0.2mm 0;
+            gap: 4px;
+            padding: 0.3mm 0;
         }
 
         /* Letra Alfabética */
         .tag-letter {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 900;
-            width: 17px;
-            height: 17px;
+            width: 19px;
+            height: 19px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -205,9 +204,9 @@
             justify-content: center;
         }
 
-        /* Textos proporcionais e separados */
+        /* Textos maximizados */
         .tag-almox {
-            font-size: 5.8px;
+            font-size: 6.8px;
             font-weight: 900;
             color: #ffffff !important;
             -webkit-print-color-adjust: exact;
@@ -218,7 +217,7 @@
         }
 
         .tag-type {
-            font-size: 5.8px;
+            font-size: 6.8px;
             font-weight: 900;
             color: #e2e8f0 !important;
             -webkit-print-color-adjust: exact;
@@ -226,14 +225,14 @@
             text-transform: uppercase;
             letter-spacing: -0.2px;
             text-shadow: 0 1px 1px rgba(0,0,0,0.5);
-            margin-top: 1.5px;
+            margin-top: 2px;
         }
 
-        /* Configuração estrita de Impressão de página única */
+        /* Configuração de Impressão */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 0;
+                margin: 5mm;
             }
             body {
                 background: none;
@@ -245,12 +244,9 @@
             .sheet {
                 box-shadow: none;
                 margin: 0;
-                padding: 8mm 10mm;
-                width: 210mm;
-                height: 297mm;
-                gap: 2mm;
-                page-break-after: avoid;
-                page-break-inside: avoid;
+                padding: 0;
+                width: 100%;
+                gap: 0.8mm;
             }
             .tag {
                 background-color: #4d6b50 !important;
@@ -272,8 +268,8 @@
 <body>
 
     <div class="no-print">
-        <h1>Gerador de Etiquetas <span>3,0cm x 1,2cm (Página Única & Espaçadas)</span></h1>
-        <p class="subtitle">Etiquetas separadas por espaçamento e travadas em 1 página A4. Escolha e imprima:</p>
+        <h1>Gerador de Etiquetas <span>3,0cm x 1,3cm (Etiquetas Juntas)</span></h1>
+        <p class="subtitle">Espaçamento entre as etiquetas reduzido ao mínimo. Escolha a empresa e imprima:</p>
         
         <div class="controls">
             <div class="input-group">
