@@ -259,7 +259,7 @@
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-xmark"></i><span>Fechar Visualização</span></button>
                             </div>
                         </div>
-                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0b1329] p-4 rounded-xl border border-slate-800 max-h-96 overflow-y-auto"></div>
+                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0b1329] p-4 border border-slate-800 max-h-96 overflow-y-auto" style="border-radius: 0px !important;"></div>
                     </div>
                 </div>
 
@@ -837,6 +837,7 @@
             listaParaGerar.forEach((p, idx) => {
                 let card = document.createElement('div');
                 card.className = 'etiqueta-card';
+                card.style.cssText = "background-color: #00b359 !important; border-radius: 0px !important; padding: 8px 12px; min-height: 110px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; position: relative;";
                 
                 let unidadeTexto = p.un ? p.un : "UN";
                 let descFinal = limparDescricao(p.descricao);
@@ -847,10 +848,10 @@
                             <input type="checkbox" value="${p.id}" class="chk-deletar-etiqueta nao-imprimir w-3.5 h-3.5 accent-black cursor-pointer" title="Marcar para deletar esta etiqueta">
                             <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">${nomeEmpresaExtenso}</span>
                         </div>
-                        <div class="bg-black text-amber-300 font-black text-xs px-2 py-0.5 rounded">Cód: ${p.id}</div>
+                        <div class="bg-black text-amber-300 font-black text-xs px-2 py-0.5 rounded" style="border-radius: 0px !important;">Cód: ${p.id}</div>
                     </div>
                     <div class="flex items-center space-x-3">
-                        <div id="qr-gen-${idx}" class="qr-code-container"></div>
+                        <div id="qr-gen-${idx}" class="qr-code-container" style="border-radius: 0px !important;"></div>
                         <p class="text-[11px] font-bold text-white leading-tight line-clamp-3">${descFinal} ${unidadeTexto}</p>
                     </div>
                 `;
