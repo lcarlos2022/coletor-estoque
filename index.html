@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Etiquetas de Almoxarifado</title>
-    <!-- Biblioteca para ler arquivos Excel (.xlsx) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>Gerador de Etiquetas (3,0cm x 1,2cm) | Notas Fiscais</title>
     <style>
         :root {
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --primary-green: #00b359;
-            --accent-yellow: #facc15;
-            --danger-red: #dc2626;
+            --primary: #1e3a8a;
+            --secondary: #0ea5e9;
+            --dark: #0f172a;
+            --light: #f8fafc;
         }
 
         * {
@@ -23,347 +20,327 @@
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: white;
+            background-color: var(--light);
+            color: var(--dark);
             padding: 20px;
         }
 
-        /* Barra de Controle de Importação */
-        .controls-panel {
-            background-color: var(--card-bg);
+        .no-print {
+            max-width: 900px;
+            margin: 0 auto 25px auto;
+            background: white;
             padding: 20px;
             border-radius: 12px;
-            margin-bottom: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
 
-        .controls-group {
+        h1 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 6px;
             display: flex;
-            gap: 15px;
             align-items: center;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
-        .btn {
-            padding: 10px 18px;
-            border-radius: 6px;
-            border: none;
-            font-weight: 700;
+        h1 span {
+            font-size: 0.8rem;
+            background: var(--secondary);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: normal;
+        }
+
+        p.subtitle {
+            color: #64748b;
             font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+            color: var(--dark);
             cursor: pointer;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: opacity 0.2s;
+            height: 38px;
+            align-self: flex-end;
         }
 
-        .btn:hover { opacity: 0.9; }
-        .btn-green { background-color: #059669; color: white; }
-        .btn-red { background-color: var(--danger-red); color: white; }
-        .btn-file { background-color: #2563eb; color: white; position: relative; }
-
-        input[type="file"] {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            opacity: 0; cursor: pointer;
+        button:hover {
+            background-color: #172554;
         }
 
-        select, input[type="text"] {
-            padding: 9px 12px;
-            border-radius: 6px;
-            border: 1px solid #475569;
-            background-color: #0f172a;
-            color: white;
-            font-size: 0.9rem;
+        /* Folha A4 rigorosamente dimensionada para 1 página com espaço entre etiquetas */
+        .sheet {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            background: white;
+            padding: 10mm 10mm;
+            box-shadow: 0 0 15px rgba(0,0,0,0.15);
+            display: grid;
+            grid-template-columns: repeat(5, 3.0cm);
+            grid-auto-rows: 1.2cm;
+            gap: 2mm; /* Espaço visível e separado entre uma etiqueta e outra */
+            justify-content: center;
+            align-content: start;
+            overflow: hidden;
         }
 
-        .stats-header {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: #38bdf8;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-        }
-
-        /* Container da Folha de Etiquetas */
-        .sheet-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: flex-start;
-        }
-
-        /* ETIQUETA CORRIGIDA DE ACORDO COM A FIGURA */
-        .etiqueta-card {
-            background-color: var(--primary-green) !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-            width: 360px;
-            height: 135px;
-            border-radius: 8px;
-            padding: 10px 12px;
+        .tag {
+            width: 3.0cm;
+            height: 1.2cm;
+            border-radius: 2px;
+            padding: 0.8mm 1mm;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            background-color: #4d6b50 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            overflow: hidden;
             page-break-inside: avoid;
         }
 
-        .etiqueta-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 8px;
+        /* Classes de Molduras */
+        .tag.moldura-pontilhada {
+            border: 1.2px dashed #2d3e30;
+        }
+        .tag.moldura-continua {
+            border: 1.2px solid #2d3e30;
+        }
+        .tag.moldura-nenhuma {
+            border: none;
         }
 
-        .empresa-nome {
-            color: var(--accent-yellow) !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+        /* Nome da Empresa em Amarelo Vivo */
+        .tag-header {
+            font-size: 4.8px;
             font-weight: 900;
-            font-size: 11px;
             text-transform: uppercase;
-            line-height: 1.2;
-            max-width: 210px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-        }
-
-        /* CAIXA PRETA TRAVADA APENAS PARA O CÓDIGO (NÃO ESTOURA MAIS) */
-        .codigo-box {
-            background-color: #000000 !important;
-            color: #ffffff !important;
+            text-align: center;
+            color: #facc15 !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
-            font-weight: 900;
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 5px;
+            width: 100%;
             white-space: nowrap;
-            max-width: 120px;
             overflow: hidden;
-            text-overflow: ellipsis;
-            text-align: center;
-            flex-shrink: 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            text-overflow: clip;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 0.3px;
+            letter-spacing: -0.2px;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.5);
         }
 
-        .etiqueta-body {
+        .tag-body {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 2px;
+            justify-content: flex-start;
+            flex-grow: 1;
+            gap: 3px;
+            padding: 0.2mm 0;
         }
 
-        .qr-code-box {
-            width: 55px;
-            height: 55px;
-            background: white !important;
-            border-radius: 4px;
-            padding: 2px;
-            flex-shrink: 0;
+        /* Letra Alfabética */
+        .tag-letter {
+            font-size: 14px;
+            font-weight: 900;
+            width: 17px;
+            height: 17px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 3px;
+            color: white !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            flex-shrink: 0;
         }
 
-        .qr-code-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+        .tag-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        /* DESCRIÇÃO CORRETA DO PRODUTO FORA DO BOX PRETO */
-        .produto-nome {
+        /* Textos proporcionais e separados */
+        .tag-almox {
+            font-size: 5.8px;
+            font-weight: 900;
             color: #ffffff !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
-            font-weight: 800;
-            font-size: 11px;
-            line-height: 1.25;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            word-break: break-word;
+            text-transform: uppercase;
+            letter-spacing: -0.2px;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.5);
         }
 
-        .etiqueta-footer {
-            color: #ffffff !important;
+        .tag-type {
+            font-size: 5.8px;
+            font-weight: 900;
+            color: #e2e8f0 !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
-            font-size: 10.5px;
-            font-weight: 800;
-            text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+            text-transform: uppercase;
+            letter-spacing: -0.2px;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+            margin-top: 1.5px;
         }
 
-        /* Regras de Impressão */
+        /* Configuração estrita de Impressão de página única */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 5mm;
+                margin: 0;
             }
             body {
-                background: white;
+                background: none;
                 padding: 0;
             }
             .no-print {
-                display: none !important;
+                display: none;
             }
-            .sheet-container {
-                gap: 8px;
-            }
-            .etiqueta-card {
+            .sheet {
                 box-shadow: none;
-                border: 1px solid #00994d;
+                margin: 0;
+                padding: 8mm 10mm;
+                width: 210mm;
+                height: 297mm;
+                gap: 2mm;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
+            .tag {
+                background-color: #4d6b50 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .tag.moldura-pontilhada {
+                border: 1.2px dashed #2d3e30;
+            }
+            .tag.moldura-continua {
+                border: 1.2px solid #2d3e30;
+            }
+            .tag.moldura-nenhuma {
+                border: none;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="no-print controls-panel">
-        <div class="controls-group">
-            <button class="btn btn-file">
-                📁 Importar Planilha Excel/CSV
-                <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" onchange="processarPlanilha(event)">
-            </button>
-
-            <div>
-                <label style="font-size: 0.8rem; font-weight: 700; color: #94a3b8;">Empresa:</label><br>
-                <select id="empresaSelect" onchange="renderizarEtiquetas()">
-                    <option value="BRAVA CONSTRUÇÃO E INCORPORAÇÃO">BRAVA CONSTRUÇÃO E INCORPORAÇÃO</option>
-                    <option value="VENTOS PATRIMONIAIS LTDA">VENTOS PATRIMONIAIS LTDA</option>
+    <div class="no-print">
+        <h1>Gerador de Etiquetas <span>3,0cm x 1,2cm (Alfabéticas A-Z)</span></h1>
+        <p class="subtitle">Escolha a empresa, o estilo de moldura e imprima suas etiquetas:</p>
+        
+        <div class="controls">
+            <div class="input-group">
+                <label for="empresaSelect">Selecione a Empresa:</label>
+                <select id="empresaSelect" onchange="atualizarEtiquetas()">
+                    <option value="Brava Construção e Incorporação">Brava Construção e Incorporação</option>
+                    <option value="Ventos Patrimoniais Ltda">Ventos Patrimoniais Ltda</option>
                 </select>
             </div>
-        </div>
 
-        <div class="controls-group">
-            <button class="btn btn-green" onclick="window.print()">🖨️ Imprimir Etiquetas</button>
-            <button class="btn btn-red" onclick="limparEtiquetas()">🗑️ Apagar Etiquetas</button>
+            <div class="input-group">
+                <label for="molduraSelect">Estilo de Moldura:</label>
+                <select id="molduraSelect" onchange="atualizarEtiquetas()">
+                    <option value="moldura-pontilhada">Pontilhada (Guia de Corte)</option>
+                    <option value="moldura-continua">Linha Contínua (Sólida)</option>
+                    <option value="moldura-nenhuma">Sem Moldura</option>
+                </select>
+            </div>
+
+            <button onclick="window.print()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6v-8z"/></svg>
+                Imprimir / Salvar PDF
+            </button>
         </div>
     </div>
 
-    <div class="no-print stats-header" id="statsTitle">ETIQUETAS SELECIONADAS (0) - BRAVA CONSTRUÇÃO E INCORPORAÇÃO</div>
-
-    <!-- ÁREA DE EXIBIÇÃO DAS ETIQUETAS -->
-    <div class="sheet-container" id="etiquetasContainer"></div>
+    <!-- Área de Impressão A4 -->
+    <div class="sheet" id="etiquetas-container"></div>
 
     <script>
-        // Lista interna para armazenar os itens importados
-        let listaProdutos = [
-            // Exemplo inicial de teste com os dados da sua foto
-            { codigo: "151", produto: "Ventilador und", detalhe: "" },
-            { codigo: "6613", produto: "Papel Toalha Interfolha Branca Para Empresas 3000 Folhas", detalhe: "pct 6613" }
-        ];
+        const coresAlfabeto = {
+            'A': '#dc2626', 'B': '#ea580c', 'C': '#d97706', 'D': '#ca8a04',
+            'E': '#65a30d', 'F': '#16a34a', 'G': '#059669', 'H': '#0d9488',
+            'I': '#0891b2', 'J': '#0284c7', 'K': '#2563eb', 'L': '#4f46e5',
+            'M': '#7c3aed', 'N': '#9333ea', 'O': '#c026d3', 'P': '#db2777',
+            'Q': '#e11d48', 'R': '#57534e', 'S': '#334155', 'T': '#0f172a',
+            'U': '#09090b', 'V': '#312e81', 'W': '#374151', 'X': '#0284c7',
+            'Y': '#0f766e', 'Z': '#166534'
+        };
 
-        // Processa o arquivo Excel importado corrigindo o Mapeamento das Colunas
-        function processarPlanilha(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
-                if (jsonData.length <= 1) {
-                    alert("A planilha importada está vazia ou sem dados válidos!");
-                    return;
-                }
-
-                listaProdutos = [];
-
-                // Pula o cabeçalho e lê linha por linha
-                for (let i = 1; i < jsonData.length; i++) {
-                    const linha = jsonData[i];
-                    if (!linha || linha.length === 0) continue;
-
-                    // TRATAMENTO INTELIGENTE DAS COLUNAS:
-                    // Coluna 0 -> Código
-                    // Coluna 1 -> Descrição/Nome do Produto
-                    // Coluna 2 -> Detalhes/Unidade (Opcional)
-                    let cod = linha[0] ? String(linha[0]).trim() : "S/C";
-                    let prod = linha[1] ? String(linha[1]).trim() : "";
-                    let det = linha[2] ? String(linha[2]).trim() : "";
-
-                    // SE O NOME DO PRODUTO VEIO JUNTO COM O CÓDIGO (Corrigindo o erro de mescla)
-                    if (cod.includes("-") && prod === "") {
-                        let partes = cod.split("-");
-                        cod = partes[0].trim();
-                        prod = partes.slice(1).join("-").trim();
-                    }
-
-                    if (prod !== "") {
-                        listaProdutos.push({
-                            codigo: cod,
-                            produto: prod,
-                            detalhe: det
-                        });
-                    }
-                }
-
-                renderizarEtiquetas();
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // Renderiza as Etiquetas na tela
-        function renderizarEtiquetas() {
+        function atualizarEtiquetas() {
             const empresaNome = document.getElementById('empresaSelect').value;
-            const container = document.getElementById('etiquetasContainer');
-            const statsTitle = document.getElementById('statsTitle');
-
+            const molduraClasse = document.getElementById('molduraSelect').value;
+            const container = document.getElementById('etiquetas-container');
             container.innerHTML = '';
-            statsTitle.innerText = `ETIQUETAS SELECIONADAS (${listaProdutos.length}) - ${empresaNome}`;
 
-            listaProdutos.forEach(item => {
-                // Gera a URL dinâmica do QR Code para o item
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(item.codigo)}&size=120x120`;
+            for (let i = 65; i <= 90; i++) {
+                const letra = String.fromCharCode(i);
+                const cor = coresAlfabeto[letra] || '#1e3a8a';
 
-                const card = document.createElement('div');
-                card.className = 'etiqueta-card';
-                card.innerHTML = `
-                    <div class="etiqueta-header">
-                        <div class="empresa-nome">${empresaNome}</div>
-                        <!-- CAIXA PRETA TRAVADA APENAS COM O CÓDIGO -->
-                        <div class="codigo-box">Cód: ${item.codigo}</div>
-                    </div>
-                    
-                    <div class="etiqueta-body">
-                        <!-- QR CODE RESTAURADO -->
-                        <div class="qr-code-box">
-                            <img src="${qrUrl}" alt="QR Code">
+                const tag = document.createElement('div');
+                tag.className = `tag ${molduraClasse}`;
+                tag.innerHTML = `
+                    <div class="tag-header">${empresaNome}</div>
+                    <div class="tag-body">
+                        <div class="tag-letter" style="background-color: ${cor};">${letra}</div>
+                        <div class="tag-info">
+                            <span class="tag-almox">ALMOXARIFADO</span>
+                            <span class="tag-type">NOTA FISCAL</span>
                         </div>
-                        <!-- NOME DO PRODUTO POSICIONADO CORRETAMENTE FORA DA CAIXA PRETA -->
-                        <div class="produto-nome">${item.produto}</div>
-                    </div>
-
-                    <div class="etiqueta-footer">
-                        ${item.detalhe ? '• ' + item.detalhe : ''}
                     </div>
                 `;
-                container.appendChild(card);
-            });
-        }
-
-        function limparEtiquetas() {
-            if (confirm("Deseja realmente apagar todas as etiquetas da tela?")) {
-                listaProdutos = [];
-                renderizarEtiquetas();
+                container.appendChild(tag);
             }
         }
 
-        // Carrega as etiquetas de exemplo na inicialização
-        window.onload = renderizarEtiquetas;
+        window.onload = () => atualizarEtiquetas();
     </script>
 </body>
 </html>
