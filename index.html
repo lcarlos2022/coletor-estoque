@@ -254,6 +254,7 @@
                             <h4 class="text-xs font-bold text-emerald-400 uppercase" id="titulo-etiquetas-geradas">ETIQUETAS CUSTOMIZADAS</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
+                                <button onclick="apagarUltimosItensImportados()" class="nao-imprimir bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1" title="Remove os últimos itens adicionados incorretamente"><i class="fa-solid fa-rotate-left"></i><span>Deletar Últimos Itens</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
                             </div>
                         </div>
@@ -348,6 +349,7 @@
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
         let itensSelecionadosParaEtiqueta = new Set();
+        let quantidadeUltimaImportacao = 0; // Guarda quantos itens vieram na última importação
 
         function limparDescricao(desc) {
             if (!desc) return "";
@@ -670,6 +672,7 @@
 
                     let catalogoAtivo = obterCatalogoCorrente();
                     itensSelecionadosParaEtiqueta.clear();
+                    let contadorNovos = 0;
 
                     rows.forEach(r => {
                         if (!r || r.length === 0) return;
@@ -688,9 +691,12 @@
                                 catalogoAtivo[idxExistente] = { id, descricao: desc, un };
                             } else {
                                 catalogoAtivo.push({ id, descricao: desc, un });
+                                contadorNovos++;
                             }
                         }
                     });
+
+                    quantidadeUltimaImportacao = contadorNovos;
 
                     if (modoEmpresa === "BRAVA") {
                         dbBrava = catalogoAtivo;
@@ -700,12 +706,29 @@
                     salvarCatalogoCorrente();
 
                     renderizarCatalogo();
-                    alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens no catálogo: ${catalogoAtivo.length}\n\nOs novos itens da planilha já ficaram selecionados automaticamente.`);
+                    alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens adicionados nesta importação: ${contadorNovos}\n\nCaso tenha errado, pode clicar no botão amarelo 'Deletar Últimos Itens'.`);
                 } catch(err) {
                     alert("Erro ao processar ficheiro Excel.");
                 }
             };
             reader.readAsArrayBuffer(file);
+        }
+
+        function apagarUltimosItensImportados() {
+            let catalogoAtivo = obterCatalogoCorrente();
+            if (quantidadeUltimaImportacao <= 0 || catalogoAtivo.length === 0) {
+                alert("Não há registo de uma importação recente para desfazer ou o catálogo está vazio.");
+                return;
+            }
+
+            if (confirm(`Deseja remover os últimos ${quantidadeUltimaImportacao} itens que foram adicionados por engano?`)) {
+                catalogoAtivo.splice(-quantidadeUltimaImportacao, quantidadeUltimaImportacao);
+                quantidadeUltimaImportacao = 0;
+                salvarCatalogoCorrente();
+                renderizarCatalogo();
+                document.getElementById('secao-etiquetas').classList.add('hidden');
+                alert("Últimos itens removidos com sucesso do catálogo!");
+            }
         }
 
         function excluirItemCatalogo(idItem) {
@@ -863,8 +886,6 @@
         function apagarEtiquetasGeradas() {
             document.getElementById('secao-etiquetas').classList.add('hidden');
             document.getElementById('area-impressao-etiquetas').innerHTML = '';
-            itensSelecionadosParaEtiqueta.clear();
-            renderizarCatalogo();
         }
 
         function calcularDivergencias() {
