@@ -56,8 +56,8 @@
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
-                padding: 4mm 5mm !important;
-                border-radius: 12px !important;
+                padding: 2.5mm 3.5mm !important;
+                border-radius: 8px !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
@@ -70,9 +70,9 @@
 
         .etiqueta-card {
             background-color: #00b359;
-            border-radius: 12px;
-            padding: 12px 16px;
-            min-height: 125px;
+            border-radius: 8px;
+            padding: 8px 12px;
+            min-height: 110px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -82,8 +82,8 @@
 
         .qr-code-container {
             background-color: #ffffff;
-            padding: 3px;
-            border-radius: 6px;
+            padding: 2px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -93,8 +93,8 @@
         .qr-code-container svg {
             display: block;
             margin: 0 auto;
-            width: 52px !important;
-            height: 52px !important;
+            width: 48px !important;
+            height: 48px !important;
         }
     </style>
 </head>
@@ -672,7 +672,6 @@
 
                     let catalogoAtivo = obterCatalogoCorrente();
                     itensSelecionadosParaEtiqueta.clear();
-                    let contadorNovos = 0;
 
                     rows.forEach(r => {
                         if (!r || r.length === 0) return;
@@ -691,7 +690,6 @@
                                 catalogoAtivo[idxExistente] = { id, descricao: desc, un };
                             } else {
                                 catalogoAtivo.push({ id, descricao: desc, un });
-                                contadorNovos++;
                             }
                         }
                     });
@@ -844,16 +842,16 @@
                 let descFinal = limparDescricao(p.descricao);
                 
                 card.innerHTML = `
-                    <div class="flex justify-between items-center w-full">
+                    <div class="flex justify-between items-center mb-1">
                         <div class="flex items-center space-x-2">
-                            <input type="checkbox" value="${p.id}" class="chk-deletar-etiqueta w-4 h-4 accent-black cursor-pointer" title="Marcar para deletar esta etiqueta">
-                            <span class="text-[10px] font-black text-amber-300 uppercase tracking-wide">${nomeEmpresaExtenso}</span>
+                            <input type="checkbox" value="${p.id}" class="chk-deletar-etiqueta w-3.5 h-3.5 accent-black cursor-pointer" title="Marcar para deletar esta etiqueta">
+                            <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">${nomeEmpresaExtenso}</span>
                         </div>
-                        <div class="bg-black text-amber-300 font-black text-xs px-2.5 py-0.5 rounded-md border border-amber-300/30">Cód: ${p.id}</div>
+                        <div class="bg-black text-amber-300 font-black text-xs px-2 py-0.5 rounded">Cód: ${p.id}</div>
                     </div>
-                    <div class="flex items-center space-x-3 mt-1">
+                    <div class="flex items-center space-x-3">
                         <div id="qr-gen-${idx}" class="qr-code-container"></div>
-                        <p class="text-xs font-bold text-white leading-snug line-clamp-2">${descFinal} ${unidadeTexto}</p>
+                        <p class="text-[11px] font-bold text-white leading-tight line-clamp-3">${descFinal} ${unidadeTexto}</p>
                     </div>
                 `;
                 area.appendChild(card);
@@ -889,7 +887,6 @@
                 salvarCatalogoCorrente();
                 renderizarCatalogo();
                 
-                // Recarrega as etiquetas restantes na tela
                 if (itensSelecionadosParaEtiqueta.size > 0) {
                     gerarEtiquetasSelecionadas();
                 } else {
