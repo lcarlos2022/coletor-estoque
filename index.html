@@ -57,7 +57,7 @@
                 break-inside: avoid;
                 page-break-inside: avoid;
                 padding: 2.5mm 3.5mm !important;
-                border-radius: 8px !important;
+                border-radius: 0px !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
@@ -70,7 +70,7 @@
 
         .etiqueta-card {
             background-color: #00b359;
-            border-radius: 8px;
+            border-radius: 0px;
             padding: 8px 12px;
             min-height: 110px;
             display: flex;
@@ -844,7 +844,7 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <div class="flex items-center space-x-2">
-                            <input type="checkbox" value="${p.id}" class="chk-deletar-etiqueta w-3.5 h-3.5 accent-black cursor-pointer" title="Marcar para deletar esta etiqueta">
+                            <input type="checkbox" value="${p.id}" class="chk-deletar-etiqueta nao-imprimir w-3.5 h-3.5 accent-black cursor-pointer" title="Marcar para deletar esta etiqueta">
                             <span class="text-[9px] font-black text-amber-300 uppercase tracking-wider">${nomeEmpresaExtenso}</span>
                         </div>
                         <div class="bg-black text-amber-300 font-black text-xs px-2 py-0.5 rounded">Cód: ${p.id}</div>
