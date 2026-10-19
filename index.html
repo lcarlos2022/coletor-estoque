@@ -77,6 +77,7 @@
             flex-direction: column;
             justify-content: space-between;
             box-sizing: border-box;
+            position: relative;
         }
 
         .qr-code-container {
@@ -254,8 +255,8 @@
                             <h4 class="text-xs font-bold text-emerald-400 uppercase" id="titulo-etiquetas-geradas">ETIQUETAS CUSTOMIZADAS</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
-                                <button onclick="apagarUltimosItensImportados()" class="nao-imprimir bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1" title="Remove os últimos itens adicionados incorretamente"><i class="fa-solid fa-rotate-left"></i><span>Deletar Últimos Itens</span></button>
-                                <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash"></i><span>Apagar Etiquetas</span></button>
+                                <button onclick="deletarEtiquetasMarcadasNaTela()" class="nao-imprimir bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1" title="Deleta permanentemente do catálogo os itens cujas etiquetas foram marcadas"><i class="fa-solid fa-trash-arrow-up"></i><span>Deletar Selecionadas</span></button>
+                                <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-xmark"></i><span>Fechar Visualização</span></button>
                             </div>
                         </div>
                         <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0b1329] p-4 rounded-xl border border-slate-800 max-h-96 overflow-y-auto"></div>
@@ -349,7 +350,6 @@
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
         let itensSelecionadosParaEtiqueta = new Set();
-        let quantidadeUltimaImportacao = 0; // Guarda quantos itens vieram na última importação
 
         function limparDescricao(desc) {
             if (!desc) return "";
@@ -696,8 +696,6 @@
                         }
                     });
 
-                    quantidadeUltimaImportacao = contadorNovos;
-
                     if (modoEmpresa === "BRAVA") {
                         dbBrava = catalogoAtivo;
                     } else {
@@ -706,29 +704,12 @@
                     salvarCatalogoCorrente();
 
                     renderizarCatalogo();
-                    alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens adicionados nesta importação: ${contadorNovos}\n\nCaso tenha errado, pode clicar no botão amarelo 'Deletar Últimos Itens'.`);
+                    alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens no catálogo: ${catalogoAtivo.length}`);
                 } catch(err) {
                     alert("Erro ao processar ficheiro Excel.");
                 }
             };
             reader.readAsArrayBuffer(file);
-        }
-
-        function apagarUltimosItensImportados() {
-            let catalogoAtivo = obterCatalogoCorrente();
-            if (quantidadeUltimaImportacao <= 0 || catalogoAtivo.length === 0) {
-                alert("Não há registo de uma importação recente para desfazer ou o catálogo está vazio.");
-                return;
-            }
-
-            if (confirm(`Deseja remover os últimos ${quantidadeUltimaImportacao} itens que foram adicionados por engano?`)) {
-                catalogoAtivo.splice(-quantidadeUltimaImportacao, quantidadeUltimaImportacao);
-                quantidadeUltimaImportacao = 0;
-                salvarCatalogoCorrente();
-                renderizarCatalogo();
-                document.getElementById('secao-etiquetas').classList.add('hidden');
-                alert("Últimos itens removidos com sucesso do catálogo!");
-            }
         }
 
         function excluirItemCatalogo(idItem) {
@@ -864,7 +845,10 @@
                 
                 card.innerHTML = `
                     <div class="flex justify-between items-center w-full">
-                        <span class="text-[10px] font-black text-amber-300 uppercase tracking-wide">${nomeEmpresaExtenso}</span>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" value="${p.id}" class="chk-deletar-etiqueta w-4 h-4 accent-black cursor-pointer" title="Marcar para deletar esta etiqueta">
+                            <span class="text-[10px] font-black text-amber-300 uppercase tracking-wide">${nomeEmpresaExtenso}</span>
+                        </div>
                         <div class="bg-black text-amber-300 font-black text-xs px-2.5 py-0.5 rounded-md border border-amber-300/30">Cód: ${p.id}</div>
                     </div>
                     <div class="flex items-center space-x-3 mt-1">
@@ -881,6 +865,39 @@
                     document.getElementById(`qr-gen-${idx}`).innerHTML = qr.createSvgTag({ cellSize: 2, margin: 2 });
                 } catch(e) {}
             });
+        }
+
+        function deletarEtiquetasMarcadasNaTela() {
+            let checkboxes = document.querySelectorAll('.chk-deletar-etiqueta:checked');
+            if (checkboxes.length === 0) {
+                alert("Marque a caixa de seleção (checkbox) na etiqueta que deseja remover.");
+                return;
+            }
+
+            if (confirm(`Deseja remover permanentemente do catálogo os ${checkboxes.length} itens selecionados?`)) {
+                let catalogoAtivo = obterCatalogoCorrente();
+                checkboxes.forEach(chk => {
+                    let idRemover = String(chk.value).trim();
+                    if (modoEmpresa === "BRAVA") {
+                        dbBrava = dbBrava.filter(p => String(p.id).trim() !== idRemover);
+                    } else {
+                        dbCliente = dbCliente.filter(p => String(p.id).trim() !== idRemover);
+                    }
+                    itensSelecionadosParaEtiqueta.delete(idRemover);
+                });
+
+                salvarCatalogoCorrente();
+                renderizarCatalogo();
+                
+                // Recarrega as etiquetas restantes na tela
+                if (itensSelecionadosParaEtiqueta.size > 0) {
+                    gerarEtiquetasSelecionadas();
+                } else {
+                    apagarEtiquetasGeradas();
+                }
+
+                alert("Itens selecionados deletados com sucesso!");
+            }
         }
 
         function apagarEtiquetasGeradas() {
