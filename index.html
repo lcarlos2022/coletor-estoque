@@ -863,6 +863,8 @@
         function apagarEtiquetasGeradas() {
             document.getElementById('secao-etiquetas').classList.add('hidden');
             document.getElementById('area-impressao-etiquetas').innerHTML = '';
+            itensSelecionadosParaEtiqueta.clear();
+            renderizarCatalogo();
         }
 
         function calcularDivergencias() {
