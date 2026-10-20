@@ -46,7 +46,7 @@
                 max-height: none !important;
                 overflow: visible !important;
                 padding: 0 !important;
-                justify-content: start !important;
+                justify-start !important;
             }
             .etiqueta-card {
                 width: 98mm !important;
@@ -338,8 +338,8 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
-                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha Profissional</h4>
-                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Descarregar Excel (2 Abas)</button>
+                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha Completa</h4>
+                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Descarregar Excel Profissional</button>
                         </div>
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">Enviar por E-mail</h4>
@@ -978,7 +978,7 @@
             });
         }
 
-        // FUNÇÃO DE EXPORTAÇÃO EXCEL EM 2 ABAS (PROFISSIONAL)
+        // FUNÇÃO DE EXPORTAÇÃO EXCEL COMPLETA COM CABEÇALHO, TÍTULO E DASHBOARD DE DIVERGÊNCIAS
         function exportarRelatorioExcel() {
             let catalogoAtivo = obterCatalogoCorrente();
             if (catalogoAtivo.length === 0) { alert("Sem dados para exportar."); return; }
@@ -988,7 +988,7 @@
 
             let wb = XLSX.utils.book_new();
 
-            // ABA 1: Banco de Dados Bruto
+            // 1. ABA BANCO DE DADOS BRUTO
             let dadosBanco = catalogoAtivo.map(p => ({
                 "Código": p.id,
                 "Descrição do Material": limparDescricao(p.descricao),
@@ -999,18 +999,43 @@
             let wsBanco = XLSX.utils.json_to_sheet(dadosBanco);
             XLSX.utils.book_append_sheet(wb, wsBanco, "Banco de Dados");
 
-            // ABA 2: Relatório Formatado para Impressão
+            // 2. ABA RELATÓRIO IMPRESSÃO (COM TÍTULO NO CABEÇALHO)
             let dadosRelatorio = [
-                { "A": "RELATÓRIO GERAL DE CONTAGEM DE ESTOQUE E ALMOXARIFADO", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "" },
+                { "A": "RELATÓRIO GERAL DE CONTAGEM DE ESTOQUE E ALMOXARIFADO", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
+                { "A": "Data de Emissão: " + new Date().toLocaleDateString('pt-BR'), "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
+                { "A": "", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
                 { "A": "Código", "B": "Descrição do Material", "C": "Unidade", "D": "1ª Contagem", "E": "Resp. 1ª", "F": "2ª Contagem", "G": "Resp. 2ª", "H": "Status" }
             ];
+
+            let totalItens = catalogoAtivo.length;
+            let conformes = 0;
+            let divergentes = 0;
+            let pendentes = 0;
+            let listaDivergencias = [];
 
             catalogoAtivo.forEach(p => {
                 let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "-";
                 let c2 = registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "-";
                 let status = "Pendente";
+
                 if (c1 !== "-" && c2 !== "-") {
-                    status = (Number(c1) === Number(c2)) ? "Conforme" : "Divergente";
+                    if (Number(c1) === Number(c2)) {
+                        status = "Conforme";
+                        conformes++;
+                    } else {
+                        status = "Divergente";
+                        divergentes++;
+                        listaDivergencias.push({
+                            id: p.id,
+                            desc: limparDescricao(p.descricao),
+                            un: p.un || "UN",
+                            c1: c1,
+                            c2: c2,
+                            diff: Math.abs(Number(c1) - Number(c2))
+                        });
+                    }
+                } else {
+                    pendentes++;
                 }
 
                 dadosRelatorio.push({
@@ -1028,7 +1053,41 @@
             let wsRelatorio = XLSX.utils.json_to_sheet(dadosRelatorio, { skipHeader: true });
             XLSX.utils.book_append_sheet(wb, wsRelatorio, "Relatório Impressão");
 
-            // Baixar ficheiro Excel
+            // 3. ABA DASHBOARD DETALHADO DE DIVERGÊNCIAS
+            let dadosDash = [
+                { "A": "DASHBOARD E ANÁLISE DE DIVERGÊNCIAS DO INVENTÁRIO", "B": "", "C": "", "D": "", "E": "", "F": "" },
+                { "A": "", "B": "", "C": "", "D": "", "E": "", "F": "" },
+                { "A": "RESUMO DOS INDICADORES", "B": "", "C": "", "D": "", "E": "", "F": "" },
+                { "A": "Total de Itens Cadastrados:", "B": totalItens, "C": "", "D": "", "E": "", "F": "" },
+                { "A": "Itens Conformes:", "B": conformes, "C": "", "D": "", "E": "", "F": "" },
+                { "A": "Itens Divergentes:", "B": divergentes, "C": "", "D": "", "E": "", "F": "" },
+                { "A": "Itens Pendentes de Contagem:", "B": pendentes, "C": "", "D": "", "E": "", "F": "" },
+                { "A": "", "B": "", "C": "", "D": "", "E": "", "F": "" },
+                { "A": "DETALHAMENTO DOS MATERIAIS COM DIVERGÊNCIA", "B": "", "C": "", "D": "", "E": "", "F": "" },
+                { "A": "Código", "B": "Descrição do Material", "C": "Unidade", "D": "1ª Contagem (" + resp1 + ")", "E": "2ª Contagem (" + resp2 + ")", "F": "Diferença Apurada" }
+            ];
+
+            if (listaDivergencias.length > 0) {
+                listaDivergencias.forEach(item => {
+                    dadosDash.push({
+                        "A": item.id,
+                        "B": item.desc,
+                        "C": item.un,
+                        "D": item.c1,
+                        "E": item.c2,
+                        "F": item.diff
+                    });
+                });
+            } else {
+                dadosDash.push({
+                    "A": "Nenhuma divergência apurada até o momento.", "B": "", "C": "", "D": "", "E": "", "F": ""
+                });
+            }
+
+            let wsDash = XLSX.utils.json_to_sheet(dadosDash, { skipHeader: true });
+            XLSX.utils.book_append_sheet(wb, wsDash, "Dashboard Divergências");
+
+            // Baixar o arquivo Excel gerado
             XLSX.writeFile(wb, `Relatorio_Inventario_${modoEmpresa}.xlsx`);
         }
 
