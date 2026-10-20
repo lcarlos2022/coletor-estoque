@@ -270,6 +270,12 @@
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
+
+                    <!-- CAMPO DE IDENTIFICAÇÃO DO RESPONSÁVEL PELA CONTAGEM -->
+                    <div class="bg-[#0b1329] border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row items-center gap-2">
+                        <span class="text-xs font-bold text-slate-300 uppercase whitespace-nowrap">Responsável pela Contagem:</span>
+                        <input type="text" id="input-responsavel-contagem" placeholder="Nome do responsável atual" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-amber-400 font-medium" onchange="salvarResponsavelContagem()">
+                    </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
                         <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700"></div>
@@ -308,8 +314,8 @@
                                 <tr>
                                     <th class="p-2.5 border-b border-slate-800">Cód</th>
                                     <th class="p-2.5 border-b border-slate-800">Descrição</th>
-                                    <th class="p-2.5 border-b border-slate-800">1ª Cont</th>
-                                    <th class="p-2.5 border-b border-slate-800">2ª Cont</th>
+                                    <th class="p-2.5 border-b border-slate-800">1ª Cont (Resp)</th>
+                                    <th class="p-2.5 border-b border-slate-800">2ª Cont (Resp)</th>
                                     <th class="p-2.5 border-b border-slate-800">Status</th>
                                 </tr>
                             </thead>
@@ -373,6 +379,7 @@
         }
 
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_v2')) || {};
+        let responsaveisContagem = JSON.parse(localStorage.getItem('sienge_responsaveis_contagem_v2')) || {};
         let usuariosCadastrados = JSON.parse(localStorage.getItem('sienge_usuarios_db_6182')) || {};
         let modoCadastro = false;
         let faseAtualContagem = 1;
@@ -530,11 +537,30 @@
             if (btnAlvo) btnAlvo.classList.add('bg-slate-800', 'border-amber-400');
             
             if (aba === 'scanner') {
-                setTimeout(() => { iniciarLeitorQR(); }, 200);
+                setTimeout(() => { 
+                    iniciarLeitorQR(); 
+                    carregarResponsavelContagemUI();
+                }, 200);
             } else {
                 pararLeitorQR();
             }
             if (aba === 'divergencias') { calcularDivergencias(); }
+        }
+
+        function carregarResponsavelContagemUI() {
+            let chaveResp = `${modoEmpresa}_fase_${faseAtualContagem}_resp`;
+            let inputResp = document.getElementById('input-responsavel-contagem');
+            if (inputResp) {
+                inputResp.value = responsaveisContagem[chaveResp] || "";
+            }
+        }
+
+        function salvarResponsavelContagem() {
+            let inputResp = document.getElementById('input-responsavel-contagem');
+            if (!inputResp) return;
+            let chaveResp = `${modoEmpresa}_fase_${faseAtualContagem}_resp`;
+            responsaveisContagem[chaveResp] = inputResp.value.trim();
+            localStorage.setItem('sienge_responsaveis_contagem_v2', JSON.stringify(responsaveisContagem));
         }
 
         function iniciarLeitorQR() {
@@ -637,6 +663,8 @@
             let qtdVal = parseFloat(document.getElementById('lido-quantidade').value);
             if (isNaN(qtdVal)) { alert("Insira uma quantidade válida."); return; }
 
+            salvarResponsavelContagem();
+
             let chaveReg = `${modoEmpresa}_${produtoScaneadoAtual.id}_fase_${faseAtualContagem}`;
             registrosContagem[chaveReg] = qtdVal;
             localStorage.setItem('sienge_registros_contagem_v2', JSON.stringify(registrosContagem));
@@ -648,6 +676,7 @@
         }
 
         function proximaContagem() {
+            salvarResponsavelContagem();
             if (faseAtualContagem === 1) {
                 faseAtualContagem = 2;
                 document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
@@ -657,6 +686,7 @@
                 document.getElementById('label-fase-contagem').textContent = "1ª Contagem";
                 alert("Retornado para a 1ª Contagem.");
             }
+            carregarResponsavelContagemUI();
         }
 
         function importarPlanilhaSienge(event) {
@@ -914,6 +944,9 @@
                 return;
             }
 
+            let resp1 = responsaveisContagem[`${modoEmpresa}_fase_1_resp`] || "Não informado";
+            let resp2 = responsaveisContagem[`${modoEmpresa}_fase_2_resp`] || "Não informado";
+
             catalogoAtivo.forEach(p => {
                 let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "-";
                 let c2 = registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "-";
@@ -932,8 +965,8 @@
                 tr.innerHTML = `
                     <td class="p-2.5 border-b border-slate-800 font-mono font-bold text-amber-400">${p.id}</td>
                     <td class="p-2.5 border-b border-slate-800">${descLimpa}</td>
-                    <td class="p-2.5 border-b border-slate-800">${c1}</td>
-                    <td class="p-2.5 border-b border-slate-800">${c2}</td>
+                    <td class="p-2.5 border-b border-slate-800">${c1} <span class="text-[10px] text-slate-400 block">(${resp1})</span></td>
+                    <td class="p-2.5 border-b border-slate-800">${c2} <span class="text-[10px] text-slate-400 block">(${resp2})</span></td>
                     <td class="p-2.5 border-b border-slate-800">${statusBadge}</td>
                 `;
                 tbody.appendChild(tr);
@@ -944,13 +977,18 @@
             let catalogoAtivo = obterCatalogoCorrente();
             if (catalogoAtivo.length === 0) { alert("Sem dados para exportar."); return; }
             let nomeEmpresaExtenso = obterNomeEmpresaExtenso();
+            let resp1 = responsaveisContagem[`${modoEmpresa}_fase_1_resp`] || "Não informado";
+            let resp2 = responsaveisContagem[`${modoEmpresa}_fase_2_resp`] || "Não informado";
+
             let dadosExport = catalogoAtivo.map(p => ({
                 "Código": p.id,
                 "Descrição": limparDescricao(p.descricao),
                 "Unidade": p.un || "UN",
                 "Empresa": nomeEmpresaExtenso,
                 "1ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "",
-                "2ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : ""
+                "Responsável 1ª Contagem": resp1,
+                "2ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "",
+                "Responsável 2ª Contagem": resp2
             }));
             let ws = XLSX.utils.json_to_sheet(dadosExport);
             let wb = XLSX.utils.book_new();
