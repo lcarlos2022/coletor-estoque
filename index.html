@@ -6,7 +6,7 @@
     <title>Gestor de Etiquetas e Contagem de Estoque</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -332,7 +332,7 @@
                     </div>
                 </div>
 
-                <!-- ABA DE RELATÓRIOS -->
+                <!-- ABA DE RELATÓRIOS E ENVIO CORRIGIDO -->
                 <div id="conteudo-relatorios" class="hidden space-y-4">
                     <div class="border-b border-slate-800 pb-3">
                         <h3 class="text-sm font-bold text-white uppercase">Relatórios e Envio</h3>
@@ -340,7 +340,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha</h4>
-                            <p class="text-[11px] text-slate-400">Baixar relatório em formato Excel com logotipo e dashboard de divergências.</p>
+                            <p class="text-[11px] text-slate-400">Baixar relatório completo do inventário em formato Excel (.xlsx).</p>
                             <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2">
                                 <i class="fa-solid fa-file-excel"></i>
                                 <span>Descarregar Excel</span>
@@ -366,9 +366,6 @@
     </footer>
 
     <script>
-        // LOGOTIPO GRUPO BRAVA EM BASE64 PARA O EXCEL
-        const logoBravaBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAEAAQEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
-
         let modoEmpresa = localStorage.getItem('sienge_modo_empresa_v2') || "BRAVA";
         
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
@@ -990,64 +987,38 @@
             });
         }
 
-        // EXPORTAÇÃO COMPLETA EXCEL USANDO EXCELJS (COM LOGO NO TOPO E DASHBOARD COLORIDO)
-        async function exportarRelatorioExcel() {
+        // FUNÇÃO DE EXPORTAÇÃO EXCEL CORRIGIDA
+        function exportarRelatorioExcel() {
             try {
                 let catalogoAtivo = obterCatalogoCorrente();
                 if (!catalogoAtivo || catalogoAtivo.length === 0) {
                     alert("Atenção: Não há materiais no catálogo ativo para exportar.");
                     return;
                 }
-
+                
                 let resp1 = responsaveisContagem[`${modoEmpresa}_fase_1_resp`] || "Não informado";
                 let resp2 = responsaveisContagem[`${modoEmpresa}_fase_2_resp`] || "Não informado";
 
-                let workbook = new ExcelJS.Workbook();
+                let wb = XLSX.utils.book_new();
 
-                // 1. ABA DE IMPRESSÃO DO RELATÓRIO
-                let wsRelatorio = workbook.addWorksheet("Relatório Impressão");
+                // ABA 1: BANCO DE DADOS BRUTO
+                let dadosBanco = catalogoAtivo.map(p => ({
+                    "Código": p.id,
+                    "Descrição do Material": limparDescricao(p.descricao),
+                    "Unidade": p.un || "UN",
+                    "1ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "",
+                    "2ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : ""
+                }));
+                let wsBanco = XLSX.utils.json_to_sheet(dadosBanco);
+                XLSX.utils.book_append_sheet(wb, wsBanco, "Banco de Dados");
 
-                // ADICIONAR IMAGEM DA LOGO DO GRUPO BRAVA NO CABEÇALHO DA PLANILHA
-                try {
-                    let imageId = workbook.addImage({
-                        base64: logoBravaBase64,
-                        extension: 'jpeg'
-                    });
-                    wsRelatorio.addImage(imageId, {
-                        tl: { col: 0, row: 0 },
-                        ext: { width: 140, height: 50 }
-                    });
-                } catch(err) {}
-
-                // TÍTULO DO RELATÓRIO
-                wsRelatorio.mergeCells('C2:H2');
-                let cellTitle = wsRelatorio.getCell('C2');
-                cellTitle.value = "RELATÓRIO GERAL DE CONTAGEM DE ESTOQUE E ALMOXARIFADO";
-                cellTitle.font = { name: 'Arial', size: 12, bold: true, color: { argb: 'FF111C38' } };
-                cellTitle.alignment = { vertical: 'middle', horizontal: 'center' };
-
-                wsRelatorio.mergeCells('C3:H3');
-                let cellSub = wsRelatorio.getCell('C3');
-                cellSub.value = "Data de Emissão: " + new Date().toLocaleDateString('pt-BR');
-                cellSub.font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF555555' } };
-                cellSub.alignment = { vertical: 'middle', horizontal: 'center' };
-
-                // ESPAÇAMENTO
-                wsRelatorio.addRow([]);
-                wsRelatorio.addRow([]);
-
-                // CABEÇALHO DA TABELA
-                let headerRow = wsRelatorio.addRow(["Código", "Descrição do Material", "Unidade", "1ª Contagem", "Resp. 1ª", "2ª Contagem", "Resp. 2ª", "Status"]);
-                headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                headerRow.eachCell((cell) => {
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF111C38' } };
-                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
-                });
-
-                let conformes = 0;
-                let divergentes = 0;
-                let pendentes = 0;
-                let listaDivergencias = [];
+                // ABA 2: RELATÓRIO FORMATADO PARA IMPRESSÃO
+                let dadosRelatorio = [
+                    { "A": "RELATÓRIO GERAL DE CONTAGEM DE ESTOQUE E ALMOXARIFADO", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
+                    { "A": "Data de Emissão: " + new Date().toLocaleDateString('pt-BR'), "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
+                    { "A": "", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
+                    { "A": "Código", "B": "Descrição do Material", "C": "Unidade", "D": "1ª Contagem", "E": "Resp. 1ª", "F": "2ª Contagem", "G": "Resp. 2ª", "H": "Status" }
+                ];
 
                 catalogoAtivo.forEach(p => {
                     let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "-";
@@ -1055,115 +1026,32 @@
                     let status = "Pendente";
 
                     if (c1 !== "-" && c2 !== "-") {
-                        if (Number(c1) === Number(c2)) {
-                            status = "Conforme";
-                            conformes++;
-                        } else {
-                            status = "Divergente";
-                            divergentes++;
-                            listaDivergencias.push({
-                                id: p.id,
-                                desc: limparDescricao(p.descricao),
-                                un: p.un || "UN",
-                                c1: c1,
-                                c2: c2,
-                                diff: Math.abs(Number(c1) - Number(c2))
-                            });
-                        }
-                    } else {
-                        pendentes++;
+                        status = (Number(c1) === Number(c2)) ? "Conforme" : "Divergente";
                     }
 
-                    let row = wsRelatorio.addRow([p.id, limparDescricao(p.descricao), p.un || "UN", c1, resp1, c2, resp2, status]);
-                    let cellStatus = row.getCell(8);
-                    cellStatus.alignment = { horizontal: 'center' };
-                    cellStatus.font = { bold: true };
-
-                    if (status === "Conforme") {
-                        cellStatus.font = { bold: true, color: { argb: 'FF00B359' } };
-                    } else if (status === "Divergente") {
-                        cellStatus.font = { bold: true, color: { argb: 'FFEF4444' } };
-                    }
-                });
-
-                wsRelatorio.columns = [
-                    { width: 12 }, { width: 40 }, { width: 10 }, { width: 14 }, { width: 20 }, { width: 14 }, { width: 20 }, { width: 15 }
-                ];
-
-                // 2. ABA DASHBOARD COLORIDO DE DIVERGÊNCIAS
-                let wsDash = workbook.addWorksheet("Dashboard Divergências");
-
-                wsDash.mergeCells('A1:F1');
-                let dashTitle = wsDash.getCell('A1');
-                dashTitle.value = "DASHBOARD E ANÁLISE DE DIVERGÊNCIAS DO INVENTÁRIO";
-                dashTitle.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-                dashTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF111C38' } };
-                dashTitle.alignment = { vertical: 'middle', horizontal: 'center' };
-
-                wsDash.addRow([]);
-
-                // INDICADORES COLORIDOS
-                let indHeader = wsDash.addRow(["Total de Itens", "Conformes", "Divergentes", "Pendentes"]);
-                indHeader.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                indHeader.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } };
-                indHeader.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00B359' } };
-                indHeader.getCell(3).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEF4444' } };
-                indHeader.getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF59E0B' } };
-                indHeader.eachCell(c => c.alignment = { horizontal: 'center' });
-
-                let indValues = wsDash.addRow([catalogoAtivo.length, conformes, divergentes, pendentes]);
-                indValues.font = { size: 14, bold: true };
-                indValues.eachCell(c => c.alignment = { horizontal: 'center' });
-
-                wsDash.addRow([]);
-                wsDash.addRow([]);
-
-                let divTitle = wsDash.addRow(["DETALHAMENTO DOS MATERIAIS COM DIVERGÊNCIA"]);
-                wsDash.mergeCells(`A${divTitle.number}:F${divTitle.number}`);
-                divTitle.getCell(1).font = { bold: true, size: 11, color: { argb: 'FF111C38' } };
-
-                let dashHeader = wsDash.addRow(["Código", "Descrição do Material", "Unidade", "1ª Contagem (" + resp1 + ")", "2ª Contagem (" + resp2 + ")", "Diferença"]);
-                dashHeader.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                dashHeader.eachCell(c => {
-                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF111C38' } };
-                    c.alignment = { horizontal: 'center' };
-                });
-
-                if (listaDivergencias.length > 0) {
-                    listaDivergencias.forEach(item => {
-                        let r = wsDash.addRow([item.id, item.desc, item.un, item.c1, item.c2, item.diff]);
-                        r.getCell(6).font = { bold: true, color: { argb: 'FFEF4444' } };
+                    dadosRelatorio.push({
+                        "A": p.id,
+                        "B": limparDescricao(p.descricao),
+                        "C": p.un || "UN",
+                        "D": c1,
+                        "E": resp1,
+                        "F": c2,
+                        "G": resp2,
+                        "H": status
                     });
-                } else {
-                    wsDash.addRow(["Nenhuma divergência apurada."]);
-                }
-
-                wsDash.columns = [
-                    { width: 14 }, { width: 40 }, { width: 10 }, { width: 22 }, { width: 22 }, { width: 14 }
-                ];
-
-                // 3. ABA BANCO DE DADOS BRUTO
-                let wsBanco = workbook.addWorksheet("Banco de Dados");
-                wsBanco.addRow(["Código", "Descrição do Material", "Unidade", "1ª Contagem", "2ª Contagem"]);
-                catalogoAtivo.forEach(p => {
-                    let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "";
-                    let c2 = registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "";
-                    wsBanco.addRow([p.id, limparDescricao(p.descricao), p.un || "UN", c1, c2]);
                 });
 
-                // GERAR FICHEIRO PARA DOWNLOAD
-                let buffer = await workbook.xlsx.writeBuffer();
-                let blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-                let link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `Relatorio_Inventario_${modoEmpresa}.xlsx`;
-                link.click();
+                let wsRelatorio = XLSX.utils.json_to_sheet(dadosRelatorio, { skipHeader: true });
+                XLSX.utils.book_append_sheet(wb, wsRelatorio, "Relatório Impressão");
+
+                // BAIXAR ARQUIVO
+                XLSX.writeFile(wb, `Relatorio_Inventario_${modoEmpresa}.xlsx`);
             } catch (e) {
-                alert("Erro ao exportar o relatório em Excel.");
+                alert("Erro ao gerar o relatório em Excel. Verifique se há materiais cadastrados.");
             }
         }
 
-        // FUNÇÃO DE ENVIO DE E-MAIL
+        // FUNÇÃO DE ENVIO DE E-MAIL CORRIGIDA
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
             if (!email) {
@@ -1187,6 +1075,7 @@
                 `Equipe de Controle de Estoque - Brava Construção e Incorporação`
             );
 
+            // Abrir o leitor de e-mail padrão do computador/telemóvel
             window.location.href = `mailto:${email}?subject=${assunto}&body=${corpo}`;
             alert(`A carregar envio de e-mail para ${email}...`);
         }
