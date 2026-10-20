@@ -46,7 +46,7 @@
                 max-height: none !important;
                 overflow: visible !important;
                 padding: 0 !important;
-                justify-start !important;
+                justify-content: start !important;
             }
             .etiqueta-card {
                 width: 98mm !important;
@@ -338,8 +338,8 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
-                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha Completa</h4>
-                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Descarregar Excel Profissional</button>
+                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha</h4>
+                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Descarregar Excel</button>
                         </div>
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">Enviar por E-mail</h4>
@@ -978,7 +978,7 @@
             });
         }
 
-        // FUNÇÃO DE EXPORTAÇÃO EXCEL COMPLETA COM CABEÇALHO, TÍTULO E DASHBOARD DE DIVERGÊNCIAS
+        // EXPORTAÇÃO EXCEL PROFISSIONAL COM TÍTULO NO CABEÇALHO E DASHBOARD DE DIVERGÊNCIAS
         function exportarRelatorioExcel() {
             let catalogoAtivo = obterCatalogoCorrente();
             if (catalogoAtivo.length === 0) { alert("Sem dados para exportar."); return; }
@@ -988,7 +988,7 @@
 
             let wb = XLSX.utils.book_new();
 
-            // 1. ABA BANCO DE DADOS BRUTO
+            // 1. ABA BANCO DE DADOS
             let dadosBanco = catalogoAtivo.map(p => ({
                 "Código": p.id,
                 "Descrição do Material": limparDescricao(p.descricao),
@@ -999,7 +999,7 @@
             let wsBanco = XLSX.utils.json_to_sheet(dadosBanco);
             XLSX.utils.book_append_sheet(wb, wsBanco, "Banco de Dados");
 
-            // 2. ABA RELATÓRIO IMPRESSÃO (COM TÍTULO NO CABEÇALHO)
+            // 2. ABA RELATÓRIO IMPRESSÃO (COM TÍTULO)
             let dadosRelatorio = [
                 { "A": "RELATÓRIO GERAL DE CONTAGEM DE ESTOQUE E ALMOXARIFADO", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
                 { "A": "Data de Emissão: " + new Date().toLocaleDateString('pt-BR'), "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
@@ -1087,7 +1087,7 @@
             let wsDash = XLSX.utils.json_to_sheet(dadosDash, { skipHeader: true });
             XLSX.utils.book_append_sheet(wb, wsDash, "Dashboard Divergências");
 
-            // Baixar o arquivo Excel gerado
+            // Gerar e baixar arquivo Excel
             XLSX.writeFile(wb, `Relatorio_Inventario_${modoEmpresa}.xlsx`);
         }
 
