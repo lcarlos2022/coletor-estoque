@@ -332,18 +332,18 @@
                     </div>
                 </div>
 
-                <!-- ABA DE RELATÓRIOS -->
+                <!-- ABA DE RELATÓRIOS COM ESTILO POWER BI -->
                 <div id="conteudo-relatorios" class="hidden space-y-4">
                     <div class="border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Relatórios e Envio</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Relatórios e Power BI Dashboard</h3>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
-                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha</h4>
-                            <p class="text-[11px] text-slate-400">Baixar relatório em formato Excel com logotipo oficial e gráficos visuais no dashboard.</p>
+                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Relatório Power BI</h4>
+                            <p class="text-[11px] text-slate-400">Gera o relatório Excel completo com cabeçalho, logotipo Brava e gráficos visuais em formato Power BI.</p>
                             <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2">
-                                <i class="fa-solid fa-file-excel"></i>
-                                <span>Descarregar Excel</span>
+                                <i class="fa-solid fa-chart-pie"></i>
+                                <span>Exportar Relatório Power BI</span>
                             </button>
                         </div>
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
@@ -366,11 +366,9 @@
     </footer>
 
     <script>
-        // LOGOTIPO OFICIAL DO GRUPO BRAVA EM BASE64 REAL
         const logoBravaBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAEAAQEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
 
         let modoEmpresa = localStorage.getItem('sienge_modo_empresa_v2') || "BRAVA";
-        
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
         let itensSelecionadosParaEtiqueta = new Set();
@@ -990,7 +988,7 @@
             });
         }
 
-        // RELATÓRIO EXCEL EXATAMENTE COMO VOCÊ PEDIU: CABEÇALHO CENTRALIZADO, LOGO BRAVA E DASHBOARD COM GRÁFICOS COLORIDOS
+        // RELATÓRIO ESTILO POWER BI COM LOGOTIPO BRAVA E GRÁFICOS VISUAIS
         async function exportarRelatorioExcel() {
             try {
                 let catalogoAtivo = obterCatalogoCorrente();
@@ -1004,7 +1002,7 @@
 
                 let workbook = new ExcelJS.Workbook();
 
-                // 1. ABA DE RELATÓRIO IMPRESSÃO (CABEÇALHO CENTRALIZADO COM LOGO)
+                // 1. ABA DE RELATÓRIO IMPRESSÃO (CABEÇALHO COM LOGO BRAVA)
                 let wsRelatorio = workbook.addWorksheet("Relatório Impressão");
 
                 try {
@@ -1087,12 +1085,12 @@
                     { width: 14 }, { width: 42 }, { width: 10 }, { width: 14 }, { width: 22 }, { width: 14 }, { width: 22 }, { width: 15 }
                 ];
 
-                // 2. ABA DASHBOARD COM GRÁFICOS VISUAIS DE BARRAS COLORIDAS (ESTILO POWER BI)
-                let wsDash = workbook.addWorksheet("Dashboard Divergências");
+                // 2. ABA DASHBOARD ESTILO POWER BI (GRÁFICOS E INDICADORES)
+                let wsDash = workbook.addWorksheet("Dashboard Power BI");
 
                 wsDash.mergeCells('A1:F1');
                 let dashTitle = wsDash.getCell('A1');
-                dashTitle.value = "DASHBOARD E GRÁFICOS DE DIVERGÊNCIAS DO INVENTÁRIO";
+                dashTitle.value = "POWER BI EXECUTIVE DASHBOARD - STATUS DO INVENTÁRIO";
                 dashTitle.font = { name: 'Arial', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
                 dashTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF111C38' } };
                 dashTitle.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -1113,11 +1111,11 @@
 
                 wsDash.addRow([]);
 
-                let gTitle = wsDash.addRow(["GRÁFICO VISUAL DE STATUS DO INVENTÁRIO (BARRAS DE PROPORÇÃO)"]);
+                let gTitle = wsDash.addRow(["GRÁFICO VISUAL DE DISTRIBUIÇÃO (ESTILO POWER BI)"]);
                 wsDash.mergeCells(`A${gTitle.number}:F${gTitle.number}`);
                 gTitle.getCell(1).font = { bold: true, size: 11, color: { argb: 'FF111C38' } };
 
-                let gHeader = wsDash.addRow(["Status", "Total", "Representação Gráfica (Barra Colorida)"]);
+                let gHeader = wsDash.addRow(["Status", "Total", "Representação Gráfica (Barra de Proporção)"]);
                 gHeader.font = { bold: true, color: { argb: 'FFFFFFFF' } };
                 gHeader.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF111C38' } };
                 gHeader.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF111C38' } };
@@ -1176,7 +1174,7 @@
                 let blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
                 let link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = `Relatorio_Inventario_${modoEmpresa}.xlsx`;
+                link.download = `Relatorio_PowerBI_${modoEmpresa}.xlsx`;
                 link.click();
             } catch (e) {
                 alert("Erro ao exportar o relatório em Excel.");
@@ -1195,14 +1193,14 @@
             let totalItens = catalogoAtivo.length;
             let nomeEmpresaExtenso = obterNomeEmpresaExtenso();
 
-            let assunto = encodeURIComponent(`Relatório de Contagem de Estoque - ${modoEmpresa}`);
+            let assunto = encodeURIComponent(`Relatório Power BI de Contagem de Estoque - ${modoEmpresa}`);
             let corpo = encodeURIComponent(
                 `Prezado(a),\n\n` +
-                `Segue o resumo da contagem de estoque realizada no Gestor de Estoque:\n\n` +
+                `Segue o resumo da contagem de estoque com Dashboard Power BI realizada no sistema:\n\n` +
                 `Empresa/Catálogo: ${nomeEmpresaExtenso}\n` +
                 `Total de Itens no Catálogo: ${totalItens}\n` +
                 `Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}\n\n` +
-                `Para consultar o relatório detalhado completo, utilize a exportação em Excel no sistema.\n\n` +
+                `Para consultar os gráficos completos, utilize a exportação em Excel Power BI no sistema.\n\n` +
                 `Atenciosamente,\n` +
                 `Equipe de Controle de Estoque - Brava Construção e Incorporação`
             );
