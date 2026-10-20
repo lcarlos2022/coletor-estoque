@@ -114,45 +114,55 @@
         </div>
         <div id="user-info-header" class="hidden flex items-center space-x-3">
             <span id="display-username" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700 font-medium"></span>
-            <button onclick="fazerLogout()" class="text-red-400 hover:text-red-300 text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 transition" title="Terminar Sessão"><i class="fa-solid fa-power-off"></i> Sair</button>
+            <button onclick="fazerLogout()" class="text-red-400 hover:text-red-300 text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 transition" title="Sair do Sistema"><i class="fa-solid fa-power-off"></i> Sair</button>
         </div>
     </header>
 
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-center">
 
-        <!-- TELA DE LOGIN / SEGURANÇA -->
+        <!-- TELA DE LOGIN / CADASTRO ORIGINAL -->
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
-                <h2 class="text-3xl font-black text-white tracking-tight">Controlo de Acesso Restrito</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2">Insira as credenciais autorizadas do setor para aceder ao sistema.</p>
+                <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
+                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">Digite seu CPF e senha para entrar no sistema.</p>
                 <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
                     <p class="font-bold text-amber-400 flex items-center space-x-1.5">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span>Requisito de Senha:</span>
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Orientações:</span>
                     </p>
-                    <p class="text-[11px] text-slate-300 leading-relaxed">Mínimo de 8 caracteres, contendo letra maiúscula, minúscula, número e caractere especial (ex: <code class="text-amber-300 font-bold">Stk@2026</code>). Senha padrão inicial: <code class="text-emerald-400 font-bold">12345678</code></p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">Insira seus dados cadastrados para acessar o painel da obra.</p>
                 </div>
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-bold text-white" id="titulo-form-auth">Identificação de Acesso</h3>
+                        <p class="text-xs text-slate-400">Preencha os campos abaixo para prosseguir.</p>
+                    </div>
+                    <button id="btn-alternar-novo-user" onclick="modoNovoUsuario()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3 py-1.5 rounded-xl font-bold transition">
+                        + Novo Usuário
+                    </button>
+                </div>
+
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome do Colaborador</label>
-                        <input type="text" id="cad-nome" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition font-medium" placeholder="Ex: Luiz Carlos Oliveira">
+                    <div class="space-y-1.5" id="campo-nome-div" style="display: none;">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
+                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="Ex: Luiz Carlos Oliveira">
                     </div>
 
-                    <div class="space-y-1.5">
+                    <div class="space-y-1.5" id="campo-cpf-div">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
-                        <input type="text" id="cad-cpf" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition font-medium" placeholder="000.000.000-00">
+                        <input type="text" id="cad-cpf" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Palavra-passe</label>
-                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition" placeholder="Digite a senha (padrão: 12345678)">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest" id="label-senha-input">Senha</label>
+                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite sua senha">
                     </div>
 
-                    <button type="submit" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
-                        <span>Entrar no Sistema</span>
+                    <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
+                        <span id="texto-botao-auth">Entrar no Sistema</span>
                     </button>
                 </form>
             </div>
@@ -200,7 +210,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-white uppercase" id="titulo-secao-catalogo">Base de Materiais</h3>
-                            <p class="text-xs text-slate-400" id="subtitulo-secao-catalogo">Gerencie os seus materiais.</p>
+                            <p class="text-xs text-slate-400" id="subtitulo-secao-catalogo">Carregando...</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <label class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition flex items-center space-x-1.5">
@@ -245,7 +255,7 @@
                             <h4 class="text-xs font-bold text-emerald-400 uppercase" id="titulo-etiquetas-geradas">ETIQUETAS CUSTOMIZADAS</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
-                                <button onclick="deletarEtiquetasMarcadasNaTela()" class="nao-imprimir bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1" title="Deleta permanentemente do catálogo os itens cujas etiquetas foram marcadas"><i class="fa-solid fa-trash-arrow-up"></i><span>Deletar Selecionadas</span></button>
+                                <button onclick="deletarEtiquetasMarcadasNaTela()" class="nao-imprimir bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash-arrow-up"></i><span>Deletar Selecionadas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-xmark"></i><span>Fechar Visualização</span></button>
                             </div>
                         </div>
@@ -255,7 +265,7 @@
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmara)</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera)</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
@@ -275,8 +285,8 @@
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
                         <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700"></div>
                         <div class="flex justify-center gap-2">
-                            <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Ligar Câmara</button>
-                            <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Desligar Câmara</button>
+                            <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Ligar Câmera</button>
+                            <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Desligar Câmera</button>
                         </div>
                     </div>
 
@@ -290,7 +300,7 @@
                         </div>
                         <div class="flex space-x-2 pt-1">
                             <input type="number" id="lido-quantidade" step="any" placeholder="Quantidade" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:outline-none">
-                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs">Guardar</button>
+                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs">Salvar</button>
                         </div>
                     </div>
                     <div class="flex justify-between pt-2">
@@ -361,6 +371,7 @@
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
         let itensSelecionadosParaEtiqueta = new Set();
+        let modoCadastro = false;
 
         function limparDescricao(desc) {
             if (!desc) return "";
@@ -393,43 +404,90 @@
         let ultimaLeituraTimestamp = 0;
 
         window.addEventListener('DOMContentLoaded', () => {
-            let usuarioSessao = sessionStorage.getItem('sienge_usuario_logado');
-            if (usuarioSessao) {
-                entrarNoSistema(usuarioSessao);
+            let userLogado = localStorage.getItem('sienge_usuario_ativo');
+            if (userLogado) {
+                entrarNoSistema(userLogado);
+            } else {
+                verificarEstadoSistema();
             }
         });
 
-        // AUTENTICAÇÃO COM VALIDAÇÃO DE SEGURANÇA E SENHA PADRÃO 12345678
+        function modoNovoUsuario() {
+            modoCadastro = !modoCadastro;
+            const campoNome = document.getElementById('campo-nome-div');
+            const titulo = document.getElementById('titulo-form-auth');
+            const btnSubmit = document.getElementById('texto-botao-auth');
+            const btnAlternar = document.getElementById('btn-alternar-novo-user');
+            const descModo = document.getElementById('descricao-auth-modo');
+            const instrucao = document.getElementById('instrucao-dinamica');
+
+            if (modoCadastro) {
+                campoNome.style.display = 'block';
+                document.getElementById('cad-nome').required = true;
+                titulo.textContent = "Cadastro de Novo Usuário";
+                btnSubmit.textContent = "Cadastrar e Entrar";
+                btnAlternar.textContent = "Já tenho conta";
+                descModo.textContent = "Crie uma nova conta informando Nome, CPF e Senha.";
+                instrucao.textContent = "Preencha seus dados para cadastrar um novo operador.";
+            } else {
+                verificarEstadoSistema();
+            }
+        }
+
+        function verificarEstadoSistema() {
+            modoCadastro = false;
+            document.getElementById('campo-nome-div').style.display = 'none';
+            document.getElementById('cad-nome').required = false;
+            document.getElementById('descricao-auth-modo').textContent = "Digite seu CPF e senha para entrar no sistema.";
+            document.getElementById('instrucao-dinamica').textContent = "Insira seus dados cadastrados para acessar o painel da obra.";
+            document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
+            document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
+            document.getElementById('btn-alternar-novo-user').textContent = "+ Novo Usuário";
+        }
+
+        // PROCESSAMENTO DE LOGIN / CADASTRO DE USUÁRIO
         function processarAutenticacao(event) {
             event.preventDefault();
+            let cpfDigitado = document.getElementById('cad-cpf').value.trim();
+            let senhaDigitada = document.getElementById('login-pass').value;
             let nomeInput = document.getElementById('cad-nome').value.trim();
-            let cpfInput = document.getElementById('cad-cpf').value.trim();
-            let senhaInput = document.getElementById('login-pass').value;
 
-            if (!nomeInput || !cpfInput || !senhaInput) {
-                alert("Por favor, preencha todos os campos de identificação.");
+            if (!cpfDigitado || !senhaDigitada) {
+                alert("Por favor, preencha o CPF e a senha.");
                 return;
             }
 
-            // Permite a senha inicial "12345678" ou senhas fortes que atendam aos critérios
-            if (senhaInput !== "12345678") {
-                let temMaiuscula = /[A-Z]/.test(senhaInput);
-                let temMinuscula = /[a-z]/.test(senhaInput);
-                let temNumero = /[0-9]/.test(senhaInput);
-                let temEspecial = /[^A-Za-z0-9]/.test(senhaInput);
-                let tamanhoValido = senhaInput.length >= 8;
+            let usuariosBanco = JSON.parse(localStorage.getItem('sienge_usuarios_db_v2')) || {};
 
-                if (!tamanhoValido || !temMaiuscula || !temMinuscula || !temNumero || !temEspecial) {
-                    alert("A senha de segurança deve conter no mínimo 8 caracteres, incluindo letras maiúsculas, letras minúsculas, números e um caractere especial (ou utilize a senha padrão 12345678).");
+            if (modoCadastro) {
+                if (!nomeInput) {
+                    alert("Por favor, informe o seu nome completo.");
                     return;
                 }
+                usuariosBanco[cpfDigitado] = { nome: nomeInput, senha: senhaDigitada };
+                localStorage.setItem('sienge_usuarios_db_v2', JSON.stringify(usuariosBanco));
+                alert("Usuário cadastrado com sucesso!");
+                entrarNoSistema(nomeInput);
+            } else {
+                // Se o usuário existir no banco local, valida a senha
+                if (usuariosBanco[cpfDigitado]) {
+                    if (usuariosBanco[cpfDigitado].senha === senhaDigitada) {
+                        entrarNoSistema(usuariosBanco[cpfDigitado].nome);
+                    } else {
+                        alert("Senha incorreta para este CPF.");
+                    }
+                } else {
+                    // Se ainda não existir registro local, autoriza e salva automaticamente
+                    let nomeUsuario = nomeInput || "Luiz Carlos Oliveira";
+                    usuariosBanco[cpfDigitado] = { nome: nomeUsuario, senha: senhaDigitada };
+                    localStorage.setItem('sienge_usuarios_db_v2', JSON.stringify(usuariosBanco));
+                    entrarNoSistema(nomeUsuario);
+                }
             }
-
-            sessionStorage.setItem('sienge_usuario_logado', nomeInput);
-            entrarNoSistema(nomeInput);
         }
 
         function entrarNoSistema(user) {
+            localStorage.setItem('sienge_usuario_ativo', user);
             document.getElementById('display-username').textContent = user;
             document.getElementById('user-info-header').classList.remove('hidden');
             document.getElementById('auth-section').classList.add('hidden');
@@ -439,12 +497,13 @@
         }
 
         function fazerLogout() {
-            sessionStorage.removeItem('sienge_usuario_logado');
+            localStorage.removeItem('sienge_usuario_ativo');
             pararLeitorQR();
             document.getElementById('user-info-header').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('login-form').reset();
+            verificarEstadoSistema();
         }
 
         function mudarEmpresa(empresa) {
@@ -549,7 +608,7 @@
                     { facingMode: "user" }, config,
                     (decodedText) => { processarCodigoLido(decodedText); },
                     (errorMessage) => {}
-                ).catch(e => { alert("Não foi possível aceder à câmara."); });
+                ).catch(e => { alert("Não foi possível acessar a câmera."); });
             });
         }
 
@@ -633,7 +692,7 @@
             registrosContagem[chaveReg] = qtdVal;
             localStorage.setItem('sienge_registros_contagem_v2', JSON.stringify(registrosContagem));
             
-            alert(`Contagem guardada para o item ${produtoScaneadoAtual.id} (${modoEmpresa})!`);
+            alert(`Contagem salva para o item ${produtoScaneadoAtual.id} (${modoEmpresa})!`);
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
             document.getElementById('lido-quantidade').value = "";
@@ -698,7 +757,7 @@
                     renderizarCatalogo();
                     alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens no catálogo: ${catalogoAtivo.length}`);
                 } catch(err) {
-                    alert("Erro ao processar ficheiro Excel.");
+                    alert("Erro ao processar arquivo Excel.");
                 }
             };
             reader.readAsArrayBuffer(file);
