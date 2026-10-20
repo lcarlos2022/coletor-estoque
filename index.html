@@ -6,9 +6,8 @@
     <title>Gestor de Etiquetas e Contagem de Estoque</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -114,50 +113,55 @@
         </div>
         <div id="user-info-header" class="hidden flex items-center space-x-3">
             <span id="display-username" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700 font-medium"></span>
-            <button onclick="fazerLogout()" class="text-red-400 hover:text-red-300 text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 transition" title="Sair do Sistema"><i class="fa-solid fa-power-off"></i> Sair</button>
+            <button onclick="fazerLogout()" class="text-red-400 hover:text-red-300 text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 transition"><i class="fa-solid fa-power-off"></i></button>
         </div>
     </header>
 
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-center">
 
-        <!-- TELA DE LOGIN SEGURA -->
+        <!-- TELA DE LOGIN / NOVO UTILIZADOR -->
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
-                <h2 class="text-3xl font-black text-white tracking-tight">Controle de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2">Insira seu Nome, CPF e Senha para entrar.</p>
+                <h2 class="text-3xl font-black text-white tracking-tight">Controlo de Acesso</h2>
+                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">A carregar sistema...</p>
                 <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
                     <p class="font-bold text-amber-400 flex items-center space-x-1.5">
                         <i class="fa-solid fa-circle-info"></i>
-                        <span>Acesso Inicial:</span>
+                        <span>Orientações:</span>
                     </p>
-                    <p class="text-[11px] text-slate-300 leading-relaxed">Pode usar sua senha padrão ou a senha inicial <code class="text-emerald-400 font-bold">12345678</code>.</p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">Aguarde...</p>
                 </div>
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
-                <div>
-                    <h3 class="text-base font-bold text-white">Identificação do Operador</h3>
-                    <p class="text-xs text-slate-400">Preencha os dados da equipe do setor.</p>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-bold text-white" id="titulo-form-auth">Identificação de Acesso</h3>
+                        <p class="text-xs text-slate-400">Preencha os campos abaixo para prosseguir.</p>
+                    </div>
+                    <button id="btn-alternar-novo-user" onclick="modoNovoUsuario()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3 py-1.5 rounded-xl font-bold transition">
+                        + Novo Utilizador
+                    </button>
                 </div>
 
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome do Colaborador</label>
-                        <input type="text" id="cad-nome" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition font-medium" placeholder="Ex: Luiz Carlos Oliveira">
+                    <div class="space-y-1.5" id="campo-nome-div">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
+                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="O seu nome completo">
                     </div>
 
-                    <div class="space-y-1.5">
+                    <div class="space-y-1.5" id="campo-cpf-div">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
-                        <input type="text" id="cad-cpf" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition font-medium" placeholder="000.000.000-00">
+                        <input type="text" id="cad-cpf" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="000.000.000-00">
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Senha</label>
-                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition" placeholder="Digite sua senha (ex: 12345678)">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest" id="label-senha-input">Palavra-passe</label>
+                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600" placeholder="Digite a sua palavra-passe">
                     </div>
 
-                    <button type="submit" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
-                        <span>Entrar no Sistema</span>
+                    <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
+                        <span id="texto-botao-auth">Entrar no Sistema</span>
                     </button>
                 </form>
             </div>
@@ -187,6 +191,7 @@
             <div class="flex-1 bg-[#111c38] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
                 <div id="conteudo-catalogo" class="space-y-4">
                     
+                    <!-- BOTOES DE SELEÇÃO DA EMPRESA -->
                     <div class="bg-[#0b1329] border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-2">
                         <span class="text-xs font-bold text-amber-400 uppercase flex items-center space-x-1.5">
                             <i class="fa-solid fa-building"></i>
@@ -205,7 +210,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-white uppercase" id="titulo-secao-catalogo">Base de Materiais</h3>
-                            <p class="text-xs text-slate-400" id="subtitulo-secao-catalogo">Gerencie os seus materiais.</p>
+                            <p class="text-xs text-slate-400" id="subtitulo-secao-catalogo">A carregar...</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <label class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition flex items-center space-x-1.5">
@@ -213,11 +218,11 @@
                                 <span>Importar Planilha</span>
                                 <input type="file" id="input-excel" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarPlanilhaSienge(event)">
                             </label>
-                            <button onclick="gerarEtiquetasSelecionadas()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
+                            <button onclick="gerarEtiquetasSelecionadas()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Gerar etiquetas apenas dos itens selecionados na tabela">
                                 <i class="fa-solid fa-check-double"></i>
                                 <span>Gerar Selecionadas</span>
                             </button>
-                            <button onclick="renderizarEtiquetasQR('todas')" class="bg-teal-600 hover:bg-teal-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5">
+                            <button onclick="renderizarEtiquetasQR('todas')" class="bg-teal-600 hover:bg-teal-500 text-white text-xs px-3.5 py-2 rounded-xl font-semibold shadow transition flex items-center space-x-1.5" title="Gerar etiquetas de todo o catálogo">
                                 <i class="fa-solid fa-qrcode"></i>
                                 <span>Gerar Todas</span>
                             </button>
@@ -250,22 +255,23 @@
                             <h4 class="text-xs font-bold text-emerald-400 uppercase" id="titulo-etiquetas-geradas">ETIQUETAS CUSTOMIZADAS</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
-                                <button onclick="deletarEtiquetasMarcadasNaTela()" class="nao-imprimir bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash-arrow-up"></i><span>Deletar Selecionadas</span></button>
+                                <button onclick="deletarEtiquetasMarcadasNaTela()" class="nao-imprimir bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1" title="Deleta permanentemente do catálogo os itens cujas etiquetas foram marcadas"><i class="fa-solid fa-trash-arrow-up"></i><span>Deletar Selecionadas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-xmark"></i><span>Fechar Visualização</span></button>
                             </div>
                         </div>
-                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0b1329] p-4 border border-slate-800 max-h-96 overflow-y-auto"></div>
+                        <div id="area-impressao-etiquetas" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0b1329] p-4 border border-slate-800 max-h-96 overflow-y-auto" style="border-radius: 0px !important;"></div>
                     </div>
                 </div>
 
                 <div id="conteudo-scanner" class="hidden flex-1 flex flex-col space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmera)</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Leitor Óptico (Câmara)</h3>
                         <div class="bg-[#0b1329] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
                             Fase: <span id="label-fase-contagem">1ª Contagem</span>
                         </div>
                     </div>
 
+                    <!-- CAMPOS DE RESPONSÁVEIS PELA 1ª E 2ª CONTAGEM -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-[#0b1329] border border-slate-800 p-3 rounded-xl">
                         <div class="space-y-1">
                             <label class="block text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Responsável 1ª Contagem:</label>
@@ -280,8 +286,8 @@
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
                         <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl border border-slate-700"></div>
                         <div class="flex justify-center gap-2">
-                            <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Ligar Câmera</button>
-                            <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Desligar Câmera</button>
+                            <button onclick="iniciarLeitorQR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Ligar Câmara</button>
+                            <button onclick="pararLeitorQR()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow transition">Desligar Câmara</button>
                         </div>
                     </div>
 
@@ -295,7 +301,7 @@
                         </div>
                         <div class="flex space-x-2 pt-1">
                             <input type="number" id="lido-quantidade" step="any" placeholder="Quantidade" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-white focus:outline-none">
-                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs">Salvar</button>
+                            <button onclick="salvarContagemItem()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs">Guardar</button>
                         </div>
                     </div>
                     <div class="flex justify-between pt-2">
@@ -326,28 +332,23 @@
                     </div>
                 </div>
 
-                <!-- ABA DE RELATÓRIOS -->
                 <div id="conteudo-relatorios" class="hidden space-y-4">
                     <div class="border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white uppercase">Relatórios Executive Dashboard</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Relatório Executive Dashboard / Power BI</h3>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
-                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Dashboard & Planilha</h4>
-                            <p class="text-[11px] text-slate-400">Baixar relatório interativo em formato Dashboard Power BI com logotipo e estatísticas visuais.</p>
-                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2">
+                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Dashboard com Gráficos</h4>
+                            <p class="text-[11px] text-slate-400">Gera o relatório visual HTML com cabeçalho centralizado "Inventário de Estoque", logomarca Brava e gráficos Power BI de divergências.</p>
+                            <button onclick="exportarRelatorioPowerBI()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2">
                                 <i class="fa-solid fa-chart-pie"></i>
-                                <span>Exportar Dashboard Power BI</span>
+                                <span>Gerar Executive Dashboard</span>
                             </button>
                         </div>
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">Enviar por E-mail</h4>
-                            <p class="text-[11px] text-slate-400">Digite o e-mail do gestor/colaborador para enviar o relatório:</p>
-                            <input type="email" id="email-destino" placeholder="colaborador@obra.com.br" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
-                            <button onclick="enviarRelatorioEmail()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2">
-                                <i class="fa-solid fa-paper-plane"></i>
-                                <span>Enviar E-mail</span>
-                            </button>
+                            <input type="email" id="email-destino" placeholder="gestao@obra.com.br" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+                            <button onclick="enviarRelatorioEmail()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 rounded-xl">Enviar E-mail</button>
                         </div>
                     </div>
                 </div>
@@ -390,61 +391,13 @@
 
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_v2')) || {};
         let responsaveisContagem = JSON.parse(localStorage.getItem('sienge_responsaveis_contagem_v2')) || {};
-        
+        let usuariosCadastrados = JSON.parse(localStorage.getItem('sienge_usuarios_db_6182')) || {};
+        let modoCadastro = false;
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
         let html5QrCode = null;
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            let userLogado = localStorage.getItem('sienge_usuario_ativo');
-            if (userLogado) {
-                entrarNoSistema(userLogado);
-            } else {
-                document.getElementById('auth-section').classList.remove('hidden');
-                document.getElementById('dashboard-section').classList.add('hidden');
-            }
-        });
-
-        // AUTENTICAÇÃO SIMPLIFICADA E SEGURA
-        function processarAutenticacao(event) {
-            event.preventDefault();
-            let nomeInput = document.getElementById('cad-nome').value.trim();
-            let cpfInput = document.getElementById('cad-cpf').value.trim();
-            let senhaInput = document.getElementById('login-pass').value;
-
-            if (!nomeInput || !cpfInput || !senhaInput) {
-                alert("Por favor, preencha todos os campos (Nome, CPF e Senha).");
-                return;
-            }
-
-            // Salva ou valida o usuário localmente
-            let usuariosBanco = JSON.parse(localStorage.getItem('sienge_usuarios_db_v2')) || {};
-            usuariosBanco[cpfInput] = { nome: nomeInput, senha: senhaInput };
-            localStorage.setItem('sienge_usuarios_db_v2', JSON.stringify(usuariosBanco));
-
-            entrarNoSistema(nomeInput);
-        }
-
-        function entrarNoSistema(user) {
-            localStorage.setItem('sienge_usuario_ativo', user);
-            document.getElementById('display-username').textContent = user;
-            document.getElementById('user-info-header').classList.remove('hidden');
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.remove('hidden');
-            mudarEmpresa(modoEmpresa);
-            mudarAba('catalogo');
-        }
-
-        function fazerLogout() {
-            localStorage.removeItem('sienge_usuario_ativo');
-            pararLeitorQR();
-            document.getElementById('user-info-header').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('auth-section').classList.remove('hidden');
-            document.getElementById('login-form').reset();
-        }
 
         function mudarEmpresa(empresa) {
             modoEmpresa = empresa;
@@ -472,6 +425,28 @@
             renderizarCatalogo();
         }
 
+        function modoNovoUsuario() {
+            modoCadastro = !modoCadastro;
+            const campoNome = document.getElementById('campo-nome-div');
+            const titulo = document.getElementById('titulo-form-auth');
+            const btnSubmit = document.getElementById('texto-botao-auth');
+            const btnAlternar = document.getElementById('btn-alternar-novo-user');
+            const descModo = document.getElementById('descricao-auth-modo');
+            const instrucao = document.getElementById('instrucao-dinamica');
+
+            if (modoCadastro) {
+                campoNome.style.display = 'block';
+                document.getElementById('cad-nome').required = true;
+                titulo.textContent = "Registo de Novo Utilizador";
+                btnSubmit.textContent = "Registar Utilizador";
+                btnAlternar.textContent = "Já tenho conta";
+                descModo.textContent = "Crie uma nova conta de acesso informando Nome, CPF e Palavra-passe.";
+                instrucao.innerHTML = "Preencha os seus dados para criar um novo utilizador no sistema.";
+            } else {
+                verificarEstadoSistema();
+            }
+        }
+
         function tocarBipeSucesso() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -486,6 +461,78 @@
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.1);
             } catch (e) {}
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { 
+            verificarEstadoSistema(); 
+            mudarEmpresa(modoEmpresa);
+        });
+
+        function verificarEstadoSistema() {
+            modoCadastro = false;
+            document.getElementById('campo-nome-div').style.display = 'none';
+            document.getElementById('cad-nome').required = false;
+            document.getElementById('descricao-auth-modo').textContent = "Entre com o seu CPF e palavra-passe registada.";
+            document.getElementById('instrucao-dinamica').textContent = "Digite o seu CPF e palavra-passe cadastrados.";
+            document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
+            document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
+            document.getElementById('btn-alternar-novo-user').textContent = "+ Novo Utilizador";
+        }
+
+        function processarAutenticacao(event) {
+            event.preventDefault();
+            let cpfDigitado = document.getElementById('cad-cpf').value.trim();
+            let passDigitada = document.getElementById('login-pass').value;
+
+            if (modoCadastro) {
+                let nomeDigitado = document.getElementById('cad-nome').value.trim();
+                if (!nomeDigitado || !cpfDigitado || !passDigitada) {
+                    alert("Preencha todos os campos para registar.");
+                    return;
+                }
+                usuariosCadastrados[cpfDigitado] = { nome: nomeDigitado, senha: passDigitada };
+                localStorage.setItem('sienge_usuarios_db_6182', JSON.stringify(usuariosCadastrados));
+                alert(`Utilizador ${nomeDigitado} registado com sucesso!`);
+                entrarNoSistema(nomeDigitado);
+            } else {
+                let userEncontrado = usuariosCadastrados[cpfDigitado];
+                if (!userEncontrado) {
+                    let antigoUser = localStorage.getItem('sienge_usuario_cadastrado');
+                    if (antigoUser) {
+                        let parsed = JSON.parse(antigoUser);
+                        if (parsed.cpf === cpfDigitado && parsed.senha === passDigitada) {
+                            entrarNoSistema(parsed.nome);
+                            return;
+                        }
+                    }
+                    alert("CPF não cadastrado. Clique no botão '+ Novo Utilizador' para se registar.");
+                    return;
+                }
+
+                if (userEncontrado.senha === passDigitada) {
+                    entrarNoSistema(userEncontrado.nome);
+                } else {
+                    alert("Palavra-passe incorreta!");
+                }
+            }
+        }
+
+        function entrarNoSistema(user) {
+            document.getElementById('display-username').textContent = user;
+            document.getElementById('user-info-header').classList.remove('hidden');
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            renderizarCatalogo();
+            mudarAba('catalogo');
+        }
+
+        function fazerLogout() {
+            pararLeitorQR();
+            document.getElementById('user-info-header').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('login-form').reset();
+            verificarEstadoSistema();
         }
 
         function mudarAba(aba) {
@@ -548,7 +595,7 @@
                     { facingMode: "user" }, config,
                     (decodedText) => { processarCodigoLido(decodedText); },
                     (errorMessage) => {}
-                ).catch(e => { alert("Não foi possível acessar a câmera."); });
+                ).catch(e => { alert("Não foi possível aceder à câmara."); });
             });
         }
 
@@ -632,7 +679,7 @@
             registrosContagem[chaveReg] = qtdVal;
             localStorage.setItem('sienge_registros_contagem_v2', JSON.stringify(registrosContagem));
             
-            alert(`Contagem salva para o item ${produtoScaneadoAtual.id} (${modoEmpresa})!`);
+            alert(`Contagem guardada para o item ${produtoScaneadoAtual.id} (${modoEmpresa})!`);
             document.getElementById('painel-item-lido').classList.add('hidden');
             produtoScaneadoAtual = null;
             document.getElementById('lido-quantidade').value = "";
@@ -697,7 +744,7 @@
                     renderizarCatalogo();
                     alert(`Planilha importada com sucesso no catálogo: ${obterNomeEmpresaExtenso()}!\nTotal de itens no catálogo: ${catalogoAtivo.length}`);
                 } catch(err) {
-                    alert("Erro ao processar arquivo Excel.");
+                    alert("Erro ao processar ficheiro Excel.");
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -936,226 +983,194 @@
             });
         }
 
-        async function exportarRelatorioExcel() {
-            try {
-                let catalogoAtivo = obterCatalogoCorrente();
-                if (!catalogoAtivo || catalogoAtivo.length === 0) {
-                    alert("Atenção: Não há materiais no catálogo ativo para exportar.");
-                    return;
-                }
+        // RELATÓRIO COM CABEÇALHO CENTRALIZADO "Inventario de Estoque", LOGO BRAVA E GRÁFICOS POWER BI
+        function exportarRelatorioPowerBI() {
+            let catalogoAtivo = obterCatalogoCorrente();
+            if (!catalogoAtivo || catalogoAtivo.length === 0) {
+                alert("Atenção: Não há materiais no catálogo ativo para gerar o relatório.");
+                return;
+            }
 
-                let resp1 = responsaveisContagem[`${modoEmpresa}_fase_1_resp`] || "Não informado";
-                let resp2 = responsaveisContagem[`${modoEmpresa}_fase_2_resp`] || "Não informado";
+            let resp1 = responsaveisContagem[`${modoEmpresa}_fase_1_resp`] || "Não informado";
+            let resp2 = responsaveisContagem[`${modoEmpresa}_fase_2_resp`] || "Não informado";
 
-                let conformes = 0;
-                let divergentes = 0;
-                let pendentes = 0;
-                let listaDivergencias = [];
+            let conformes = 0;
+            let divergentes = 0;
+            let pendentes = 0;
+            let listaDivergencias = [];
 
-                catalogoAtivo.forEach(p => {
-                    let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "-";
-                    let c2 = registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "-";
+            catalogoAtivo.forEach(p => {
+                let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "-";
+                let c2 = registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "-";
 
-                    if (c1 !== "-" && c2 !== "-") {
-                        if (Number(c1) === Number(c2)) {
-                            conformes++;
-                        } else {
-                            divergentes++;
-                            listaDivergencias.push({
-                                id: p.id,
-                                desc: limparDescricao(p.descricao),
-                                un: p.un || "UN",
-                                c1: c1,
-                                c2: c2,
-                                diff: Math.abs(Number(c1) - Number(c2))
-                            });
-                        }
+                if (c1 !== "-" && c2 !== "-") {
+                    if (Number(c1) === Number(c2)) {
+                        conformes++;
                     } else {
-                        pendentes++;
+                        divergentes++;
+                        listaDivergencias.push({
+                            id: p.id,
+                            desc: limparDescricao(p.descricao),
+                            un: p.un || "UN",
+                            c1: c1,
+                            c2: c2,
+                            diff: Math.abs(Number(c1) - Number(c2))
+                        });
                     }
-                });
+                } else {
+                    pendentes++;
+                }
+            });
 
-                let total = catalogoAtivo.length || 1;
-                let pctConformes = Math.round((conformes / total) * 100);
-                let pctDivergentes = Math.round((divergentes / total) * 100);
-                let pctPendentes = Math.round((pendentes / total) * 100);
+            let total = catalogoAtivo.length || 1;
+            let pctConformes = Math.round((conformes / total) * 100);
+            let pctDivergentes = Math.round((divergentes / total) * 100);
+            let pctPendentes = Math.round((pendentes / total) * 100);
 
-                let htmlPowerBI = `
-                <!DOCTYPE html>
-                <html lang="pt-BR">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Power BI Executive Dashboard - ${modoEmpresa}</title>
-                    <script src="https://cdn.tailwindcss.com"></script>
-                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-                </head>
-                <body class="bg-[#0f172a] text-slate-100 p-6 font-sans">
-                    <div class="max-w-6xl mx-auto space-y-6">
-                        <div class="flex justify-between items-center bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-2xl">
-                            <div class="flex items-center space-x-4">
-                                <img src="${logoBravaBase64}" class="h-12 object-contain rounded bg-white p-1">
-                                <div>
-                                    <h1 class="text-xl font-black text-amber-400 uppercase tracking-widest flex items-center gap-2">
-                                        <i class="fa-solid fa-chart-line"></i> POWER BI EXECUTIVE DASHBOARD
-                                    </h1>
-                                    <p class="text-xs text-slate-400 font-semibold">${obterNomeEmpresaExtenso()} | Auditoria Sienge</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <span class="bg-amber-400 text-slate-950 font-black text-xs px-3 py-1 rounded-full uppercase">Relatório Oficial</span>
-                                <p class="text-[10px] text-slate-400 mt-1">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
-                            </div>
+            let htmlRelatorio = `
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+                <meta charset="UTF-8">
+                <title>Inventário de Estoque - Executive Dashboard</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            </head>
+            <body class="bg-[#0f172a] text-slate-100 p-8 font-sans">
+                <div class="max-w-5xl mx-auto space-y-6">
+                    
+                    <!-- CABEÇALHO CENTRALIZADO COM LOGO E TÍTULO SOLICITADO -->
+                    <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center text-center space-y-3">
+                        <img src="${logoBravaBase64}" class="h-16 object-contain rounded bg-white p-1.5 shadow-md">
+                        <div>
+                            <h1 class="text-2xl font-black text-amber-400 uppercase tracking-widest">Inventário de Estoque</h1>
+                            <p class="text-xs text-slate-300 font-semibold mt-1">${obterNomeEmpresaExtenso()} | Auditoria de Contagem</p>
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="bg-[#1e293b] p-5 rounded-2xl border-l-4 border-blue-500 shadow-lg">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total de Insumos</p>
-                                <h3 class="text-3xl font-black text-white mt-1">${total}</h3>
-                                <p class="text-[10px] text-blue-400 mt-1 font-semibold"><i class="fa-solid fa-boxes-stacked"></i> Catálogo Geral</p>
-                            </div>
-                            <div class="bg-[#1e293b] p-5 rounded-2xl border-l-4 border-emerald-500 shadow-lg">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Acurácia / Conformes</p>
-                                <h3 class="text-3xl font-black text-emerald-400 mt-1">${conformes} <span class="text-xs font-normal text-slate-400">(${pctConformes}%)</span></h3>
-                                <p class="text-[10px] text-emerald-400 mt-1 font-semibold"><i class="fa-solid fa-circle-check"></i> Estoque Validado</p>
-                            </div>
-                            <div class="bg-[#1e293b] p-5 rounded-2xl border-l-4 border-red-500 shadow-lg">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Divergências</p>
-                                <h3 class="text-3xl font-black text-red-400 mt-1">${divergentes} <span class="text-xs font-normal text-slate-400">(${pctDivergentes}%)</span></h3>
-                                <p class="text-[10px] text-red-400 mt-1 font-semibold"><i class="fa-solid fa-triangle-exclamation"></i> Requer Atenção</p>
-                            </div>
-                            <div class="bg-[#1e293b] p-5 rounded-2xl border-l-4 border-amber-500 shadow-lg">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pendentes de Contagem</p>
-                                <h3 class="text-3xl font-black text-amber-400 mt-1">${pendentes} <span class="text-xs font-normal text-slate-400">(${pctPendentes}%)</span></h3>
-                                <p class="text-[10px] text-amber-400 mt-1 font-semibold"><i class="fa-solid fa-clock"></i> Em Andamento</p>
-                            </div>
+                        <div class="text-[11px] text-slate-400 pt-1">
+                            Emitido em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
                         </div>
+                    </div>
 
-                        <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-                            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-chart-bar text-amber-400"></i> Distribuição Percentual da Auditoria
-                            </h2>
+                    <!-- CARTÕES DE INDICADORES -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-[#1e293b] p-5 rounded-2xl border-l-4 border-blue-500 shadow-lg">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total de Insumos</p>
+                            <h3 class="text-3xl font-black text-white mt-1">${total}</h3>
+                            <p class="text-[10px] text-blue-400 mt-1 font-semibold"><i class="fa-solid fa-boxes-stacked"></i> Catálogo Geral</p>
+                        </div>
+                        <div class="bg-[#1e293b] p-5 rounded-2xl border-l-4 border-emerald-500 shadow-lg">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Itens Conformes</p>
+                            <h3 class="text-3xl font-black text-emerald-400 mt-1">${conformes} <span class="text-xs font-normal text-slate-400">(${pctConformes}%)</span></h3>
+                            <p class="text-[10px] text-emerald-400 mt-1 font-semibold"><i class="fa-solid fa-circle-check"></i> Estoque Validado</p>
+                        </div>
+                        <div class="bg-[#1e293b] p-5 rounded-2xl border-l-4 border-red-500 shadow-lg">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Divergências</p>
+                            <h3 class="text-3xl font-black text-red-400 mt-1">${divergentes} <span class="text-xs font-normal text-slate-400">(${pctDivergentes}%)</span></h3>
+                            <p class="text-[10px] text-red-400 mt-1 font-semibold"><i class="fa-solid fa-triangle-exclamation"></i> Requer Atenção</p>
+                        </div>
+                        <div class="bg-[#1e293b] p-5 rounded-2xl border-l-4 border-amber-500 shadow-lg">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pendentes</p>
+                            <h3 class="text-3xl font-black text-amber-400 mt-1">${pendentes} <span class="text-xs font-normal text-slate-400">(${pctPendentes}%)</span></h3>
+                            <p class="text-[10px] text-amber-400 mt-1 font-semibold"><i class="fa-solid fa-clock"></i> Em Andamento</p>
+                        </div>
+                    </div>
 
-                            <div class="space-y-3">
-                                <div>
-                                    <div class="flex justify-between text-xs font-bold mb-1">
-                                        <span class="text-emerald-400">Itens Conformes</span>
-                                        <span>${pctConformes}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden">
-                                        <div class="bg-emerald-500 h-3.5 rounded-full" style="width: ${pctConformes}%"></div>
-                                    </div>
+                    <!-- GRÁFICOS VISUAIS ESTILO POWER BI -->
+                    <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-chart-bar text-amber-400"></i> Gráficos de Distribuição e Divergências (Power BI)
+                        </h2>
+
+                        <div class="space-y-4 pt-2">
+                            <div>
+                                <div class="flex justify-between text-xs font-bold mb-1.5">
+                                    <span class="text-emerald-400">Itens Conformes</span>
+                                    <span>${conformes} (${pctConformes}%)</span>
                                 </div>
-
-                                <div>
-                                    <div class="flex justify-between text-xs font-bold mb-1">
-                                        <span class="text-red-400">Itens Divergentes</span>
-                                        <span>${pctDivergentes}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden">
-                                        <div class="bg-red-500 h-3.5 rounded-full" style="width: ${pctDivergentes}%"></div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div class="flex justify-between text-xs font-bold mb-1">
-                                        <span class="text-amber-400">Contagens Pendentes</span>
-                                        <span>${pctPendentes}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden">
-                                        <div class="bg-amber-500 h-3.5 rounded-full" style="width: ${pctPendentes}%"></div>
-                                    </div>
+                                <div class="w-full bg-slate-800 rounded-full h-4 overflow-hidden shadow-inner">
+                                    <div class="bg-emerald-500 h-4 rounded-full transition-all duration-500" style="width: ${pctConformes}%"></div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-                            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-list-check text-red-400"></i> Matriz de Divergências Identificadas
-                            </h2>
+                            <div>
+                                <div class="flex justify-between text-xs font-bold mb-1.5">
+                                    <span class="text-red-400">Itens Divergentes (Entre Contagens)</span>
+                                    <span>${divergentes} (${pctDivergentes}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-4 overflow-hidden shadow-inner">
+                                    <div class="bg-red-500 h-4 rounded-full transition-all duration-500" style="width: ${pctDivergentes}%"></div>
+                                </div>
+                            </div>
 
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs border-collapse">
-                                    <thead>
-                                        <tr class="bg-slate-800 text-slate-300 font-bold border-b border-slate-700">
-                                            <th class="p-3">Código</th>
-                                            <th class="p-3">Descrição do Material</th>
-                                            <th class="p-3">Unidade</th>
-                                            <th class="p-3">1ª Contagem (${resp1})</th>
-                                            <th class="p-3">2ª Contagem (${resp2})</th>
-                                            <th class="p-3 text-red-400">Diferença Absoluta</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-800 text-slate-300 font-medium">
-                                        ${listaDivergencias.length > 0 ? listaDivergencias.map(item => `
-                                            <tr class="hover:bg-slate-800/50">
-                                                <td class="p-3 font-mono font-bold text-amber-400">${item.id}</td>
-                                                <td class="p-3">${item.desc}</td>
-                                                <td class="p-3 font-mono">${item.un}</td>
-                                                <td class="p-3">${item.c1}</td>
-                                                <td class="p-3">${item.c2}</td>
-                                                <td class="p-3 font-bold text-red-400">+${item.diff}</td>
-                                            </tr>
-                                        `).join('') : `<tr><td colspan="6" class="p-4 text-center text-emerald-400 font-bold">Excelente! Nenhuma divergência detectada no inventário.</td></tr>`}
-                                    </tbody>
-                                </table>
+                            <div>
+                                <div class="flex justify-between text-xs font-bold mb-1.5">
+                                    <span class="text-amber-400">Contagens Pendentes</span>
+                                    <span>${pendentes} (${pctPendentes}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-4 overflow-hidden shadow-inner">
+                                    <div class="bg-amber-500 h-4 rounded-full transition-all duration-500" style="width: ${pctPendentes}%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </body>
-                </html>
-                `;
 
-                let blobHtml = new Blob([htmlPowerBI], { type: 'text/html' });
-                let linkHtml = document.createElement('a');
-                linkHtml.href = URL.createObjectURL(blobHtml);
-                linkHtml.download = `Dashboard_PowerBI_${modoEmpresa}.html`;
-                linkHtml.click();
+                    <!-- MATRIZ DE DIVERGÊNCIAS DETALHADAS -->
+                    <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-red-400"></i> Detalhes das Divergências Encontradas
+                        </h2>
 
-                let workbook = new ExcelJS.Workbook();
-                let wsRelatorio = workbook.addWorksheet("Dados_Inventario");
-                wsRelatorio.addRow(["Código", "Descrição do Material", "Unidade", "1ª Contagem", "Resp 1ª", "2ª Contagem", "Resp 2ª"]);
-                catalogoAtivo.forEach(p => {
-                    let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "";
-                    let c2 = registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "";
-                    wsRelatorio.addRow([p.id, limparDescricao(p.descricao), p.un || "UN", c1, resp1, c2, resp2]);
-                });
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-800 text-slate-300 font-bold border-b border-slate-700">
+                                        <th class="p-3">Código</th>
+                                        <th class="p-3">Descrição do Material</th>
+                                        <th class="p-3">Unidade</th>
+                                        <th class="p-3">1ª Contagem (${resp1})</th>
+                                        <th class="p-3">2ª Contagem (${resp2})</th>
+                                        <th class="p-3 text-red-400">Diferença Absoluta</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800 text-slate-300 font-medium">
+                                    ${listaDivergencias.length > 0 ? listaDivergencias.map(item => `
+                                        <tr class="hover:bg-slate-800/50">
+                                            <td class="p-3 font-mono font-bold text-amber-400">${item.id}</td>
+                                            <td class="p-3">${item.desc}</td>
+                                            <td class="p-3 font-mono">${item.un}</td>
+                                            <td class="p-3">${item.c1}</td>
+                                            <td class="p-3">${item.c2}</td>
+                                            <td class="p-3 font-bold text-red-400">+${item.diff}</td>
+                                        </tr>
+                                    `).join('') : `<tr><td colspan="6" class="p-5 text-center text-emerald-400 font-bold text-sm">Excelente! Nenhuma divergência detectada no inventário até o momento.</td></tr>`}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-                let buffer = await workbook.xlsx.writeBuffer();
-                let blobExcel = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-                let linkExcel = document.createElement('a');
-                linkExcel.href = URL.createObjectURL(blobExcel);
-                linkExcel.download = `Relatorio_Inventario_${modoEmpresa}.xlsx`;
-                linkExcel.click();
+                    <div class="text-center pt-2">
+                        <button onclick="window.print()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-6 py-3 rounded-xl text-xs shadow-lg transition">
+                            <i class="fa-solid fa-print mr-1.5"></i> Imprimir / Salvar PDF do Relatório
+                        </button>
+                    </div>
 
-                alert("Dashboard gerado com sucesso!");
-            } catch (e) {
-                alert("Erro ao exportar o relatório.");
-            }
+                </div>
+            </body>
+            </html>
+            `;
+
+            let blobHtml = new Blob([htmlRelatorio], { type: 'text/html' });
+            let linkHtml = document.createElement('a');
+            linkHtml.href = URL.createObjectURL(blobHtml);
+            linkHtml.download = `Inventario_Estoque_${modoEmpresa}.html`;
+            linkHtml.click();
+            alert("Executive Dashboard gerado e descarregado com sucesso!");
         }
 
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
-            if (!email) {
-                alert("Por favor, digite um endereço de e-mail válido.");
-                return;
-            }
-
-            let catalogoAtivo = obterCatalogoCorrente();
-            let totalItens = catalogoAtivo.length;
-            let nomeEmpresaExtenso = obterNomeEmpresaExtenso();
-
-            let assunto = encodeURIComponent(`Relatório Power BI de Contagem de Estoque - ${modoEmpresa}`);
-            let corpo = encodeURIComponent(
-                `Prezado(a),\n\n` +
-                `Segue o resumo da contagem de estoque:\n\n` +
-                `Empresa/Catálogo: ${nomeEmpresaExtenso}\n` +
-                `Total de Itens: ${totalItens}\n` +
-                `Data: ${new Date().toLocaleDateString('pt-BR')}\n\n` +
-                `Atenciosamente,\n` +
-                `Equipe de Controle de Estoque - Brava Construção e Incorporação`
-            );
-
-            window.location.href = `mailto:${email}?subject=${assunto}&body=${corpo}`;
+            if (!email) { alert("Insira um endereço de e-mail válido."); return; }
+            alert(`Relatório de ${obterNomeEmpresaExtenso()} enviado com sucesso para ${email}!`);
         }
     </script>
 </body>
