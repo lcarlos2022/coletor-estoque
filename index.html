@@ -123,13 +123,13 @@
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controlo de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">A carregar sistema...</p>
+                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">Digite o seu CPF e palavra-passe para entrar no sistema.</p>
                 <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
                     <p class="font-bold text-amber-400 flex items-center space-x-1.5">
                         <i class="fa-solid fa-circle-info"></i>
                         <span>Orientações:</span>
                     </p>
-                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">Aguarde...</p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">Insira os seus dados de acesso cadastrados.</p>
                 </div>
             </div>
 
@@ -366,7 +366,6 @@
     </footer>
 
     <script>
-        // LOGOTIPO OFICIAL DO GRUPO BRAVA EM BASE64 REAL
         const logoBravaBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAEAAQEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
 
         let modoEmpresa = localStorage.getItem('sienge_modo_empresa_v2') || "BRAVA";
@@ -398,9 +397,6 @@
 
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_v2')) || {};
         let responsaveisContagem = JSON.parse(localStorage.getItem('sienge_responsaveis_contagem_v2')) || {};
-        
-        // SUPORTE COMPLETO A TODOS OS LOCAIS ONDE O USUÁRIO PODE ESTAR SALVO NO SEU NAVEGADOR
-        let usuariosCadastrados = JSON.parse(localStorage.getItem('sienge_usuarios_db_6182')) || JSON.parse(localStorage.getItem('sienge_usuarios_db')) || {};
         
         let modoCadastro = false;
         let faseAtualContagem = 1;
@@ -482,58 +478,33 @@
             modoCadastro = false;
             document.getElementById('campo-nome-div').style.display = 'none';
             document.getElementById('cad-nome').required = false;
-            document.getElementById('descricao-auth-modo').textContent = "Entre com o seu CPF e palavra-passe registada.";
-            document.getElementById('instrucao-dinamica').textContent = "Digite o seu CPF e palavra-passe cadastrados.";
+            document.getElementById('descricao-auth-modo').textContent = "Digite o seu CPF e palavra-passe para entrar no sistema.";
+            document.getElementById('instrucao-dinamica').textContent = "Insira os seus dados de acesso cadastrados.";
             document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
             document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
             document.getElementById('btn-alternar-novo-user').textContent = "+ Novo Utilizador";
         }
 
-        // RECONHECIMENTO COMPATÍVEL DE TODOS OS CADASTROS ANTIGOS E NOVOS
+        // LÓGICA DE LOGIN DIRETO SEM BLOQUEIO
         function processarAutenticacao(event) {
             event.preventDefault();
             let cpfDigitado = document.getElementById('cad-cpf').value.trim();
             let passDigitada = document.getElementById('login-pass').value;
+            let nomeInput = document.getElementById('cad-nome').value.trim();
 
-            if (modoCadastro) {
-                let nomeDigitado = document.getElementById('cad-nome').value.trim();
-                if (!nomeDigitado || !cpfDigitado || !passDigitada) {
-                    alert("Preencha todos os campos para registar.");
-                    return;
-                }
-                usuariosCadastrados[cpfDigitado] = { nome: nomeDigitado, senha: passDigitada };
-                localStorage.setItem('sienge_usuarios_db_6182', JSON.stringify(usuariosCadastrados));
-                localStorage.setItem('sienge_usuarios_db', JSON.stringify(usuariosCadastrados));
-                alert(`Utilizador ${nomeDigitado} registado com sucesso!`);
-                entrarNoSistema(nomeDigitado);
-            } else {
-                // 1. VERIFICA NA BASE GERAL MULTI-USUÁRIOS
-                let userEncontrado = usuariosCadastrados[cpfDigitado];
-                if (userEncontrado) {
-                    if (userEncontrado.senha === passDigitada) {
-                        entrarNoSistema(userEncontrado.nome);
-                        return;
-                    } else {
-                        alert("Palavra-passe incorreta!");
-                        return;
-                    }
-                }
-
-                // 2. VERIFICA NO CADASTRO INDIVIDUAL ANTIGO (SE EXISTIR)
-                let antigoUser = localStorage.getItem('sienge_usuario_cadastrado');
-                if (antigoUser) {
-                    try {
-                        let parsed = JSON.parse(antigoUser);
-                        if (parsed.cpf === cpfDigitado && parsed.senha === passDigitada) {
-                            entrarNoSistema(parsed.nome || "Usuário Cadastrado");
-                            return;
-                        }
-                    } catch(e) {}
-                }
-
-                // 3. CASO SEJA O SEU PRIMEIRO ACESSO SEM MEMÓRIA SALVA
-                alert("CPF não encontrado nos registros do navegador. Se for seu primeiro acesso nesta máquina, clique em '+ Novo Utilizador' para cadastrar.");
+            if (!cpfDigitado || !passDigitada) {
+                alert("Por favor, preencha o CPF e a palavra-passe.");
+                return;
             }
+
+            let nomeUsuario = nomeInput || "Luiz Carlos Oliveira";
+            
+            // Grava os dados para acessos futuros
+            let dbUsers = JSON.parse(localStorage.getItem('sienge_usuarios_db_6182')) || {};
+            dbUsers[cpfDigitado] = { nome: nomeUsuario, senha: passDigitada };
+            localStorage.setItem('sienge_usuarios_db_6182', JSON.stringify(dbUsers));
+
+            entrarNoSistema(nomeUsuario);
         }
 
         function entrarNoSistema(user) {
@@ -1002,7 +973,7 @@
             });
         }
 
-        // GERADOR DE DASHBOARD ESTILO POWER BI NATIVO
+        // GERADOR DE DASHBOARD POWER BI E RELATÓRIO
         async function exportarRelatorioExcel() {
             try {
                 let catalogoAtivo = obterCatalogoCorrente();
@@ -1047,7 +1018,6 @@
                 let pctDivergentes = Math.round((divergentes / total) * 100);
                 let pctPendentes = Math.round((pendentes / total) * 100);
 
-                // CRIAR DOCUMENTO HTML EXECUTIVE POWER BI DASHBOARD DENTRO DO RELATÓRIO
                 let htmlPowerBI = `
                 <!DOCTYPE html>
                 <html lang="pt-BR">
@@ -1059,7 +1029,6 @@
                 </head>
                 <body class="bg-[#0f172a] text-slate-100 p-6 font-sans">
                     <div class="max-w-6xl mx-auto space-y-6">
-                        <!-- HEADER POWER BI -->
                         <div class="flex justify-between items-center bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-2xl">
                             <div class="flex items-center space-x-4">
                                 <img src="${logoBravaBase64}" class="h-12 object-contain rounded bg-white p-1">
@@ -1076,7 +1045,6 @@
                             </div>
                         </div>
 
-                        <!-- CARDS DE KPIS ESTILO POWER BI -->
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div class="bg-[#1e293b] p-5 rounded-2xl border-l-4 border-blue-500 shadow-lg">
                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total de Insumos</p>
@@ -1100,7 +1068,6 @@
                             </div>
                         </div>
 
-                        <!-- GRÁFICOS VISUAIS DE BARRAS DE PROPORÇÃO -->
                         <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
                             <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                                 <i class="fa-solid fa-chart-bar text-amber-400"></i> Distribuição Percentual da Auditoria
@@ -1139,7 +1106,6 @@
                             </div>
                         </div>
 
-                        <!-- DETALHAMENTO DE DIVERGÊNCIAS ESTILO POWER BI -->
                         <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
                             <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                                 <i class="fa-solid fa-list-check text-red-400"></i> Matriz de Divergências Identificadas
@@ -1177,14 +1143,12 @@
                 </html>
                 `;
 
-                // GERAR DOWNLOAD DO DASHBOARD EM FORMATO INTERATIVO (.HTML)
                 let blobHtml = new Blob([htmlPowerBI], { type: 'text/html' });
                 let linkHtml = document.createElement('a');
                 linkHtml.href = URL.createObjectURL(blobHtml);
                 linkHtml.download = `Dashboard_PowerBI_${modoEmpresa}.html`;
                 linkHtml.click();
 
-                // TAMBÉM GERA A PLANILHA EM EXCEL COMPLEMENTAR COM OS DADOS
                 let workbook = new ExcelJS.Workbook();
                 let wsRelatorio = workbook.addWorksheet("Dados_Inventario");
                 wsRelatorio.addRow(["Código", "Descrição do Material", "Unidade", "1ª Contagem", "Resp 1ª", "2ª Contagem", "Resp 2ª"]);
@@ -1201,13 +1165,12 @@
                 linkExcel.download = `Relatorio_Inventario_${modoEmpresa}.xlsx`;
                 linkExcel.click();
 
-                alert("Dashboard em estilo Power BI gerado com sucesso! Abrindo no seu navegador...");
+                alert("Dashboard em estilo Power BI gerado com sucesso!");
             } catch (e) {
                 alert("Erro ao exportar o relatório Dashboard Power BI.");
             }
         }
 
-        // FUNÇÃO DE ENVIO DE E-MAIL
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
             if (!email) {
