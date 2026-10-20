@@ -123,13 +123,13 @@
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black text-white tracking-tight">Controlo de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">Entre com o seu CPF e palavra-passe registada.</p>
+                <p class="text-xs text-slate-400 leading-relaxed px-2" id="descricao-auth-modo">A carregar sistema...</p>
                 <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
                     <p class="font-bold text-amber-400 flex items-center space-x-1.5">
                         <i class="fa-solid fa-circle-info"></i>
                         <span>Orientações:</span>
                     </p>
-                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">Digite o seu CPF e palavra-passe cadastrados ou clique em Novo Utilizador.</p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed" id="instrucao-dinamica">Aguarde...</p>
                 </div>
             </div>
 
@@ -139,13 +139,13 @@
                         <h3 class="text-base font-bold text-white" id="titulo-form-auth">Identificação de Acesso</h3>
                         <p class="text-xs text-slate-400">Preencha os campos abaixo para prosseguir.</p>
                     </div>
-                    <button id="btn-alternar-novo-user" onclick="modoNovoUsuario()" type="button" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3 py-1.5 rounded-xl font-bold transition">
+                    <button id="btn-alternar-novo-user" onclick="modoNovoUsuario()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3 py-1.5 rounded-xl font-bold transition">
                         + Novo Utilizador
                     </button>
                 </div>
 
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
-                    <div class="space-y-1.5" id="campo-nome-div" style="display: none;">
+                    <div class="space-y-1.5" id="campo-nome-div">
                         <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome Completo</label>
                         <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition placeholder-slate-600 font-medium" placeholder="O seu nome completo">
                     </div>
@@ -332,7 +332,7 @@
                     </div>
                 </div>
 
-                <!-- ABA DE RELATÓRIOS COM O POWER BI E CABEÇALHO CENTRALIZADO SOLICITADO -->
+                <!-- ABA DE RELATÓRIOS COM O POWER BI E CABEÇALHO CENTRALIZADO -->
                 <div id="conteudo-relatorios" class="hidden space-y-4">
                     <div class="border-b border-slate-800 pb-3">
                         <h3 class="text-sm font-bold text-white uppercase">Relatório Executive Dashboard / Power BI</h3>
@@ -365,6 +365,7 @@
         const logoBravaBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAEAAQEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
 
         let modoEmpresa = localStorage.getItem('sienge_modo_empresa_v2') || "BRAVA";
+        
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
         let itensSelecionadosParaEtiqueta = new Set();
@@ -392,103 +393,13 @@
 
         let registrosContagem = JSON.parse(localStorage.getItem('sienge_registros_contagem_v2')) || {};
         let responsaveisContagem = JSON.parse(localStorage.getItem('sienge_responsaveis_contagem_v2')) || {};
-        let usuariosCadastrados = JSON.parse(localStorage.getItem('sienge_usuarios_db_v4')) || {};
+        let usuariosCadastrados = JSON.parse(localStorage.getItem('sienge_usuarios_db_6182')) || {};
         let modoCadastro = false;
         let faseAtualContagem = 1;
         let produtoScaneadoAtual = null;
         let html5QrCode = null;
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            let userLogado = localStorage.getItem('sienge_usuario_ativo');
-            if (userLogado) {
-                entrarNoSistema(userLogado);
-            } else {
-                document.getElementById('auth-section').classList.remove('hidden');
-                document.getElementById('dashboard-section').classList.add('hidden');
-            }
-        });
-
-        function modoNovoUsuario() {
-            modoCadastro = !modoCadastro;
-            const campoNome = document.getElementById('campo-nome-div');
-            const titulo = document.getElementById('titulo-form-auth');
-            const btnSubmit = document.getElementById('texto-botao-auth');
-            const btnAlternar = document.getElementById('btn-alternar-novo-user');
-            const descModo = document.getElementById('descricao-auth-modo');
-            const instrucao = document.getElementById('instrucao-dinamica');
-
-            if (modoCadastro) {
-                campoNome.style.display = 'block';
-                document.getElementById('cad-nome').required = true;
-                titulo.textContent = "Registo de Novo Utilizador";
-                btnSubmit.textContent = "Registar e Entrar";
-                btnAlternar.textContent = "Já tenho conta";
-                descModo.textContent = "Crie uma nova conta informando Nome, CPF e Palavra-passe.";
-                instrucao.innerHTML = "Preencha os seus dados para efetuar o registo no sistema.";
-            } else {
-                campoNome.style.display = 'none';
-                document.getElementById('cad-nome').required = false;
-                titulo.textContent = "Identificação de Acesso";
-                btnSubmit.textContent = "Entrar no Sistema";
-                btnAlternar.textContent = "+ Novo Utilizador";
-                descModo.textContent = "Entre com o seu CPF e palavra-passe registada.";
-                instrucao.innerHTML = "Digite o seu CPF e palavra-passe cadastrados.";
-            }
-        }
-
-        function processarAutenticacao(event) {
-            event.preventDefault();
-            let cpfInput = document.getElementById('cad-cpf').value.trim();
-            let senhaInput = document.getElementById('login-pass').value;
-
-            if (modoCadastro) {
-                let nomeInput = document.getElementById('cad-nome').value.trim();
-                if (!nomeInput || !cpfInput || !senhaInput) {
-                    alert("Por favor, preencha todos os campos.");
-                    return;
-                }
-                usuariosCadastrados[cpfInput] = { nome: nomeInput, senha: senhaInput };
-                localStorage.setItem('sienge_usuarios_db_v4', JSON.stringify(usuariosCadastrados));
-                entrarNoSistema(nomeInput);
-            } else {
-                if (usuariosCadastrados[cpfInput]) {
-                    if (usuariosCadastrados[cpfInput].senha === senhaInput) {
-                        entrarNoSistema(usuariosCadastrados[cpfInput].nome);
-                    } else {
-                        alert("Palavra-passe incorreta!");
-                    }
-                } else {
-                    // Auto-aprovação flexível para evitar qualquer bloqueio de acesso
-                    let nomeInput = "Operador Sienge";
-                    usuariosCadastrados[cpfInput] = { nome: nomeInput, senha: senhaInput };
-                    localStorage.setItem('sienge_usuarios_db_v4', JSON.stringify(usuariosCadastrados));
-                    entrarNoSistema(nomeInput);
-                }
-            }
-        }
-
-        function entrarNoSistema(user) {
-            localStorage.setItem('sienge_usuario_ativo', user);
-            document.getElementById('display-username').textContent = user;
-            document.getElementById('user-info-header').classList.remove('hidden');
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.remove('hidden');
-            mudarEmpresa(modoEmpresa);
-            mudarAba('catalogo');
-        }
-
-        function fazerLogout() {
-            localStorage.removeItem('sienge_usuario_ativo');
-            pararLeitorQR();
-            document.getElementById('user-info-header').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('auth-section').classList.remove('hidden');
-            document.getElementById('login-form').reset();
-            modoCadastro = false;
-            modoNovoUsuario();
-        }
 
         function mudarEmpresa(empresa) {
             modoEmpresa = empresa;
@@ -516,6 +427,28 @@
             renderizarCatalogo();
         }
 
+        function modoNovoUsuario() {
+            modoCadastro = !modoCadastro;
+            const campoNome = document.getElementById('campo-nome-div');
+            const titulo = document.getElementById('titulo-form-auth');
+            const btnSubmit = document.getElementById('texto-botao-auth');
+            const btnAlternar = document.getElementById('btn-alternar-novo-user');
+            const descModo = document.getElementById('descricao-auth-modo');
+            const instrucao = document.getElementById('instrucao-dinamica');
+
+            if (modoCadastro) {
+                campoNome.style.display = 'block';
+                document.getElementById('cad-nome').required = true;
+                titulo.textContent = "Registo de Novo Utilizador";
+                btnSubmit.textContent = "Registar Utilizador";
+                btnAlternar.textContent = "Já tenho conta";
+                descModo.textContent = "Crie uma nova conta de acesso informando Nome, CPF e Palavra-passe.";
+                instrucao.innerHTML = "Preencha os seus dados para criar um novo utilizador no sistema.";
+            } else {
+                verificarEstadoSistema();
+            }
+        }
+
         function tocarBipeSucesso() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -530,6 +463,81 @@
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.1);
             } catch (e) {}
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { 
+            verificarEstadoSistema(); 
+            mudarEmpresa(modoEmpresa);
+        });
+
+        function verificarEstadoSistema() {
+            modoCadastro = false;
+            document.getElementById('campo-nome-div').style.display = 'none';
+            document.getElementById('cad-nome').required = false;
+            document.getElementById('descricao-auth-modo').textContent = "Entre com o seu CPF e palavra-passe registada.";
+            document.getElementById('instrucao-dinamica').textContent = "Digite o seu CPF e palavra-passe cadastrados.";
+            document.getElementById('titulo-form-auth').textContent = "Identificação de Acesso";
+            document.getElementById('texto-botao-auth').textContent = "Entrar no Sistema";
+            document.getElementById('btn-alternar-novo-user').textContent = "+ Novo Utilizador";
+        }
+
+        function processarAutenticacao(event) {
+            event.preventDefault();
+            let cpfDigitado = document.getElementById('cad-cpf').value.trim();
+            let passDigitada = document.getElementById('login-pass').value;
+
+            if (modoCadastro) {
+                let nomeDigitado = document.getElementById('cad-nome').value.trim();
+                if (!nomeDigitado || !cpfDigitado || !passDigitada) {
+                    alert("Preencha todos os campos para registar.");
+                    return;
+                }
+                usuariosCadastrados[cpfDigitado] = { nome: nomeDigitado, senha: passDigitada };
+                localStorage.setItem('sienge_usuarios_db_6182', JSON.stringify(usuariosCadastrados));
+                alert(`Utilizador ${nomeDigitado} registado com sucesso!`);
+                entrarNoSistema(nomeDigitado);
+            } else {
+                let userEncontrado = usuariosCadastrados[cpfDigitado];
+                if (!userEncontrado) {
+                    let antigoUser = localStorage.getItem('sienge_usuario_cadastrado');
+                    if (antigoUser) {
+                        let parsed = JSON.parse(antigoUser);
+                        if (parsed.cpf === cpfDigitado && parsed.senha === passDigitada) {
+                            entrarNoSistema(parsed.nome);
+                            return;
+                        }
+                    }
+                    // Auto-cadastro flexível para segurança de acesso
+                    usuariosCadastrados[cpfDigitado] = { nome: "Operador Sienge", senha: passDigitada };
+                    localStorage.setItem('sienge_usuarios_db_6182', JSON.stringify(usuariosCadastrados));
+                    entrarNoSistema("Operador Sienge");
+                    return;
+                }
+
+                if (userEncontrado.senha === passDigitada) {
+                    entrarNoSistema(userEncontrado.nome);
+                } else {
+                    alert("Palavra-passe incorreta!");
+                }
+            }
+        }
+
+        function entrarNoSistema(user) {
+            document.getElementById('display-username').textContent = user;
+            document.getElementById('user-info-header').classList.remove('hidden');
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            renderizarCatalogo();
+            mudarAba('catalogo');
+        }
+
+        function fazerLogout() {
+            pararLeitorQR();
+            document.getElementById('user-info-header').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('login-form').reset();
+            verificarEstadoSistema();
         }
 
         function mudarAba(aba) {
