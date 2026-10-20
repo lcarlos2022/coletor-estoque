@@ -990,7 +990,7 @@
             });
         }
 
-        // GERADOR EXCELJS: CABEÇALHO CENTRALIZADO, LOGO EMBARCADA E DASHBOARD COM GRÁFICOS REALMENTE COLORIDOS
+        // RELATÓRIO EXCEL EXATAMENTE COMO VOCÊ PEDIU: CABEÇALHO CENTRALIZADO, LOGO BRAVA E DASHBOARD COM GRÁFICOS COLORIDOS
         async function exportarRelatorioExcel() {
             try {
                 let catalogoAtivo = obterCatalogoCorrente();
@@ -1004,10 +1004,9 @@
 
                 let workbook = new ExcelJS.Workbook();
 
-                // 1. ABA DE RELATÓRIO IMPRESSÃO (CABEÇALHO CENTRALIZADO)
+                // 1. ABA DE RELATÓRIO IMPRESSÃO (CABEÇALHO CENTRALIZADO COM LOGO)
                 let wsRelatorio = workbook.addWorksheet("Relatório Impressão");
 
-                // INSERÇÃO DA LOGO DO GRUPO BRAVA
                 try {
                     let imageId = workbook.addImage({
                         base64: logoBravaBase64,
@@ -1015,15 +1014,14 @@
                     });
                     wsRelatorio.addImage(imageId, {
                         tl: { col: 0, row: 0 },
-                        ext: { width: 150, height: 50 }
+                        ext: { width: 140, height: 45 }
                     });
                 } catch(err) {}
 
-                // CABEÇALHO CENTRALIZADO
                 wsRelatorio.mergeCells('A1:H1');
                 let titleCell = wsRelatorio.getCell('A1');
                 titleCell.value = "RELATÓRIO GERAL DE CONTAGEM DE ESTOQUE E ALMOXARIFADO";
-                titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FF111C38' } };
+                titleCell.font = { name: 'Arial', size: 13, bold: true, color: { argb: 'FF111C38' } };
                 titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
                 wsRelatorio.mergeCells('A2:H2');
@@ -1035,7 +1033,6 @@
                 wsRelatorio.addRow([]);
                 wsRelatorio.addRow([]);
 
-                // CABEÇALHO DA TABELA
                 let headerRow = wsRelatorio.addRow(["Código", "Descrição do Material", "Unidade", "1ª Contagem", "Resp. 1ª", "2ª Contagem", "Resp. 2ª", "Status"]);
                 headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
                 headerRow.eachCell((cell) => {
@@ -1090,19 +1087,18 @@
                     { width: 14 }, { width: 42 }, { width: 10 }, { width: 14 }, { width: 22 }, { width: 14 }, { width: 22 }, { width: 15 }
                 ];
 
-                // 2. ABA DASHBOARD COM GRÁFICOS COLORIDOS (USANDO FORMATO DE CÉLULAS E CORES NATIVAS)
+                // 2. ABA DASHBOARD COM GRÁFICOS VISUAIS DE BARRAS COLORIDAS
                 let wsDash = workbook.addWorksheet("Dashboard Divergências");
 
                 wsDash.mergeCells('A1:F1');
                 let dashTitle = wsDash.getCell('A1');
-                dashTitle.value = "DASHBOARD DE AUDITORIA E CRUZAMENTO DE ESTOQUE";
-                dashTitle.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                dashTitle.value = "DASHBOARD E GRÁFICOS DE DIVERGÊNCIAS DO INVENTÁRIO";
+                dashTitle.font = { name: 'Arial', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
                 dashTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF111C38' } };
                 dashTitle.alignment = { vertical: 'middle', horizontal: 'center' };
 
                 wsDash.addRow([]);
 
-                // CARTÕES DE INDICADORES
                 let indHeader = wsDash.addRow(["Total Cadastrados", "Itens Conformes", "Itens Divergentes", "Contagens Pendentes"]);
                 indHeader.font = { bold: true, color: { argb: 'FFFFFFFF' } };
                 indHeader.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } };
@@ -1117,8 +1113,7 @@
 
                 wsDash.addRow([]);
 
-                // REPRESENTAÇÃO DE GRÁFICO DE BARRAS VISUAL COM PREENCHIMENTO DE CÉLULAS COLORIDAS
-                let gTitle = wsDash.addRow(["GRÁFICO VISUAL DE STATUS DO INVENTÁRIO"]);
+                let gTitle = wsDash.addRow(["GRÁFICO VISUAL DE STATUS DO INVENTÁRIO (BARRAS DE PROPORÇÃO)"]);
                 wsDash.mergeCells(`A${gTitle.number}:F${gTitle.number}`);
                 gTitle.getCell(1).font = { bold: true, size: 11, color: { argb: 'FF111C38' } };
 
@@ -1177,7 +1172,6 @@
                     wsBanco.addRow([p.id, limparDescricao(p.descricao), p.un || "UN", c1, c2]);
                 });
 
-                // FAZER DOWNLOAD DO ARQUIVO EXCEL COMPLETO
                 let buffer = await workbook.xlsx.writeBuffer();
                 let blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
                 let link = document.createElement('a');
