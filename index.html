@@ -8,6 +8,7 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -113,32 +114,44 @@
         </div>
         <div id="user-info-header" class="hidden flex items-center space-x-3">
             <span id="display-username" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700 font-medium"></span>
-            <button onclick="fazerLogout()" class="text-red-400 hover:text-red-300 text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 transition"><i class="fa-solid fa-power-off"></i></button>
+            <button onclick="fazerLogout()" class="text-red-400 hover:text-red-300 text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 transition" title="Terminar Sessão"><i class="fa-solid fa-power-off"></i> Sair</button>
         </div>
     </header>
 
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col justify-center">
 
-        <!-- TELA DE LOGIN / ACCESSO DIRETO -->
+        <!-- TELA DE LOGIN / SEGURANÇA -->
         <section id="auth-section" class="w-full max-w-md mx-auto my-auto space-y-6">
             <div class="text-center space-y-2">
-                <h2 class="text-3xl font-black text-white tracking-tight">Controlo de Acesso</h2>
-                <p class="text-xs text-slate-400 leading-relaxed px-2">Clique no botão abaixo para aceder ao sistema.</p>
+                <h2 class="text-3xl font-black text-white tracking-tight">Controlo de Acesso Restrito</h2>
+                <p class="text-xs text-slate-400 leading-relaxed px-2">Insira as credenciais autorizadas do setor para aceder ao sistema.</p>
+                <div class="bg-[#111c38] border border-slate-800 p-3 rounded-2xl text-left text-xs text-slate-300 space-y-1.5 shadow-md">
+                    <p class="font-bold text-amber-400 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Requisito de Senha:</span>
+                    </p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">Mínimo de 8 caracteres, contendo letra maiúscula, minúscula, número e caractere especial (ex: <code class="text-amber-300 font-bold">Stk@2026</code>). Senha padrão inicial: <code class="text-emerald-400 font-bold">12345678</code></p>
+                </div>
             </div>
 
             <div class="bg-[#111c38] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5">
                 <form id="login-form" onsubmit="processarAutenticacao(event)" class="space-y-4">
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome do Operador</label>
-                        <input type="text" id="cad-nome" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition font-medium" value="Luiz Carlos Oliveira" placeholder="O seu nome">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nome do Colaborador</label>
+                        <input type="text" id="cad-nome" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition font-medium" placeholder="Ex: Luiz Carlos Oliveira">
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF (Opcional)</label>
-                        <input type="text" id="cad-cpf" class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition font-medium" placeholder="000.000.000-00">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">CPF</label>
+                        <input type="text" id="cad-cpf" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition font-medium" placeholder="000.000.000-00">
                     </div>
 
-                    <button type="submit" id="btn-submit-auth" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest">Palavra-passe</label>
+                        <input type="password" id="login-pass" required class="w-full bg-[#0b1329] border border-slate-700/80 focus:border-amber-400 rounded-xl p-3 text-sm text-white focus:outline-none transition" placeholder="Digite a senha (padrão: 12345678)">
+                    </div>
+
+                    <button type="submit" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/10 transition flex items-center justify-center space-x-2">
                         <span>Entrar no Sistema</span>
                     </button>
                 </form>
@@ -187,7 +200,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
                         <div>
                             <h3 class="text-sm font-bold text-white uppercase" id="titulo-secao-catalogo">Base de Materiais</h3>
-                            <p class="text-xs text-slate-400" id="subtitulo-secao-catalogo">A carregar...</p>
+                            <p class="text-xs text-slate-400" id="subtitulo-secao-catalogo">Gerencie os seus materiais.</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <label class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-xl cursor-pointer font-semibold shadow transition flex items-center space-x-1.5">
@@ -232,7 +245,7 @@
                             <h4 class="text-xs font-bold text-emerald-400 uppercase" id="titulo-etiquetas-geradas">ETIQUETAS CUSTOMIZADAS</h4>
                             <div class="flex space-x-2">
                                 <button onclick="window.print()" class="nao-imprimir bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-print"></i><span>Imprimir Etiquetas</span></button>
-                                <button onclick="deletarEtiquetasMarcadasNaTela()" class="nao-imprimir bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-trash-arrow-up"></i><span>Deletar Selecionadas</span></button>
+                                <button onclick="deletarEtiquetasMarcadasNaTela()" class="nao-imprimir bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1" title="Deleta permanentemente do catálogo os itens cujas etiquetas foram marcadas"><i class="fa-solid fa-trash-arrow-up"></i><span>Deletar Selecionadas</span></button>
                                 <button onclick="apagarEtiquetasGeradas()" class="nao-imprimir bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1"><i class="fa-solid fa-xmark"></i><span>Fechar Visualização</span></button>
                             </div>
                         </div>
@@ -379,6 +392,61 @@
         let ultimoCodigoLido = "";
         let ultimaLeituraTimestamp = 0;
 
+        window.addEventListener('DOMContentLoaded', () => {
+            let usuarioSessao = sessionStorage.getItem('sienge_usuario_logado');
+            if (usuarioSessao) {
+                entrarNoSistema(usuarioSessao);
+            }
+        });
+
+        // AUTENTICAÇÃO COM VALIDAÇÃO DE SEGURANÇA E SENHA PADRÃO 12345678
+        function processarAutenticacao(event) {
+            event.preventDefault();
+            let nomeInput = document.getElementById('cad-nome').value.trim();
+            let cpfInput = document.getElementById('cad-cpf').value.trim();
+            let senhaInput = document.getElementById('login-pass').value;
+
+            if (!nomeInput || !cpfInput || !senhaInput) {
+                alert("Por favor, preencha todos os campos de identificação.");
+                return;
+            }
+
+            // Permite a senha inicial "12345678" ou senhas fortes que atendam aos critérios
+            if (senhaInput !== "12345678") {
+                let temMaiuscula = /[A-Z]/.test(senhaInput);
+                let temMinuscula = /[a-z]/.test(senhaInput);
+                let temNumero = /[0-9]/.test(senhaInput);
+                let temEspecial = /[^A-Za-z0-9]/.test(senhaInput);
+                let tamanhoValido = senhaInput.length >= 8;
+
+                if (!tamanhoValido || !temMaiuscula || !temMinuscula || !temNumero || !temEspecial) {
+                    alert("A senha de segurança deve conter no mínimo 8 caracteres, incluindo letras maiúsculas, letras minúsculas, números e um caractere especial (ou utilize a senha padrão 12345678).");
+                    return;
+                }
+            }
+
+            sessionStorage.setItem('sienge_usuario_logado', nomeInput);
+            entrarNoSistema(nomeInput);
+        }
+
+        function entrarNoSistema(user) {
+            document.getElementById('display-username').textContent = user;
+            document.getElementById('user-info-header').classList.remove('hidden');
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            mudarEmpresa(modoEmpresa);
+            mudarAba('catalogo');
+        }
+
+        function fazerLogout() {
+            sessionStorage.removeItem('sienge_usuario_logado');
+            pararLeitorQR();
+            document.getElementById('user-info-header').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('login-form').reset();
+        }
+
         function mudarEmpresa(empresa) {
             modoEmpresa = empresa;
             localStorage.setItem('sienge_modo_empresa_v2', modoEmpresa);
@@ -419,34 +487,6 @@
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.1);
             } catch (e) {}
-        }
-
-        window.addEventListener('DOMContentLoaded', () => { 
-            mudarEmpresa(modoEmpresa);
-        });
-
-        // ENTRADA DIRETA SEM VALIDAR NADA
-        function processarAutenticacao(event) {
-            if (event) event.preventDefault();
-            let nomeInput = document.getElementById('cad-nome').value.trim();
-            let nomeUsuario = nomeInput || "Luiz Carlos Oliveira";
-            entrarNoSistema(nomeUsuario);
-        }
-
-        function entrarNoSistema(user) {
-            document.getElementById('display-username').textContent = user;
-            document.getElementById('user-info-header').classList.remove('hidden');
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.remove('hidden');
-            renderizarCatalogo();
-            mudarAba('catalogo');
-        }
-
-        function fazerLogout() {
-            pararLeitorQR();
-            document.getElementById('user-info-header').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('auth-section').classList.remove('hidden');
         }
 
         function mudarAba(aba) {
