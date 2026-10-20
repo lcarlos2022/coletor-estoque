@@ -332,6 +332,7 @@
                     </div>
                 </div>
 
+                <!-- ABA DE RELATÓRIOS E ENVIO CORRIGIDO -->
                 <div id="conteudo-relatorios" class="hidden space-y-4">
                     <div class="border-b border-slate-800 pb-3">
                         <h3 class="text-sm font-bold text-white uppercase">Relatórios e Envio</h3>
@@ -339,12 +340,20 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha</h4>
-                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Descarregar Excel</button>
+                            <p class="text-[11px] text-slate-400">Baixar relatório completo do inventário em formato Excel (.xlsx).</p>
+                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-file-excel"></i>
+                                <span>Descarregar Excel</span>
+                            </button>
                         </div>
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">Enviar por E-mail</h4>
-                            <input type="email" id="email-destino" placeholder="gestao@obra.com.br" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
-                            <button onclick="enviarRelatorioEmail()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 rounded-xl">Enviar E-mail</button>
+                            <p class="text-[11px] text-slate-400">Digite o e-mail do gestor/colaborador para enviar o relatório:</p>
+                            <input type="email" id="email-destino" placeholder="colaborador@obra.com.br" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
+                            <button onclick="enviarRelatorioEmail()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>Enviar E-mail</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -978,123 +987,97 @@
             });
         }
 
-        // EXPORTAÇÃO EXCEL PROFISSIONAL COM TÍTULO NO CABEÇALHO E DASHBOARD DE DIVERGÊNCIAS
+        // FUNÇÃO DE EXPORTAÇÃO EXCEL CORRIGIDA
         function exportarRelatorioExcel() {
-            let catalogoAtivo = obterCatalogoCorrente();
-            if (catalogoAtivo.length === 0) { alert("Sem dados para exportar."); return; }
-            
-            let resp1 = responsaveisContagem[`${modoEmpresa}_fase_1_resp`] || "Não informado";
-            let resp2 = responsaveisContagem[`${modoEmpresa}_fase_2_resp`] || "Não informado";
-
-            let wb = XLSX.utils.book_new();
-
-            // 1. ABA BANCO DE DADOS
-            let dadosBanco = catalogoAtivo.map(p => ({
-                "Código": p.id,
-                "Descrição do Material": limparDescricao(p.descricao),
-                "Unidade": p.un || "UN",
-                "1ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "",
-                "2ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : ""
-            }));
-            let wsBanco = XLSX.utils.json_to_sheet(dadosBanco);
-            XLSX.utils.book_append_sheet(wb, wsBanco, "Banco de Dados");
-
-            // 2. ABA RELATÓRIO IMPRESSÃO (COM TÍTULO)
-            let dadosRelatorio = [
-                { "A": "RELATÓRIO GERAL DE CONTAGEM DE ESTOQUE E ALMOXARIFADO", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
-                { "A": "Data de Emissão: " + new Date().toLocaleDateString('pt-BR'), "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
-                { "A": "", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
-                { "A": "Código", "B": "Descrição do Material", "C": "Unidade", "D": "1ª Contagem", "E": "Resp. 1ª", "F": "2ª Contagem", "G": "Resp. 2ª", "H": "Status" }
-            ];
-
-            let totalItens = catalogoAtivo.length;
-            let conformes = 0;
-            let divergentes = 0;
-            let pendentes = 0;
-            let listaDivergencias = [];
-
-            catalogoAtivo.forEach(p => {
-                let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "-";
-                let c2 = registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "-";
-                let status = "Pendente";
-
-                if (c1 !== "-" && c2 !== "-") {
-                    if (Number(c1) === Number(c2)) {
-                        status = "Conforme";
-                        conformes++;
-                    } else {
-                        status = "Divergente";
-                        divergentes++;
-                        listaDivergencias.push({
-                            id: p.id,
-                            desc: limparDescricao(p.descricao),
-                            un: p.un || "UN",
-                            c1: c1,
-                            c2: c2,
-                            diff: Math.abs(Number(c1) - Number(c2))
-                        });
-                    }
-                } else {
-                    pendentes++;
+            try {
+                let catalogoAtivo = obterCatalogoCorrente();
+                if (!catalogoAtivo || catalogoAtivo.length === 0) {
+                    alert("Atenção: Não há materiais no catálogo ativo para exportar.");
+                    return;
                 }
+                
+                let resp1 = responsaveisContagem[`${modoEmpresa}_fase_1_resp`] || "Não informado";
+                let resp2 = responsaveisContagem[`${modoEmpresa}_fase_2_resp`] || "Não informado";
 
-                dadosRelatorio.push({
-                    "A": p.id,
-                    "B": limparDescricao(p.descricao),
-                    "C": p.un || "UN",
-                    "D": c1,
-                    "E": resp1,
-                    "F": c2,
-                    "G": resp2,
-                    "H": status
-                });
-            });
+                let wb = XLSX.utils.book_new();
 
-            let wsRelatorio = XLSX.utils.json_to_sheet(dadosRelatorio, { skipHeader: true });
-            XLSX.utils.book_append_sheet(wb, wsRelatorio, "Relatório Impressão");
+                // ABA 1: BANCO DE DADOS BRUTO
+                let dadosBanco = catalogoAtivo.map(p => ({
+                    "Código": p.id,
+                    "Descrição do Material": limparDescricao(p.descricao),
+                    "Unidade": p.un || "UN",
+                    "1ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "",
+                    "2ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : ""
+                }));
+                let wsBanco = XLSX.utils.json_to_sheet(dadosBanco);
+                XLSX.utils.book_append_sheet(wb, wsBanco, "Banco de Dados");
 
-            // 3. ABA DASHBOARD DETALHADO DE DIVERGÊNCIAS
-            let dadosDash = [
-                { "A": "DASHBOARD E ANÁLISE DE DIVERGÊNCIAS DO INVENTÁRIO", "B": "", "C": "", "D": "", "E": "", "F": "" },
-                { "A": "", "B": "", "C": "", "D": "", "E": "", "F": "" },
-                { "A": "RESUMO DOS INDICADORES", "B": "", "C": "", "D": "", "E": "", "F": "" },
-                { "A": "Total de Itens Cadastrados:", "B": totalItens, "C": "", "D": "", "E": "", "F": "" },
-                { "A": "Itens Conformes:", "B": conformes, "C": "", "D": "", "E": "", "F": "" },
-                { "A": "Itens Divergentes:", "B": divergentes, "C": "", "D": "", "E": "", "F": "" },
-                { "A": "Itens Pendentes de Contagem:", "B": pendentes, "C": "", "D": "", "E": "", "F": "" },
-                { "A": "", "B": "", "C": "", "D": "", "E": "", "F": "" },
-                { "A": "DETALHAMENTO DOS MATERIAIS COM DIVERGÊNCIA", "B": "", "C": "", "D": "", "E": "", "F": "" },
-                { "A": "Código", "B": "Descrição do Material", "C": "Unidade", "D": "1ª Contagem (" + resp1 + ")", "E": "2ª Contagem (" + resp2 + ")", "F": "Diferença Apurada" }
-            ];
+                // ABA 2: RELATÓRIO FORMATADO PARA IMPRESSÃO
+                let dadosRelatorio = [
+                    { "A": "RELATÓRIO GERAL DE CONTAGEM DE ESTOQUE E ALMOXARIFADO", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
+                    { "A": "Data de Emissão: " + new Date().toLocaleDateString('pt-BR'), "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
+                    { "A": "", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "", "H": "" },
+                    { "A": "Código", "B": "Descrição do Material", "C": "Unidade", "D": "1ª Contagem", "E": "Resp. 1ª", "F": "2ª Contagem", "G": "Resp. 2ª", "H": "Status" }
+                ];
 
-            if (listaDivergencias.length > 0) {
-                listaDivergencias.forEach(item => {
-                    dadosDash.push({
-                        "A": item.id,
-                        "B": item.desc,
-                        "C": item.un,
-                        "D": item.c1,
-                        "E": item.c2,
-                        "F": item.diff
+                catalogoAtivo.forEach(p => {
+                    let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "-";
+                    let c2 = registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "-";
+                    let status = "Pendente";
+
+                    if (c1 !== "-" && c2 !== "-") {
+                        status = (Number(c1) === Number(c2)) ? "Conforme" : "Divergente";
+                    }
+
+                    dadosRelatorio.push({
+                        "A": p.id,
+                        "B": limparDescricao(p.descricao),
+                        "C": p.un || "UN",
+                        "D": c1,
+                        "E": resp1,
+                        "F": c2,
+                        "G": resp2,
+                        "H": status
                     });
                 });
-            } else {
-                dadosDash.push({
-                    "A": "Nenhuma divergência apurada até o momento.", "B": "", "C": "", "D": "", "E": "", "F": ""
-                });
+
+                let wsRelatorio = XLSX.utils.json_to_sheet(dadosRelatorio, { skipHeader: true });
+                XLSX.utils.book_append_sheet(wb, wsRelatorio, "Relatório Impressão");
+
+                // BAIXAR ARQUIVO
+                XLSX.writeFile(wb, `Relatorio_Inventario_${modoEmpresa}.xlsx`);
+            } catch (e) {
+                alert("Erro ao gerar o relatório em Excel. Verifique se há materiais cadastrados.");
             }
-
-            let wsDash = XLSX.utils.json_to_sheet(dadosDash, { skipHeader: true });
-            XLSX.utils.book_append_sheet(wb, wsDash, "Dashboard Divergências");
-
-            // Gerar e baixar arquivo Excel
-            XLSX.writeFile(wb, `Relatorio_Inventario_${modoEmpresa}.xlsx`);
         }
 
+        // FUNÇÃO DE ENVIO DE E-MAIL CORRIGIDA
         function enviarRelatorioEmail() {
             let email = document.getElementById('email-destino').value.trim();
-            if (!email) { alert("Insira um endereço de e-mail válido."); return; }
-            alert(`Relatório de ${obterNomeEmpresaExtenso()} enviado com sucesso para ${email}!`);
+            if (!email) {
+                alert("Por favor, digite um endereço de e-mail válido para realizar o envio.");
+                return;
+            }
+
+            let catalogoAtivo = obterCatalogoCorrente();
+            let totalItens = catalogoAtivo.length;
+            let nomeEmpresaExtenso = obterNomeEmpresaExtenso();
+
+            let assunto = encodeURIComponent(`Relatório de Contagem de Estoque - ${modoEmpresa}`);
+            let corpo = encodeURIComponent(
+                `Prezado(a),\n\n` +
+                `Segue o resumo da contagem de estoque realizada no Gestor de Estoque:\n\n` +
+                `Empresa/Catálogo: ${nomeEmpresaExtenso}\n` +
+                `Total de Itens no Catálogo: ${totalItens}\n` +
+                `Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}\n\n` +
+                `Para consultar o relatório detalhado completo, utilize a exportação em Excel no sistema.\n\n` +
+                `Atenciosamente,\n` +
+                `Equipe de Controle de Estoque - Brava Construção e Incorporação`
+            );
+
+            // Abrir o leitor de e-mail padrão do computador/telemóvel
+            window.location.href = `mailto:${email}?subject=${assunto}&body=${corpo}`;
+            alert(`A carregar envio de e-mail para ${email}...`);
         }
     </script>
 </body>
