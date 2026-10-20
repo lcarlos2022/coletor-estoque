@@ -338,8 +338,8 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
-                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha</h4>
-                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Descarregar Excel</button>
+                            <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Planilha Profissional</h4>
+                            <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl">Descarregar Excel (2 Abas)</button>
                         </div>
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold text-emerald-400 uppercase">Enviar por E-mail</h4>
@@ -978,27 +978,58 @@
             });
         }
 
+        // FUNÇÃO DE EXPORTAÇÃO EXCEL EM 2 ABAS (PROFISSIONAL)
         function exportarRelatorioExcel() {
             let catalogoAtivo = obterCatalogoCorrente();
             if (catalogoAtivo.length === 0) { alert("Sem dados para exportar."); return; }
-            let nomeEmpresaExtenso = obterNomeEmpresaExtenso();
+            
             let resp1 = responsaveisContagem[`${modoEmpresa}_fase_1_resp`] || "Não informado";
             let resp2 = responsaveisContagem[`${modoEmpresa}_fase_2_resp`] || "Não informado";
 
-            let dadosExport = catalogoAtivo.map(p => ({
-                "Código": p.id,
-                "Descrição": limparDescricao(p.descricao),
-                "Unidade": p.un || "UN",
-                "Empresa": nomeEmpresaExtenso,
-                "1ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "",
-                "Responsável 1ª Contagem": resp1,
-                "2ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "",
-                "Responsável 2ª Contagem": resp2
-            }));
-            let ws = XLSX.utils.json_to_sheet(dadosExport);
             let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Contagem Estoque");
-            XLSX.writeFile(wb, `Relatorio_Contagem_${modoEmpresa}.xlsx`);
+
+            // ABA 1: Banco de Dados Bruto
+            let dadosBanco = catalogoAtivo.map(p => ({
+                "Código": p.id,
+                "Descrição do Material": limparDescricao(p.descricao),
+                "Unidade": p.un || "UN",
+                "1ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "",
+                "2ª Contagem": registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : ""
+            }));
+            let wsBanco = XLSX.utils.json_to_sheet(dadosBanco);
+            XLSX.utils.book_append_sheet(wb, wsBanco, "Banco de Dados");
+
+            // ABA 2: Relatório Formatado para Impressão
+            let dadosRelatorio = [
+                { "A": "RELATÓRIO GERAL DE CONTAGEM DE ESTOQUE E ALMOXARIFADO", "B": "", "C": "", "D": "", "E": "", "F": "", "G": "" },
+                { "A": "Código", "B": "Descrição do Material", "C": "Unidade", "D": "1ª Contagem", "E": "Resp. 1ª", "F": "2ª Contagem", "G": "Resp. 2ª", "H": "Status" }
+            ];
+
+            catalogoAtivo.forEach(p => {
+                let c1 = registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_1`] : "-";
+                let c2 = registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] !== undefined ? registrosContagem[`${modoEmpresa}_${p.id}_fase_2`] : "-";
+                let status = "Pendente";
+                if (c1 !== "-" && c2 !== "-") {
+                    status = (Number(c1) === Number(c2)) ? "Conforme" : "Divergente";
+                }
+
+                dadosRelatorio.push({
+                    "A": p.id,
+                    "B": limparDescricao(p.descricao),
+                    "C": p.un || "UN",
+                    "D": c1,
+                    "E": resp1,
+                    "F": c2,
+                    "G": resp2,
+                    "H": status
+                });
+            });
+
+            let wsRelatorio = XLSX.utils.json_to_sheet(dadosRelatorio, { skipHeader: true });
+            XLSX.utils.book_append_sheet(wb, wsRelatorio, "Relatório Impressão");
+
+            // Baixar ficheiro Excel
+            XLSX.writeFile(wb, `Relatorio_Inventario_${modoEmpresa}.xlsx`);
         }
 
         function enviarRelatorioEmail() {
