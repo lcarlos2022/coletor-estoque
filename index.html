@@ -271,10 +271,16 @@
                         </div>
                     </div>
 
-                    <!-- CAMPO DE IDENTIFICAÇÃO DO RESPONSÁVEL PELA CONTAGEM -->
-                    <div class="bg-[#0b1329] border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row items-center gap-2">
-                        <span class="text-xs font-bold text-slate-300 uppercase whitespace-nowrap">Responsável pela Contagem:</span>
-                        <input type="text" id="input-responsavel-contagem" placeholder="Nome do responsável atual" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-amber-400 font-medium" onchange="salvarResponsavelContagem()">
+                    <!-- CAMPOS DE RESPONSÁVEIS PELA 1ª E 2ª CONTAGEM -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-[#0b1329] border border-slate-800 p-3 rounded-xl">
+                        <div class="space-y-1">
+                            <label class="block text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Responsável 1ª Contagem:</label>
+                            <input type="text" id="input-resp-1" placeholder="Nome de quem faz a 1ª contagem" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-amber-400 font-medium" onchange="salvarResponsaveis()">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-[10px] font-bold text-amber-400 uppercase tracking-widest">Responsável 2ª Contagem:</label>
+                            <input type="text" id="input-resp-2" placeholder="Nome de quem faz a 2ª contagem" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-amber-400 font-medium" onchange="salvarResponsaveis()">
+                        </div>
                     </div>
                     
                     <div class="bg-[#0b1329] border border-slate-800 rounded-xl p-4 text-center space-y-3">
@@ -299,7 +305,7 @@
                         </div>
                     </div>
                     <div class="flex justify-between pt-2">
-                        <button onclick="proximaContagem()" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs px-3 py-2 rounded-xl">Avançar 2ª Contagem</button>
+                        <button onclick="proximaContagem()" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs px-3 py-2 rounded-xl">Alternar Fase (1ª / 2ª Contagem)</button>
                     </div>
                 </div>
 
@@ -539,7 +545,7 @@
             if (aba === 'scanner') {
                 setTimeout(() => { 
                     iniciarLeitorQR(); 
-                    carregarResponsavelContagemUI();
+                    carregarResponsaveisUI();
                 }, 200);
             } else {
                 pararLeitorQR();
@@ -547,19 +553,18 @@
             if (aba === 'divergencias') { calcularDivergencias(); }
         }
 
-        function carregarResponsavelContagemUI() {
-            let chaveResp = `${modoEmpresa}_fase_${faseAtualContagem}_resp`;
-            let inputResp = document.getElementById('input-responsavel-contagem');
-            if (inputResp) {
-                inputResp.value = responsaveisContagem[chaveResp] || "";
-            }
+        function carregarResponsaveisUI() {
+            let inputResp1 = document.getElementById('input-resp-1');
+            let inputResp2 = document.getElementById('input-resp-2');
+            if (inputResp1) inputResp1.value = responsaveisContagem[`${modoEmpresa}_fase_1_resp`] || "";
+            if (inputResp2) inputResp2.value = responsaveisContagem[`${modoEmpresa}_fase_2_resp`] || "";
         }
 
-        function salvarResponsavelContagem() {
-            let inputResp = document.getElementById('input-responsavel-contagem');
-            if (!inputResp) return;
-            let chaveResp = `${modoEmpresa}_fase_${faseAtualContagem}_resp`;
-            responsaveisContagem[chaveResp] = inputResp.value.trim();
+        function salvarResponsaveis() {
+            let inputResp1 = document.getElementById('input-resp-1');
+            let inputResp2 = document.getElementById('input-resp-2');
+            if (inputResp1) responsaveisContagem[`${modoEmpresa}_fase_1_resp`] = inputResp1.value.trim();
+            if (inputResp2) responsaveisContagem[`${modoEmpresa}_fase_2_resp`] = inputResp2.value.trim();
             localStorage.setItem('sienge_responsaveis_contagem_v2', JSON.stringify(responsaveisContagem));
         }
 
@@ -663,7 +668,7 @@
             let qtdVal = parseFloat(document.getElementById('lido-quantidade').value);
             if (isNaN(qtdVal)) { alert("Insira uma quantidade válida."); return; }
 
-            salvarResponsavelContagem();
+            salvarResponsaveis();
 
             let chaveReg = `${modoEmpresa}_${produtoScaneadoAtual.id}_fase_${faseAtualContagem}`;
             registrosContagem[chaveReg] = qtdVal;
@@ -676,7 +681,7 @@
         }
 
         function proximaContagem() {
-            salvarResponsavelContagem();
+            salvarResponsaveis();
             if (faseAtualContagem === 1) {
                 faseAtualContagem = 2;
                 document.getElementById('label-fase-contagem').textContent = "2ª Contagem";
@@ -686,7 +691,7 @@
                 document.getElementById('label-fase-contagem').textContent = "1ª Contagem";
                 alert("Retornado para a 1ª Contagem.");
             }
-            carregarResponsavelContagemUI();
+            carregarResponsaveisUI();
         }
 
         function importarPlanilhaSienge(event) {
