@@ -334,7 +334,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-3">
                             <h4 class="text-xs font-bold text-purple-400 uppercase">Exportar Relatório Power BI</h4>
-                            <p class="text-[11px] text-slate-400">Gera o relatório Excel completo com cabeçalho e gráficos visuais em formato Power BI.</p>
+                            <p class="text-[11px] text-slate-400">Gera o relatório Excel completo com cabeçalho, logotipo Brava no canto esquerdo e gráficos visuais.</p>
                             <button onclick="exportarRelatorioExcel()" class="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2">
                                 <i class="fa-solid fa-chart-pie"></i>
                                 <span>Exportar Relatório Power BI</span>
@@ -360,6 +360,9 @@
     </footer>
 
     <script>
+        // LOGOTIPO OFICIAL DO GRUPO BRAVA EM BASE64 PARA O CABEÇALHO DO EXCEL
+        const logoBravaBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAEAAQEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
+
         let modoEmpresa = localStorage.getItem('sienge_modo_empresa_v2') || "BRAVA";
         let dbBrava = JSON.parse(localStorage.getItem('sienge_db_brava_v2')) || [];
         let dbCliente = JSON.parse(localStorage.getItem('sienge_db_cliente_v2')) || [];
@@ -993,6 +996,17 @@
 
                 let workbook = new ExcelJS.Workbook();
                 let wsRelatorio = workbook.addWorksheet("Relatório Impressão");
+
+                try {
+                    let imageId = workbook.addImage({
+                        base64: logoBravaBase64,
+                        extension: 'jpeg'
+                    });
+                    wsRelatorio.addImage(imageId, {
+                        tl: { col: 0, row: 0 },
+                        ext: { width: 130, height: 42 }
+                    });
+                } catch(err) {}
 
                 wsRelatorio.mergeCells('A1:H1');
                 let titleCell = wsRelatorio.getCell('A1');
